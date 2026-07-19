@@ -1,0 +1,34 @@
+{
+  "nav": {
+    "mainNav": "Main navigation",
+    "products": "Products",
+    "brands": "Brands",
+    "partnership": "Partnership",
+    "about": "About Mingo",
+    "account": "Account",
+    "cart": "Cart",
+    "search": "Search"
+  },
+  "footer": {
+    "aboutTitle": "About Mingo",
+    "aboutUs": "About us",
+    "contact": "Contact",
+    "policy": "Policies",
+    "brandsTitle": "Brands",
+    "linesTitle": "Product lines",
+    "tagline": "Joy in every bite!"
+  },
+  "home": {
+    "mustTry": "Must try",
+    "seeProduct": "See product"
+  },
+  "product": {
+    "addToCart": "Add to cart",
+    "outOfStock": "Out of stock",
+    "description": "Description",
+    "ingredients": "Ingredients & nutrition",
+    "usage": "How to enjoy",
+    "notes": "Notes",
+    "suggestions": "You may also like"
+  }
+}

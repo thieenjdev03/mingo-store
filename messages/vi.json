@@ -1,0 +1,34 @@
+{
+  "nav": {
+    "mainNav": "Điều hướng chính",
+    "products": "Dòng sản phẩm",
+    "brands": "Thương hiệu",
+    "partnership": "Hợp tác",
+    "about": "Về Mingo",
+    "account": "Tài khoản",
+    "cart": "Giỏ hàng",
+    "search": "Tìm kiếm"
+  },
+  "footer": {
+    "aboutTitle": "Về Mingo",
+    "aboutUs": "Về chúng tôi",
+    "contact": "Liên hệ",
+    "policy": "Chính sách",
+    "brandsTitle": "Thương hiệu",
+    "linesTitle": "Dòng sản phẩm",
+    "tagline": "Joy in every bite!"
+  },
+  "home": {
+    "mustTry": "Phải thử",
+    "seeProduct": "Xem sản phẩm"
+  },
+  "product": {
+    "addToCart": "Thêm vào giỏ hàng",
+    "outOfStock": "Hết hàng",
+    "description": "Mô tả",
+    "ingredients": "Thành phần & dinh dưỡng",
+    "usage": "Hướng dẫn sử dụng",
+    "notes": "Chú ý",
+    "suggestions": "Gợi ý cho bạn"
+  }
+}
