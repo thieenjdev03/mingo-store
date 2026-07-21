@@ -1,57 +1,206 @@
-'use client';
+"use client";
 
-import { useTranslations } from 'next-intl';
-import { Search, ShoppingBag, User } from 'lucide-react';
-import { Link } from '@/i18n/navigation';
-import { useCart } from '@/features/cart/cart-context';
+import { useEffect, useRef, useState, type FormEvent } from "react";
+import Image from "next/image";
+import { Menu, X } from "lucide-react";
+import { useTranslations } from "next-intl";
+import { Link, useRouter } from "@/i18n/navigation";
+import { useCart } from "@/features/cart/cart-context";
+import { CartDrawer } from "@/features/cart/cart-drawer";
+import { LocaleSwitcher } from "@/components/layout/locale-switcher";
 
 const NAV = [
-  { key: 'products', href: '/san-pham' },
-  { key: 'brands', href: '/thuong-hieu' },
-  { key: 'partnership', href: '/hop-tac' },
-  { key: 'about', href: '/ve-mingo' },
+  { key: "products", href: "/products" },
+  { key: "brands", href: "/brands" },
+  { key: "partnership", href: "/partnership" },
+  { key: "about", href: "/about" },
 ] as const;
 
+const HEADER_ASSETS = {
+  logo: "/assets/mingo/home/mingo-logo.png",
+  account: "/assets/mingo/home/header-account.svg",
+  cart: "/assets/mingo/home/header-cart.svg",
+  search: "/assets/mingo/home/header-search.svg",
+} as const;
+
 export function SiteHeader() {
-  const t = useTranslations('nav');
-  const { totalQuantity } = useCart();
+  const t = useTranslations("nav");
+  const router = useRouter();
+  const { totalQuantity, isDrawerOpen, openDrawer } = useCart();
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (searchOpen) searchInputRef.current?.focus();
+  }, [searchOpen]);
+
+  useEffect(() => {
+    if (!menuOpen && !searchOpen) return;
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setMenuOpen(false);
+        setSearchOpen(false);
+      }
+    };
+    window.addEventListener("keydown", closeOnEscape);
+    return () => window.removeEventListener("keydown", closeOnEscape);
+  }, [menuOpen, searchOpen]);
+
+  const submitSearch = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const data = new FormData(event.currentTarget);
+    const query = String(data.get("q") ?? "").trim();
+    router.push(
+      query ? `/products?q=${encodeURIComponent(query)}` : "/products",
+    );
+    setSearchOpen(false);
+  };
 
   return (
-    <header className="sticky top-0 z-40 border-b bg-card">
-      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-6 px-4 md:px-8">
-        <Link href="/" className="font-display text-3xl font-bold text-primary" aria-label="Mingo — trang chủ">
-          Mingo
+    <header className="sticky top-0 z-50 h-[72px] bg-white xl:h-[100px]">
+      <div className="relative mx-auto flex h-full max-w-[1440px] items-center px-4 sm:px-8 xl:block xl:px-0">
+        <Link
+          href="/"
+          aria-label="Mingo — trang chủ"
+          className="relative -ml-2 block size-[92px] shrink-0 xl:absolute xl:left-[7.4306%] xl:top-[-27px] xl:ml-0 xl:size-[154px]"
+        >
+          <Image
+            src={HEADER_ASSETS.logo}
+            alt="Mingo"
+            fill
+            priority
+            sizes="154px"
+            className="object-contain"
+          />
         </Link>
 
-        <nav className="hidden items-center gap-8 md:flex" aria-label={t('mainNav')}>
+        <nav
+          aria-label={t("mainNav")}
+          className="absolute left-[31.8056%] top-[34px] hidden h-8 items-center gap-[44px] min-[1400px]:gap-[60px] xl:flex"
+        >
           {NAV.map((item) => (
             <Link
               key={item.key}
               href={item.href}
-              className="text-sm font-bold uppercase tracking-wide hover:text-primary"
+              className="flex h-8 items-center whitespace-nowrap text-[16px] font-bold uppercase leading-6 text-[#563e2b] transition-colors hover:text-primary"
             >
               {t(item.key)}
             </Link>
           ))}
         </nav>
 
-        <div className="flex items-center gap-4">
-          <Link href="/tai-khoan" aria-label={t('account')} className="hover:text-primary">
-            <User className="size-6" />
+        <div className="ml-auto flex items-center gap-4 xl:absolute xl:left-[76.7361%] xl:top-[34px] xl:ml-0 xl:gap-[44px] min-[1400px]:gap-[60px]">
+          <div className="hidden xl:block">
+            <LocaleSwitcher />
+          </div>
+          <div className="xl:hidden">
+            <LocaleSwitcher />
+          </div>
+          <Link
+            href="/account"
+            aria-label={t("account")}
+            className="relative hidden size-8 transition-opacity hover:opacity-60 xl:block"
+          >
+            <Image src={HEADER_ASSETS.account} alt="" fill sizes="32px" />
           </Link>
-          <Link href="/gio-hang" aria-label={t('cart')} className="relative hover:text-primary">
-            <ShoppingBag className="size-6" />
-            {totalQuantity > 0 && (
-              <span className="absolute -right-2 -top-2 flex size-5 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground">
+
+          <button
+            type="button"
+            aria-label={t("cart")}
+            aria-expanded={isDrawerOpen}
+            onClick={openDrawer}
+            className="relative size-7 transition-opacity hover:opacity-60 xl:size-8"
+          >
+            <Image src={HEADER_ASSETS.cart} alt="" fill sizes="32px" />
+            {totalQuantity > 0 ? (
+              <span className="absolute -right-2 -top-2 flex size-5 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-white">
                 {totalQuantity}
               </span>
-            )}
-          </Link>
-          <button type="button" aria-label={t('search')} className="hover:text-primary">
-            <Search className="size-6" />
+            ) : null}
+          </button>
+
+          <button
+            type="button"
+            aria-label={t("search")}
+            aria-expanded={searchOpen}
+            onClick={() => setSearchOpen((open) => !open)}
+            className="relative size-7 transition-opacity hover:opacity-60 xl:size-8"
+          >
+            <Image src={HEADER_ASSETS.search} alt="" fill sizes="32px" />
+          </button>
+
+          <button
+            type="button"
+            aria-label={menuOpen ? "Đóng menu" : "Mở menu"}
+            aria-expanded={menuOpen}
+            onClick={() => setMenuOpen((open) => !open)}
+            className="transition-colors hover:text-primary xl:hidden"
+          >
+            {menuOpen ? <X className="size-7" /> : <Menu className="size-7" />}
           </button>
         </div>
       </div>
+
+      {searchOpen ? (
+        <div className="absolute inset-x-0 top-full border-t border-border bg-white p-4 shadow-lg">
+          <form
+            onSubmit={submitSearch}
+            className="mx-auto flex max-w-[720px] items-center gap-3"
+          >
+            <span className="relative size-5 shrink-0 opacity-60" aria-hidden>
+              <Image src={HEADER_ASSETS.search} alt="" fill sizes="20px" />
+            </span>
+            <input
+              ref={searchInputRef}
+              type="search"
+              name="q"
+              aria-label={t("search")}
+              placeholder={t("searchPlaceholder")}
+              className="h-11 flex-1 border-b border-[#563e2b] bg-transparent px-2 text-base outline-none"
+            />
+            <button
+              type="button"
+              onClick={() => setSearchOpen(false)}
+              aria-label="Đóng tìm kiếm"
+            >
+              <X className="size-6" />
+            </button>
+          </form>
+        </div>
+      ) : null}
+
+      {menuOpen ? (
+        <nav
+          aria-label={t("mainNav")}
+          className="absolute inset-x-0 top-full border-t border-border bg-white px-5 py-6 shadow-lg xl:hidden"
+        >
+          <div className="mx-auto flex max-w-xl flex-col">
+            {NAV.map((item) => (
+              <Link
+                key={item.key}
+                href={item.href}
+                onClick={() => setMenuOpen(false)}
+                className="border-b border-border py-4 text-base font-bold uppercase text-[#563e2b] last:border-0 hover:text-primary"
+              >
+                {t(item.key)}
+              </Link>
+            ))}
+            <Link
+              href="/account"
+              onClick={() => setMenuOpen(false)}
+              className="flex items-center gap-3 pt-5 font-semibold text-[#563e2b]"
+            >
+              <span className="relative size-5">
+                <Image src={HEADER_ASSETS.account} alt="" fill sizes="20px" />
+              </span>
+              {t("account")}
+            </Link>
+          </div>
+        </nav>
+      ) : null}
+
+      <CartDrawer />
     </header>
   );
 }

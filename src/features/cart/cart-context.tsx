@@ -6,7 +6,7 @@
  * TODO(checkout): port onValidateAndRefreshCart từ repo cũ — validate tồn kho
  * với server TRƯỚC bước thanh toán, không tin snapshot phía client.
  */
-import { createContext, useContext, useEffect, useMemo, useReducer, type ReactNode } from 'react';
+import { createContext, useContext, useEffect, useMemo, useReducer, useState, type ReactNode } from 'react';
 import type { CartAction, CartItem, CartState } from './types';
 
 const STORAGE_KEY = 'mingo-cart-v1';
@@ -43,16 +43,20 @@ function reducer(state: CartState, action: CartAction): CartState {
 interface CartContextValue extends CartState {
   totalQuantity: number;
   subtotal: number;
+  isDrawerOpen: boolean;
   addItem: (item: CartItem) => void;
   removeItem: (sku: string) => void;
   setQuantity: (sku: string, quantity: number) => void;
   clear: () => void;
+  openDrawer: () => void;
+  closeDrawer: () => void;
 }
 
 const CartContext = createContext<CartContextValue | null>(null);
 
 export function CartProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(reducer, EMPTY);
+  const [isDrawerOpen, setDrawerOpen] = useState(false);
 
   // Hydrate sau mount để tránh mismatch SSR
   useEffect(() => {
@@ -77,12 +81,15 @@ export function CartProvider({ children }: { children: ReactNode }) {
       ...state,
       totalQuantity: state.items.reduce((s, i) => s + i.quantity, 0),
       subtotal: state.items.reduce((s, i) => s + i.price * i.quantity, 0),
+      isDrawerOpen,
       addItem: (item) => dispatch({ type: 'ADD', item }),
       removeItem: (sku) => dispatch({ type: 'REMOVE', sku }),
       setQuantity: (sku, quantity) => dispatch({ type: 'SET_QTY', sku, quantity }),
       clear: () => dispatch({ type: 'CLEAR' }),
+      openDrawer: () => setDrawerOpen(true),
+      closeDrawer: () => setDrawerOpen(false),
     }),
-    [state],
+    [isDrawerOpen, state],
   );
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;

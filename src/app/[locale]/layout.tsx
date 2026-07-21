@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { Work_Sans } from 'next/font/google';
 import { NextIntlClientProvider, hasLocale } from 'next-intl';
 import { setRequestLocale } from 'next-intl/server';
 import { notFound } from 'next/navigation';
@@ -7,6 +8,12 @@ import { CartProvider } from '@/features/cart/cart-context';
 import { SiteHeader } from '@/components/layout/site-header';
 import { SiteFooter } from '@/components/layout/site-footer';
 import '@/styles/globals.css';
+
+const workSans = Work_Sans({
+  subsets: ['latin', 'vietnamese'],
+  variable: '--font-work-sans',
+  display: 'swap',
+});
 
 /*
  * TODO(font): khi chốt font brand ở Figma, bật next/font:
@@ -39,7 +46,7 @@ export default async function LocaleLayout({
   setRequestLocale(locale);
 
   return (
-    <html lang={locale}>
+    <html lang={locale} className={workSans.variable}>
       <body className="flex min-h-screen flex-col">
         <NextIntlClientProvider>
           <CartProvider>

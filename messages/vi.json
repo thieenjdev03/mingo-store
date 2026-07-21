@@ -7,20 +7,283 @@
     "about": "Về Mingo",
     "account": "Tài khoản",
     "cart": "Giỏ hàng",
-    "search": "Tìm kiếm"
+    "search": "Tìm kiếm",
+    "searchPlaceholder": "Tìm sản phẩm..."
   },
   "footer": {
     "aboutTitle": "Về Mingo",
     "aboutUs": "Về chúng tôi",
     "contact": "Liên hệ",
     "policy": "Chính sách",
+    "career": "Nghề nghiệp",
     "brandsTitle": "Thương hiệu",
     "linesTitle": "Dòng sản phẩm",
     "tagline": "Joy in every bite!"
   },
   "home": {
     "mustTry": "Phải thử",
-    "seeProduct": "Xem sản phẩm"
+    "seeProduct": "See Product"
+  },
+  "products": {
+    "title": "Dòng sản phẩm",
+    "description": "TODO: danh sách + bộ lọc (category / thương hiệu / vị / giá).",
+    "collectionTitle": "Dessert Collection"
+  },
+  "contact": {
+    "title": "Mingo luôn ở đây để lắng nghe chia sẻ của bạn!",
+    "fields": {
+      "fullName": "Họ và tên",
+      "email": "Mail",
+      "phone": "Số điện thoại",
+      "department": "Bộ phận liên hệ",
+      "subject": "Tiêu đề",
+      "message": "Nội dung"
+    },
+    "departments": {
+      "customerCare": "Chăm sóc khách hàng",
+      "business": "Hợp tác kinh doanh",
+      "orderComplaint": "Khiếu nại đơn hàng",
+      "other": "Khác"
+    },
+    "privacy": {
+      "prefix": "Dữ liệu của bạn sẽ được xử lý theo",
+      "link": "chính sách bảo vệ quyền riêng tư"
+    },
+    "submit": "Gửi",
+    "submitting": "Đang gửi...",
+    "validation": {
+      "required": "Vui lòng nhập thông tin này.",
+      "email": "Vui lòng nhập email hợp lệ.",
+      "phone": "Vui lòng nhập số điện thoại Việt Nam hợp lệ.",
+      "messageMin": "Nội dung cần có ít nhất 10 ký tự."
+    },
+    "success": {
+      "title": "Mingo đã nhận được chia sẻ của bạn!",
+      "description": "Cảm ơn bạn đã liên hệ. Đội ngũ Mingo sẽ phản hồi trong thời gian sớm nhất.",
+      "sendAnother": "Gửi tin khác"
+    }
+  },
+  "locale": {
+    "switch": "Chuyển ngôn ngữ / Switch language",
+    "vi": "VI",
+    "en": "EN"
+  },
+  "about": {
+    "story": {
+      "title": "Về Mingo",
+      "belief": "Tại Mingo Ice Cream, chúng tôi tin rằng mọi người đều xứng đáng được thưởng thức kem chất lượng. Bởi vì ai cũng yêu kem."
+    },
+    "history": {
+      "title": "Lịch sử",
+      "kicker": "Mang cả thế giới niềm vui đến gần hơn từ những bước khởi đầu khiêm tốn vào năm 2009",
+      "paragraphOne": "Mingo Ice Cream bắt đầu vào năm 2009. Dù khởi đầu còn khiêm tốn, chúng tôi đã mang những công thức truyền thống từ châu Á đến với nhiều dòng kem tráng miệng. Các công thức được điều chỉnh tinh tế để phù hợp với khẩu vị đa dạng mà vẫn giữ trọn hương vị tươi ngon.",
+      "paragraphTwo": "Chúng tôi đặt niềm đam mê vào từng hộp, cốc và que kem. Ngày nay, bạn có thể tìm thấy Mingo cùng các thương hiệu Rokka, Oasis và Fruitesia tại nhiều quốc gia trong khu vực."
+    },
+    "office": {
+      "country": "VIỆT NAM",
+      "tab": "Văn phòng / Kho",
+      "company": "Hồng Tân Phát Co., Ltd.",
+      "address": "232/28 Đ. Tô Hiệu, Phú Thạnh, Hồ Chí Minh, Việt Nam",
+      "phoneLabel": "Điện thoại",
+      "emailLabel": "Email"
+    },
+    "departments": {
+      "sales": "Bộ phận Kinh doanh",
+      "hr": "Bộ phận Nhân sự",
+      "support": "Hỗ trợ khách hàng",
+      "external": "Bộ phận Đối ngoại"
+    },
+    "distribution": {
+      "title": "HỆ THỐNG PHÂN PHỐI",
+      "description": "Tìm địa điểm mua sản phẩm Mingo Ice Cream",
+      "line": "---Dòng sản phẩm---",
+      "product": "---Chọn sản phẩm---",
+      "city": "---Chọn Tỉnh/Thành---",
+      "district": "---Chọn Quận/Huyện---",
+      "search": "Tìm điểm bán",
+      "found": "Tìm thấy {count} điểm bán đang hiển thị",
+      "mapTitle": "Bản đồ văn phòng Mingo tại đường Tô Hiệu",
+      "options": {
+        "bars": "Kem que",
+        "boxes": "Kem hộp",
+        "cones": "Kem ốc quế",
+        "creme": "Creme Caramel",
+        "matcha": "Matcha Red Bean",
+        "hcm": "Hồ Chí Minh",
+        "daNang": "Đà Nẵng",
+        "district1": "Quận 1",
+        "tanPhu": "Quận Tân Phú"
+      },
+      "stores": {
+        "hoaTho": { "name": "HÒA THỌ MART", "address": "Siêu thị Hòa Thọ Mart, số 36 Ông Ích Đường, Phường Hòa Thọ Đông, Quận Cẩm Lệ, Đà Nẵng" },
+        "jMart": { "name": "J MART", "address": "Tòa nhà Gold View, Bến Vân Đồn, Phường 1, Quận 4, Hồ Chí Minh" },
+        "xomCui": { "name": "G - Kitchen Xóm Củi", "address": "113 Xóm Củi, Phường 11, Quận 8, Hồ Chí Minh" },
+        "phanVanHan": { "name": "G - Kitchen Phan Văn Hân", "address": "25 Phan Văn Hân, Phường 19, Quận Bình Thạnh, Hồ Chí Minh" }
+      }
+    }
+  },
+  "cart": {
+    "title": "Giỏ hàng",
+    "drawerTitle": "Giỏ hàng của bạn",
+    "emptyTitle": "Giỏ hàng đang trống",
+    "emptyDescription": "Hãy chọn món kem yêu thích và mang niềm vui về nhà nhé.",
+    "continueShopping": "Tiếp tục mua sắm",
+    "subtotal": "Tạm tính",
+    "shippingNote": "Phí vận chuyển sẽ được xác nhận ở bước tiếp theo.",
+    "viewCart": "Xem giỏ hàng",
+    "checkout": "Thanh toán",
+    "remove": "Xóa",
+    "decrease": "Giảm số lượng",
+    "increase": "Tăng số lượng",
+    "close": "Đóng giỏ hàng",
+    "summary": "Tóm tắt đơn hàng",
+    "clear": "Xóa tất cả",
+    "emptyPageDescription": "Bạn chưa có sản phẩm nào trong giỏ hàng.",
+    "secureNote": "Thanh toán an toàn và minh bạch cùng Mingo."
+  },
+  "auth": {
+    "loginTitle": "Chào mừng bạn trở lại",
+    "loginDescription": "Đăng nhập để lưu sản phẩm yêu thích và theo dõi đơn hàng.",
+    "email": "Email",
+    "password": "Mật khẩu",
+    "fullName": "Họ và tên",
+    "confirmPassword": "Xác nhận mật khẩu",
+    "emailPlaceholder": "you@example.com",
+    "passwordPlaceholder": "Nhập mật khẩu",
+    "loginSubmit": "Đăng nhập",
+    "registerTitle": "Tạo tài khoản Mingo",
+    "registerDescription": "Bắt đầu hành trình tận hưởng niềm vui trong từng miếng kem.",
+    "registerSubmit": "Tạo tài khoản",
+    "forgotTitle": "Đặt lại mật khẩu",
+    "forgotDescription": "Nhập email của bạn, chúng tôi sẽ gửi hướng dẫn khôi phục.",
+    "sendLink": "Gửi hướng dẫn",
+    "submitting": "Đang xử lý...",
+    "forgotPassword": "Quên mật khẩu?",
+    "newCustomer": "Bạn chưa có tài khoản?",
+    "createAccount": "Tạo tài khoản",
+    "alreadyAccount": "Bạn đã có tài khoản?",
+    "signIn": "Đăng nhập",
+    "backToLogin": "Quay lại đăng nhập",
+    "mockNote": "Đây là giao diện bản mẫu. Kết nối xác thực sẽ được bổ sung sau.",
+    "successNote": "Thao tác đã được ghi nhận. Đây là bước mô phỏng cho luồng khách hàng."
+  },
+  "account": {
+    "title": "Tài khoản của tôi",
+    "welcome": "Xin chào, Minh Anh",
+    "description": "Quản lý thông tin cá nhân và xem lại hành trình mua sắm của bạn.",
+    "signInPrompt": "Đăng nhập để xem thông tin tài khoản của bạn.",
+    "signIn": "Đăng nhập",
+    "profile": "Thông tin cá nhân",
+    "name": "Họ và tên",
+    "email": "Email",
+    "phone": "Số điện thoại",
+    "address": "Địa chỉ giao hàng",
+    "edit": "Chỉnh sửa thông tin",
+    "orders": "Đơn hàng gần đây",
+    "ordersEmpty": "Bạn chưa có đơn hàng nào.",
+    "viewOrders": "Xem tất cả đơn hàng",
+    "logout": "Đăng xuất",
+    "mockNote": "Thông tin bên dưới là dữ liệu mẫu để bạn xem trước trải nghiệm tài khoản."
+  },
+  "careers": {
+    "hero": {
+      "title": "TÌM KIẾM CÔNG VIỆC",
+      "searchLabel": "Tìm kiếm công việc",
+      "placeholder": "Bạn đang tìm kiếm công việc gì?",
+      "search": "Tìm kiếm"
+    },
+    "filters": {
+      "group": "Job Group",
+      "location": "Job Location",
+      "type": "Job Type",
+      "apply": "Lọc việc làm"
+    },
+    "options": {
+      "groups": {
+        "admin": "Admin",
+        "sales": "Sales",
+        "marketing": "Marketing",
+        "human-resources": "Human Resources",
+        "finance-accounting": "Finance & Accounting",
+        "other": "Other"
+      },
+      "locations": {
+        "ho-chi-minh": "Ho Chi Minh",
+        "ha-noi": "Ha Noi"
+      },
+      "types": {
+        "admin": "Admin",
+        "manager": "Manager",
+        "intern": "Intern",
+        "fresher": "Fresher",
+        "other": "Other"
+      }
+    },
+    "jobs": {
+      "contentMarketing": {
+        "title": "Content Marketing",
+        "description": "Mê mẩn với kem mát lạnh, thích tạo nên những chiến dịch thật bất ngờ và bắt trend nhanh hơn cách kem tan dưới nắng? Hãy cùng Mingo kể những câu chuyện thương hiệu thật vui."
+      },
+      "contentMarketingIntern": {
+        "title": "Content Marketing Intern",
+        "description": "Bạn mê mẩn với những cây kem mát lạnh, thích làm khùng, làm điên với các campaign bùng nổ, bắt trend nhanh hơn cách kem bị chảy dưới nắng và muốn dấn thân vào những trải nghiệm mới?"
+      }
+    },
+    "apply": "Ứng tuyển ngay",
+    "noResults": {
+      "title": "Chưa tìm thấy công việc phù hợp",
+      "description": "Hãy thử từ khóa hoặc bộ lọc khác nhé.",
+      "reset": "Xem tất cả công việc"
+    },
+    "pagination": { "label": "Phân trang việc làm" },
+    "detail": {
+      "back": "Quay lại danh sách việc làm",
+      "overview": "Tổng quan công việc",
+      "description": "Mô tả công việc",
+      "group": "Nhóm công việc",
+      "location": "Địa điểm",
+      "type": "Hình thức",
+      "sendApplication": "Gửi hồ sơ qua email",
+      "emailSubject": "Ứng tuyển vị trí {title}",
+      "applicationNote": "Sẵn sàng cùng Mingo tạo nên những chiến dịch ngọt ngào? Hãy gửi CV và portfolio của bạn cho đội ngũ tuyển dụng.",
+      "sections": {
+        "responsibilities": {
+          "title": "Trách nhiệm công việc",
+          "items": {
+            "one": "Lên ý tưởng và triển khai nội dung cho các kênh truyền thông của Mingo.",
+            "two": "Phối hợp với đội ngũ thiết kế và marketing để thực hiện campaign theo kế hoạch.",
+            "three": "Theo dõi xu hướng, đo lường hiệu quả và đề xuất cách cải thiện nội dung."
+          }
+        },
+        "requirements": {
+          "title": "Yêu cầu ứng viên",
+          "items": {
+            "one": "Yêu thích sáng tạo nội dung, thương hiệu và ngành hàng tiêu dùng.",
+            "two": "Có khả năng viết rõ ràng, chủ động phối hợp và quản lý thời gian tốt.",
+            "three": "Biết sử dụng các công cụ social media; portfolio là một lợi thế."
+          }
+        },
+        "benefits": {
+          "title": "Quyền lợi",
+          "items": {
+            "one": "Môi trường làm việc thân thiện, trẻ trung và khuyến khích thử nghiệm.",
+            "two": "Được hướng dẫn trực tiếp và tham gia các chiến dịch thực tế của Mingo.",
+            "three": "Chế độ đãi ngộ phù hợp với năng lực và cơ hội phát triển lâu dài."
+          }
+        }
+      }
+    }
+  },
+  "pages": {
+    "about": { "title": "Về Mingo", "intro": "Mingo mang đến những khoảnh khắc vui tươi qua từng miếng kem.", "body": "Chúng tôi tin rằng một món kem ngon có thể kết nối mọi người và biến ngày thường thành kỷ niệm đáng nhớ.", "cta": "Khám phá sản phẩm" },
+    "partnership": { "title": "Hợp tác cùng Mingo", "intro": "Cùng nhau tạo nên những trải nghiệm ngọt ngào hơn.", "body": "Mingo chào đón các đối tác phân phối, bán lẻ và thương hiệu cùng phát triển những ý tưởng mới.", "cta": "Liên hệ đội ngũ" },
+    "policies": { "title": "Chính sách bảo mật", "intro": "Sự riêng tư của bạn luôn được Mingo tôn trọng.", "body": "Thông tin bạn chia sẻ được sử dụng để hỗ trợ trải nghiệm mua sắm và liên hệ, theo đúng quy định hiện hành.", "cta": "Liên hệ Mingo" },
+    "careers": { "title": "Cơ hội nghề nghiệp", "intro": "Gia nhập đội ngũ tạo niềm vui trong từng miếng kem.", "body": "Nếu bạn yêu thích sản phẩm, con người và những thử nghiệm mới, hãy gửi hồ sơ cho chúng tôi.", "cta": "Gửi hồ sơ" },
+    "faqs": { "title": "Câu hỏi thường gặp", "intro": "Một vài câu trả lời nhanh dành cho bạn.", "body": "Bạn có thể liên hệ Mingo nếu chưa tìm thấy thông tin mình cần.", "cta": "Đặt câu hỏi" },
+    "brands": { "title": "Thương hiệu", "intro": "Khám phá các thương hiệu đồng hành cùng Mingo.", "body": "Từ những hương vị quen thuộc đến ý tưởng mới, mỗi thương hiệu đều có một câu chuyện riêng.", "cta": "Xem dòng sản phẩm" },
+    "categories": { "title": "Dòng sản phẩm", "intro": "Tìm món kem phù hợp cho mọi khoảnh khắc.", "body": "Trang này đang được hoàn thiện với bộ sưu tập sản phẩm theo từng dòng.", "cta": "Xem sản phẩm" },
+    "checkout": { "title": "Thanh toán", "intro": "Hoàn tất đơn hàng của bạn.", "body": "Tính năng thanh toán đang được Mingo chuẩn bị. Giỏ hàng của bạn vẫn được lưu an toàn.", "cta": "Quay lại giỏ hàng" },
+    "orders": { "title": "Đơn hàng của tôi", "intro": "Theo dõi những lần mua sắm cùng Mingo.", "body": "Đăng nhập để xem lịch sử đơn hàng và trạng thái giao hàng.", "cta": "Đăng nhập" }
   },
   "product": {
     "addToCart": "Thêm vào giỏ hàng",

@@ -9,7 +9,7 @@ export interface ProductCardProps {
 /** Card theo mockup: packshot + tên (không hiển thị giá ở card), hover scale nhẹ. */
 export function ProductCard({ product }: ProductCardProps) {
   return (
-    <Link href={`/san-pham/${product.slug}`} className="group block text-center">
+    <Link href={`/products/${product.slug}`} className="group block text-center">
       <div className="relative mx-auto aspect-[3/5] w-full max-w-56 transition-transform duration-200 group-hover:scale-105">
         {product.image ? (
           <Image src={product.image} alt={product.name} fill className="object-contain" sizes="(max-width: 768px) 50vw, 260px" />

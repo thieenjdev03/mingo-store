@@ -19,7 +19,7 @@ export interface PurchasePanelProps {
 
 export function PurchasePanel({ product }: PurchasePanelProps) {
   const t = useTranslations('product');
-  const { addItem } = useCart();
+  const { addItem, openDrawer } = useCart();
 
   const firstInStock = product.variants.find((v) => v.inStock) ?? product.variants[0] ?? null;
   const [selectedSku, setSelectedSku] = useState<string | null>(firstInStock?.sku ?? null);
@@ -44,6 +44,7 @@ export function PurchasePanel({ product }: PurchasePanelProps) {
       price: unitPrice,
       quantity,
     });
+    openDrawer();
   }
 
   return (

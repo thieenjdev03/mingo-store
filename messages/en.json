@@ -7,13 +7,15 @@
     "about": "About Mingo",
     "account": "Account",
     "cart": "Cart",
-    "search": "Search"
+    "search": "Search",
+    "searchPlaceholder": "Search products..."
   },
   "footer": {
     "aboutTitle": "About Mingo",
     "aboutUs": "About us",
     "contact": "Contact",
     "policy": "Policies",
+    "career": "Careers",
     "brandsTitle": "Brands",
     "linesTitle": "Product lines",
     "tagline": "Joy in every bite!"
@@ -21,6 +23,267 @@
   "home": {
     "mustTry": "Must try",
     "seeProduct": "See product"
+  },
+  "products": {
+    "title": "Product lines",
+    "description": "TODO: product listing + filters (category / brand / flavor / price).",
+    "collectionTitle": "Dessert Collection"
+  },
+  "contact": {
+    "title": "Mingo is always here to listen!",
+    "fields": {
+      "fullName": "Full name",
+      "email": "Email",
+      "phone": "Phone number",
+      "department": "Contact department",
+      "subject": "Subject",
+      "message": "Message"
+    },
+    "departments": {
+      "customerCare": "Customer care",
+      "business": "Business partnership",
+      "orderComplaint": "Order complaint",
+      "other": "Other"
+    },
+    "privacy": {
+      "prefix": "Your data will be processed according to our",
+      "link": "privacy policy"
+    },
+    "submit": "Send",
+    "submitting": "Sending...",
+    "validation": {
+      "required": "Please fill out this field.",
+      "email": "Please enter a valid email address.",
+      "phone": "Please enter a valid Vietnamese phone number.",
+      "messageMin": "Message must be at least 10 characters."
+    },
+    "success": {
+      "title": "Mingo has received your message!",
+      "description": "Thank you for reaching out. The Mingo team will get back to you soon.",
+      "sendAnother": "Send another message"
+    }
+  },
+  "locale": {
+    "switch": "Switch language / Chuyển ngôn ngữ",
+    "vi": "VI",
+    "en": "EN"
+  },
+  "about": {
+    "story": {
+      "title": "About Mingo",
+      "belief": "At Mingo Ice Cream, we believe everyone deserves to enjoy quality ice cream. After all, everybody loves ice cream."
+    },
+    "history": {
+      "title": "History",
+      "kicker": "Bringing a world of joy and fun since our humble beginnings in 2009",
+      "paragraphOne": "Mingo Ice Cream started in 2009. Although our beginnings were humble, we brought traditional recipes from Asia to a wide range of dessert ice creams. Each recipe is thoughtfully adapted for different tastes while preserving its fresh, delicious character.",
+      "paragraphTwo": "We put passion into every tub, cup and stick we make. Today, Mingo and our Rokka, Oasis and Fruitesia brands can be found across several countries in the region."
+    },
+    "office": {
+      "country": "VIETNAM",
+      "tab": "Office / Warehouse",
+      "company": "Hong Tan Phat Co., Ltd.",
+      "address": "232/28 To Hieu Street, Phu Thanh, Ho Chi Minh City, Vietnam",
+      "phoneLabel": "Phone",
+      "emailLabel": "Email"
+    },
+    "departments": {
+      "sales": "Sales department",
+      "hr": "Human resources",
+      "support": "Customer support",
+      "external": "External relations"
+    },
+    "distribution": {
+      "title": "DISTRIBUTION NETWORK",
+      "description": "Find a place to buy Mingo Ice Cream",
+      "line": "---Product line---",
+      "product": "---Select product---",
+      "city": "---Select Province/City---",
+      "district": "---Select District---",
+      "search": "Find a store",
+      "found": "Found {count} displayed stores",
+      "mapTitle": "Map of Mingo office on To Hieu Street",
+      "options": {
+        "bars": "Ice cream bars",
+        "boxes": "Ice cream tubs",
+        "cones": "Ice cream cones",
+        "creme": "Creme Caramel",
+        "matcha": "Matcha Red Bean",
+        "hcm": "Ho Chi Minh City",
+        "daNang": "Da Nang",
+        "district1": "District 1",
+        "tanPhu": "Tan Phu District"
+      },
+      "stores": {
+        "hoaTho": { "name": "HOA THO MART", "address": "Hoa Tho Mart, 36 Ong Ich Duong Street, Hoa Tho Dong Ward, Cam Le District, Da Nang" },
+        "jMart": { "name": "J MART", "address": "Gold View Building, Ben Van Don Street, Ward 1, District 4, Ho Chi Minh City" },
+        "xomCui": { "name": "G - Kitchen Xom Cui", "address": "113 Xom Cui Street, Ward 11, District 8, Ho Chi Minh City" },
+        "phanVanHan": { "name": "G - Kitchen Phan Van Han", "address": "25 Phan Van Han Street, Ward 19, Binh Thanh District, Ho Chi Minh City" }
+      }
+    }
+  },
+  "cart": {
+    "title": "Cart",
+    "drawerTitle": "Your cart",
+    "emptyTitle": "Your cart is empty",
+    "emptyDescription": "Pick your favourite ice cream and bring a little joy home.",
+    "continueShopping": "Continue shopping",
+    "subtotal": "Subtotal",
+    "shippingNote": "Shipping is confirmed at the next step.",
+    "viewCart": "View cart",
+    "checkout": "Checkout",
+    "remove": "Remove",
+    "decrease": "Decrease quantity",
+    "increase": "Increase quantity",
+    "close": "Close cart",
+    "summary": "Order summary",
+    "clear": "Clear all",
+    "emptyPageDescription": "You have no products in your cart yet.",
+    "secureNote": "Safe and transparent checkout with Mingo."
+  },
+  "auth": {
+    "loginTitle": "Welcome back",
+    "loginDescription": "Sign in to save favourites and track your orders.",
+    "email": "Email",
+    "password": "Password",
+    "fullName": "Full name",
+    "confirmPassword": "Confirm password",
+    "emailPlaceholder": "you@example.com",
+    "passwordPlaceholder": "Enter your password",
+    "loginSubmit": "Sign in",
+    "registerTitle": "Create your Mingo account",
+    "registerDescription": "Start your journey to joy in every bite.",
+    "registerSubmit": "Create account",
+    "forgotTitle": "Reset your password",
+    "forgotDescription": "Enter your email and we will send recovery instructions.",
+    "sendLink": "Send instructions",
+    "submitting": "Working...",
+    "forgotPassword": "Forgot password?",
+    "newCustomer": "New to Mingo?",
+    "createAccount": "Create an account",
+    "alreadyAccount": "Already have an account?",
+    "signIn": "Sign in",
+    "backToLogin": "Back to sign in",
+    "mockNote": "This is a preview interface. Authentication will be connected later.",
+    "successNote": "Your request was received. This is a preview of the customer flow."
+  },
+  "account": {
+    "title": "My account",
+    "welcome": "Hello, Minh Anh",
+    "description": "Manage your personal details and shopping journey.",
+    "signInPrompt": "Sign in to view your account details.",
+    "signIn": "Sign in",
+    "profile": "Personal details",
+    "name": "Full name",
+    "email": "Email",
+    "phone": "Phone number",
+    "address": "Shipping address",
+    "edit": "Edit details",
+    "orders": "Recent orders",
+    "ordersEmpty": "You have no orders yet.",
+    "viewOrders": "View all orders",
+    "logout": "Sign out",
+    "mockNote": "The details below are sample data to preview the account experience."
+  },
+  "careers": {
+    "hero": {
+      "title": "FIND YOUR NEXT JOB",
+      "searchLabel": "Search jobs",
+      "placeholder": "What kind of job are you looking for?",
+      "search": "Search"
+    },
+    "filters": {
+      "group": "Job Group",
+      "location": "Job Location",
+      "type": "Job Type",
+      "apply": "Apply filters"
+    },
+    "options": {
+      "groups": {
+        "admin": "Admin",
+        "sales": "Sales",
+        "marketing": "Marketing",
+        "human-resources": "Human Resources",
+        "finance-accounting": "Finance & Accounting",
+        "other": "Other"
+      },
+      "locations": {
+        "ho-chi-minh": "Ho Chi Minh",
+        "ha-noi": "Ha Noi"
+      },
+      "types": {
+        "admin": "Admin",
+        "manager": "Manager",
+        "intern": "Intern",
+        "fresher": "Fresher",
+        "other": "Other"
+      }
+    },
+    "jobs": {
+      "contentMarketing": {
+        "title": "Content Marketing",
+        "description": "Madly in love with ice-cold ice cream? Obsessed with pulling off wild and crazy stunts for explosive campaigns? Catching trends faster than ice cream melts under the sun? Help Mingo tell joyful brand stories."
+      },
+      "contentMarketingIntern": {
+        "title": "Content Marketing Intern",
+        "description": "Are you crazy about refreshing ice cream, love making bold campaign ideas and catching trends faster than ice cream melts under the sun? Come and explore new experiences with Mingo."
+      }
+    },
+    "apply": "Apply now",
+    "noResults": {
+      "title": "No matching jobs found",
+      "description": "Try another keyword or filter.",
+      "reset": "View all jobs"
+    },
+    "pagination": { "label": "Jobs pagination" },
+    "detail": {
+      "back": "Back to jobs",
+      "overview": "Job overview",
+      "description": "Job description",
+      "group": "Job group",
+      "location": "Location",
+      "type": "Job type",
+      "sendApplication": "Send your application by email",
+      "emailSubject": "Application for {title}",
+      "applicationNote": "Ready to create sweet campaigns with Mingo? Send your CV and portfolio to our recruitment team.",
+      "sections": {
+        "responsibilities": {
+          "title": "Responsibilities",
+          "items": {
+            "one": "Develop and deliver content ideas for Mingo's communication channels.",
+            "two": "Work with design and marketing teams to execute campaigns on schedule.",
+            "three": "Track trends, measure performance and recommend content improvements."
+          }
+        },
+        "requirements": {
+          "title": "Requirements",
+          "items": {
+            "one": "A genuine interest in content, branding and consumer products.",
+            "two": "Clear writing, proactive collaboration and good time management skills.",
+            "three": "Familiarity with social media tools; a portfolio is an advantage."
+          }
+        },
+        "benefits": {
+          "title": "Benefits",
+          "items": {
+            "one": "A friendly, youthful workplace that encourages experimentation.",
+            "two": "Hands-on mentoring and opportunities to join real Mingo campaigns.",
+            "three": "Competitive benefits and long-term development opportunities."
+          }
+        }
+      }
+    }
+  },
+  "pages": {
+    "about": { "title": "About Mingo", "intro": "Mingo creates joyful moments, one ice cream bite at a time.", "body": "We believe a great ice cream can bring people together and turn an ordinary day into a memorable one.", "cta": "Explore products" },
+    "partnership": { "title": "Partner with Mingo", "intro": "Together, we can create sweeter experiences.", "body": "Mingo welcomes distributors, retailers and brands who want to build new ideas with us.", "cta": "Contact our team" },
+    "policies": { "title": "Privacy policy", "intro": "Your privacy is always respected at Mingo.", "body": "Information you share is used to support your shopping and communication experience in accordance with applicable regulations.", "cta": "Contact Mingo" },
+    "careers": { "title": "Careers", "intro": "Join the team creating joy in every bite.", "body": "If you love products, people and trying new things, send us your profile.", "cta": "Send your profile" },
+    "faqs": { "title": "Frequently asked questions", "intro": "A few quick answers for you.", "body": "Contact Mingo if you cannot find the information you need.", "cta": "Ask a question" },
+    "brands": { "title": "Brands", "intro": "Discover the brands that join Mingo.", "body": "From familiar flavours to new ideas, every brand has a story of its own.", "cta": "View product lines" },
+    "categories": { "title": "Product line", "intro": "Find an ice cream for every moment.", "body": "This page is being completed with collections organised by product line.", "cta": "View products" },
+    "checkout": { "title": "Checkout", "intro": "Complete your order.", "body": "Checkout is being prepared by Mingo. Your cart is still saved safely.", "cta": "Back to cart" },
+    "orders": { "title": "My orders", "intro": "Keep track of your Mingo shopping.", "body": "Sign in to view order history and delivery status.", "cta": "Sign in" }
   },
   "product": {
     "addToCart": "Add to cart",

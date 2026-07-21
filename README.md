@@ -48,10 +48,32 @@ Quy tắc giá **duy nhất toàn site**: `getEffectivePrice()` trong `features/
 
 ## i18n
 
-- next-intl, `vi` mặc định không prefix (`/san-pham`), `en` có prefix (`/en/san-pham`).
+- next-intl, `vi` mặc định không prefix (`/products`), `en` có prefix (`/en/products`).
 - Điều hướng dùng `Link`/`useRouter` từ `@/i18n/navigation` — **không** dùng `next/link` trực tiếp.
 - Chuỗi UI ở `messages/vi.json` / `en.json`. Label uppercase bằng CSS, không viết hoa trong file dịch.
 - Nội dung sản phẩm đa ngôn ngữ đến từ API (JSONB), resolve qua `resolveLocalized()` trong mapper — không nhét vào messages.
+
+### Route mapping
+
+Route segment luôn dùng tiếng Anh; locale chỉ thêm prefix cho `en` (không localize
+path bằng tính năng `pathnames` của next-intl).
+
+| Route cũ | Route chuẩn |
+|---|---|
+| `/san-pham` | `/products` |
+| `/san-pham/[slug]` | `/products/[slug]` |
+| `/dong-san-pham/[slug]` | `/categories/[slug]` |
+| `/thuong-hieu` | `/brands` |
+| `/thuong-hieu/[slug]` | `/brands/[slug]` |
+| `/hop-tac` | `/partnership` |
+| `/ve-mingo` | `/about` |
+| `/lien-he` | `/contact` |
+| `/chinh-sach` | `/policies` |
+| `/gio-hang` | `/cart` |
+| `/tai-khoan` | `/account` |
+
+Các route tương lai như `/checkout`, `/orders`, `/login`, `/register` và
+`/forgot-password` cũng giữ nguyên tên tiếng Anh.
 
 ## Cấu trúc
 
@@ -59,7 +81,7 @@ Quy tắc giá **duy nhất toàn site**: `getEffectivePrice()` trong `features/
 src/
 ├── app/[locale]/            # layout (header/footer/providers) + pages
 │   ├── page.tsx             # Landing (stub theo mockup)
-│   └── san-pham/[slug]/     # PDP (stub, đã chạy đúng pipeline mapper + cart)
+│   └── products/[slug]/     # PDP (stub, đã chạy đúng pipeline mapper + cart)
 ├── components/
 │   ├── ui/                  # primitives shadcn-style đã brand hoá
 │   ├── layout/              # SiteHeader, SiteFooter
