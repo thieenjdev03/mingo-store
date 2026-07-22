@@ -12,7 +12,7 @@ Mingo Storefront — ice cream e-commerce site. Next.js 15 (App Router) + TypeSc
 npm run dev      # http://localhost:3001 (backend commonly occupies 3000)
 npm run build
 npm run lint      # ESLint is currently disabled during build (next.config.ts: eslint.ignoreDuringBuilds) until eslint-config-next is added
-npm run api:gen   # orval: generate types + SWR hooks from ../ecom-website/docs/openapi.json into src/lib/api/generated
+npm run api:gen   # orval: generate types + SWR hooks from ../shared/openapi.json into src/lib/api/generated
 ```
 
 There is no test runner configured in this repo yet.

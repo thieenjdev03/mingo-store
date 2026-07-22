@@ -1,6 +1,6 @@
 /**
  * Generate types + SWR hooks từ OpenAPI spec của backend NestJS.
- * Backend: npm run openapi:export -> docs/openapi.json (hoặc chạy backend rồi lấy /docs/json)
+ * Backend: npm run openapi:export -> shared/openapi.json (hoặc chạy backend rồi lấy /docs/json)
  * Storefront: npm run api:gen
  *
  * QUY TẮC: mọi type API đều nằm ở src/lib/api/generated — KHÔNG BAO GIỜ sửa tay,
@@ -8,7 +8,7 @@
  */
 export default {
   mingo: {
-    input: '../ecom-website/docs/openapi.json',
+    input: '../shared/openapi.json',
     output: {
       target: 'src/lib/api/generated',
       mode: 'tags-split',

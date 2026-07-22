@@ -16,7 +16,7 @@ npm run dev            # http://localhost:3001 (đổi port nếu backend đang 
 
 ```bash
 # Phía backend (ecom-website):
-npm run openapi:export           # -> docs/openapi.json
+npm run openapi:export           # -> ../shared/openapi.json
 
 # Phía storefront:
 npm run api:gen                  # orval sinh types + SWR hooks vào src/lib/api/generated

@@ -103,6 +103,7 @@
       "search": "Tìm điểm bán",
       "found": "Tìm thấy {count} điểm bán đang hiển thị",
       "mapTitle": "Bản đồ văn phòng Mingo tại đường Tô Hiệu",
+      "notFound": "Không tìm thấy cửa hàng",
       "options": {
         "bars": "Kem que",
         "boxes": "Kem hộp",

@@ -1,9 +1,9 @@
-import { Mail, Phone, Search } from 'lucide-react';
+import { Mail, Phone } from 'lucide-react';
 import { getTranslations } from 'next-intl/server';
+import { StoreLocator } from './store-locator';
 
 const MAP_ADDRESS = '232/28 Đ. Tô Hiệu, Phú Thạnh, Hồ Chí Minh, Việt Nam';
 const MAP_QUERY = encodeURIComponent(MAP_ADDRESS);
-const MAP_EMBED_URL = `https://www.google.com/maps?q=${MAP_QUERY}&output=embed`;
 const MAP_SEARCH_URL = `https://www.google.com/maps/search/?api=1&query=${MAP_QUERY}`;
 
 const DEPARTMENT_EMAILS = [
@@ -12,8 +12,6 @@ const DEPARTMENT_EMAILS = [
   { key: 'support', email: 'support@mingo.hongtanphat.com' },
   { key: 'external', email: 'pr@mingo.hongtanphat.com' },
 ] as const;
-
-const STORE_KEYS = ['hoaTho', 'jMart', 'xomCui', 'phanVanHan'] as const;
 
 interface ContactPillProps {
   href: string;
@@ -32,31 +30,8 @@ function ContactPill({ href, label, icon, compact = false }: ContactPillProps) {
   );
 }
 
-interface FilterSelectProps {
-  name: string;
-  label: string;
-  options: Array<{ value: string; label: string }>;
-}
-
 export async function AboutBrandView() {
   const t = await getTranslations('about');
-  const lineOptions = [
-    { value: 'bars', label: t('distribution.options.bars') },
-    { value: 'boxes', label: t('distribution.options.boxes') },
-    { value: 'cones', label: t('distribution.options.cones') },
-  ];
-  const productOptions = [
-    { value: 'creme-caramel', label: t('distribution.options.creme') },
-    { value: 'matcha-red-bean', label: t('distribution.options.matcha') },
-  ];
-  const cityOptions = [
-    { value: 'ho-chi-minh', label: t('distribution.options.hcm') },
-    { value: 'da-nang', label: t('distribution.options.daNang') },
-  ];
-  const districtOptions = [
-    { value: 'district-1', label: t('distribution.options.district1') },
-    { value: 'tan-phu', label: t('distribution.options.tanPhu') },
-  ];
 
   return (
     <div className="bg-ivory">
@@ -113,52 +88,8 @@ export async function AboutBrandView() {
           <p className="mt-4 text-base text-muted-foreground">{t('distribution.description')}</p>
         </div>
 
-        <form action="#distribution" className="mx-auto mt-8 grid max-w-5xl gap-3 sm:grid-cols-2 lg:grid-cols-[1fr_1fr_1fr_1fr_auto]">
-          <SelectField name="line" label={t('distribution.line')} options={lineOptions} />
-          <SelectField name="product" label={t('distribution.product')} options={productOptions} />
-          <SelectField name="city" label={t('distribution.city')} options={cityOptions} />
-          <SelectField name="district" label={t('distribution.district')} options={districtOptions} />
-          <button type="submit" aria-label={t('distribution.search')} className="flex size-12 items-center justify-center justify-self-center rounded-full bg-primary text-primary-foreground transition-colors hover:bg-primary-dark sm:col-span-2 lg:col-span-1 lg:justify-self-auto">
-            <Search className="size-5" aria-hidden="true" />
-          </button>
-        </form>
-
-        <div className="mt-10 overflow-hidden rounded-xl border border-border bg-card lg:grid lg:min-h-[520px] lg:grid-cols-[360px_1fr]">
-          <div className="p-6 sm:p-8">
-            <p className="text-sm font-semibold text-primary">{t('distribution.found', { count: STORE_KEYS.length })}</p>
-            <div className="mt-5 divide-y divide-foreground/45">
-              {STORE_KEYS.map((key) => (
-                <article key={key} className="py-5 first:pt-0">
-                  <h3 className="text-base font-bold">{t(`distribution.stores.${key}.name`)}</h3>
-                  <p className="mt-2 text-sm leading-6 text-muted-foreground">{t(`distribution.stores.${key}.address`)}</p>
-                </article>
-              ))}
-            </div>
-          </div>
-          <div className="min-h-[420px] border-t border-border lg:min-h-full lg:border-l lg:border-t-0">
-            <iframe
-              src={MAP_EMBED_URL}
-              title={t('distribution.mapTitle')}
-              className="h-full min-h-[420px] w-full border-0 lg:min-h-[520px]"
-              loading="lazy"
-              allowFullScreen
-              referrerPolicy="no-referrer-when-downgrade"
-            />
-          </div>
-        </div>
+        <StoreLocator />
       </section>
     </div>
-  );
-}
-
-function SelectField({ name, label, options }: FilterSelectProps) {
-  return (
-    <label className="block">
-      <span className="sr-only">{label}</span>
-      <select id={`distribution-${name}`} name={name} defaultValue="" className="h-12 w-full rounded-full border border-muted-foreground/55 bg-card px-5 text-sm text-muted-foreground outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/15">
-        <option value="" disabled>{label}</option>
-        {options.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
-      </select>
-    </label>
   );
 }

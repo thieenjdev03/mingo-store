@@ -103,6 +103,7 @@
       "search": "Find a store",
       "found": "Found {count} displayed stores",
       "mapTitle": "Map of Mingo office on To Hieu Street",
+      "notFound": "No stores found",
       "options": {
         "bars": "Ice cream bars",
         "boxes": "Ice cream tubs",
