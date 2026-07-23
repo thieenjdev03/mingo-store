@@ -1,6 +1,6 @@
 import { Mail, Phone } from 'lucide-react';
 import { getTranslations } from 'next-intl/server';
-import { StoreLocator } from './store-locator';
+import { StoreLocator } from '@/sections/stores/store-locator';
 
 const MAP_ADDRESS = '232/28 Đ. Tô Hiệu, Phú Thạnh, Hồ Chí Minh, Việt Nam';
 const MAP_QUERY = encodeURIComponent(MAP_ADDRESS);
@@ -31,7 +31,10 @@ function ContactPill({ href, label, icon, compact = false }: ContactPillProps) {
 }
 
 export async function AboutBrandView() {
-  const t = await getTranslations('about');
+  const [t, storesT] = await Promise.all([
+    getTranslations('about'),
+    getTranslations('stores'),
+  ]);
 
   return (
     <div className="bg-ivory">
@@ -80,15 +83,18 @@ export async function AboutBrandView() {
             </div>
           ))}
         </div>
+      </section>
 
-        <div className="my-16 h-px bg-primary/55 lg:my-24" />
-
-        <div id="distribution" className="scroll-mt-32 text-center">
-          <h2 className="font-display text-4xl font-bold text-foreground sm:text-5xl lg:text-6xl">{t('distribution.title')}</h2>
-          <p className="mt-4 text-base text-muted-foreground">{t('distribution.description')}</p>
+      <section id="distribution" className="scroll-mt-24 border-t border-primary/30" aria-labelledby="distribution-title">
+        <div className="mx-auto max-w-[1200px] px-5 py-16 sm:px-8 lg:py-20">
+          <div className="text-center">
+            <h2 id="distribution-title" className="font-display text-4xl font-bold text-foreground sm:text-5xl lg:text-6xl">
+              {storesT('title')}
+            </h2>
+            <p className="mt-4 text-base text-muted-foreground">{storesT('description')}</p>
+          </div>
+          <StoreLocator />
         </div>
-
-        <StoreLocator />
       </section>
     </div>
   );

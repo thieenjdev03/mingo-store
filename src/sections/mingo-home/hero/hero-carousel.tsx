@@ -1,13 +1,18 @@
 'use client';
 
+import { useState } from 'react';
 import Image from 'next/image';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { Link } from '@/i18n/navigation';
-import { MINGO_HOME_ASSETS } from '@/config/mingo-home-content';
+import { HERO_BANNERS, MINGO_HOME_ASSETS } from '@/config/mingo-home-content';
+
+const SLIDE_COUNT = 1 + HERO_BANNERS.length; // slide 0 = composition, còn lại = banner
 
 export function HeroCarousel() {
   const t = useTranslations('home');
+  const [slide, setSlide] = useState(0);
+  const banner = slide > 0 ? HERO_BANNERS[slide - 1] : undefined;
 
   return (
     <section
@@ -16,6 +21,12 @@ export function HeroCarousel() {
       aria-roledescription="carousel"
       aria-label="Sản phẩm nổi bật"
     >
+      {banner ? (
+        <div className="absolute inset-0">
+          <Image src={banner.src} alt={banner.alt} fill sizes="100vw" className="object-cover" />
+        </div>
+      ) : (
+        <>
       <div className="absolute inset-0 -z-20 lg:-top-[100px] lg:h-[900px]">
         <Image
           src={MINGO_HOME_ASSETS.heroBackground}
@@ -66,20 +77,22 @@ export function HeroCarousel() {
       >
         {t('seeProduct')}
       </Link>
+        </>
+      )}
 
       <button
         type="button"
         aria-label="Sản phẩm trước"
-        disabled
-        className="absolute left-4 top-1/2 z-20 grid size-11 -translate-y-1/2 place-items-center rounded-full text-white/45 sm:left-8 lg:left-10 lg:top-[51.875%]"
+        onClick={() => setSlide((s) => (s - 1 + SLIDE_COUNT) % SLIDE_COUNT)}
+        className="absolute left-4 top-1/2 z-20 grid size-11 -translate-y-1/2 place-items-center rounded-full text-white/70 transition-colors hover:bg-black/15 hover:text-white sm:left-8 lg:left-10 lg:top-[51.875%]"
       >
         <ChevronLeft className="size-8" strokeWidth={1.25} />
       </button>
       <button
         type="button"
         aria-label="Sản phẩm tiếp theo"
-        disabled
-        className="absolute right-4 top-1/2 z-20 grid size-11 -translate-y-1/2 place-items-center rounded-full text-white/45 sm:right-8 lg:right-10 lg:top-[51.875%]"
+        onClick={() => setSlide((s) => (s + 1) % SLIDE_COUNT)}
+        className="absolute right-4 top-1/2 z-20 grid size-11 -translate-y-1/2 place-items-center rounded-full text-white/70 transition-colors hover:bg-black/15 hover:text-white sm:right-8 lg:right-10 lg:top-[51.875%]"
       >
         <ChevronRight className="size-8" strokeWidth={1.25} />
       </button>

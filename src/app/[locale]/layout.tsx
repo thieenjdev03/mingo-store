@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { Work_Sans } from 'next/font/google';
+import localFont from 'next/font/local';
 import { NextIntlClientProvider, hasLocale } from 'next-intl';
 import { setRequestLocale } from 'next-intl/server';
 import { notFound } from 'next/navigation';
@@ -9,21 +9,27 @@ import { SiteHeader } from '@/components/layout/site-header';
 import { SiteFooter } from '@/components/layout/site-footer';
 import '@/styles/globals.css';
 
-const workSans = Work_Sans({
-  subsets: ['latin', 'vietnamese'],
-  variable: '--font-work-sans',
+// Font brand từ public/Font: Mikado cho display (trùng lettering logo),
+// Mitr cho body (có glyph tiếng Việt đầy đủ — Mikado thiếu thì fallback per-glyph sang Mitr).
+const mikado = localFont({
+  src: [
+    { path: '../../../public/Font/HVD Fonts - MikadoRegular.otf', weight: '400' },
+    { path: '../../../public/Font/HVD Fonts - MikadoBold.otf', weight: '700' },
+  ],
+  variable: '--font-mikado',
   display: 'swap',
 });
 
-/*
- * TODO(font): khi chốt font brand ở Figma, bật next/font:
- *
- * import { Baloo_2, Be_Vietnam_Pro } from 'next/font/google';
- * const display = Baloo_2({ subsets: ['latin', 'vietnamese'], variable: '--font-baloo' });
- * const sans = Be_Vietnam_Pro({ weight: ['400','500','600','700'], subsets: ['latin', 'vietnamese'], variable: '--font-be-vietnam' });
- * ...rồi thêm className={`${display.variable} ${sans.variable}`} vào <html>
- * và trỏ --font-display/--font-sans trong globals.css sang 2 biến trên.
- */
+const mitr = localFont({
+  src: [
+    { path: '../../../public/Font/Mitr/Mitr-Regular.ttf', weight: '400' },
+    { path: '../../../public/Font/Mitr/Mitr-Medium.ttf', weight: '500' },
+    { path: '../../../public/Font/Mitr/Mitr-SemiBold.ttf', weight: '600' },
+    { path: '../../../public/Font/Mitr/Mitr-Bold.ttf', weight: '700' },
+  ],
+  variable: '--font-mitr',
+  display: 'swap',
+});
 
 export const metadata: Metadata = {
   title: { default: 'Mingo — Joy in every bite!', template: '%s | Mingo' },
@@ -46,7 +52,7 @@ export default async function LocaleLayout({
   setRequestLocale(locale);
 
   return (
-    <html lang={locale} className={workSans.variable}>
+    <html lang={locale} className={`${mikado.variable} ${mitr.variable}`}>
       <body className="flex min-h-screen flex-col">
         <NextIntlClientProvider>
           <CartProvider>

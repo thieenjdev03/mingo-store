@@ -72,12 +72,11 @@
   --radius-xl: calc(var(--radius) + 8px);
 
   /*
-   * Typography — mockup dùng rounded sans cho cả display lẫn body.
-   * TODO khi chốt font ở Figma: chuyển sang next/font (xem README mục Font)
-   * và thay 2 stack dưới bằng var(--font-baloo)/var(--font-be-vietnam).
+   * Typography — font brand load qua next/font/local trong app/[locale]/layout.tsx
+   * (nguồn: public/Font). Mikado = display, Mitr = body + fallback glyph tiếng Việt.
    */
-  --font-display: var(--font-work-sans), 'Segoe UI', system-ui, sans-serif;
-  --font-sans: var(--font-work-sans), 'Segoe UI', system-ui, sans-serif;
+  --font-display: var(--font-mikado), var(--font-mitr), 'Segoe UI', system-ui, sans-serif;
+  --font-sans: var(--font-mitr), 'Segoe UI', system-ui, sans-serif;
 }
 
 @layer base {

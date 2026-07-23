@@ -1,8 +1,7 @@
 import Image from 'next/image';
 import { getTranslations } from 'next-intl/server';
 import { Link } from '@/i18n/navigation';
-
-const BRANDS = ['Fruitesia', 'Fruttega', 'Rokka', 'Oasis', 'Impact', 'Sandwich', 'Verano', 'Vivi'];
+import { BRANDS } from '@/config/brands';
 const LINES = [
   { label: 'Kem hộp', slug: 'kem-hop' },
   { label: 'Kem que', slug: 'kem-que' },
@@ -21,7 +20,7 @@ export async function SiteFooter() {
 
   return (
     <footer className="bg-white text-[#563e2b]">
-      <div className="mx-auto grid max-w-[1200px] gap-10 px-5 py-10 sm:grid-cols-2 sm:px-8 lg:h-[334px] lg:grid-cols-[120px_120px_155px_1fr] lg:gap-[31px] lg:px-0 lg:py-6">
+      <div className="mx-auto grid max-w-[1200px] gap-10 px-5 py-10 sm:grid-cols-2 sm:px-8 lg:h-[400px] lg:grid-cols-[120px_120px_155px_1fr] lg:gap-[31px] lg:px-0 lg:py-6">
         <div>
           <h3 className="mb-3 text-[14px] font-bold uppercase leading-8 lg:text-[16px]">{t('aboutTitle')}</h3>
           <ul>
@@ -37,8 +36,8 @@ export async function SiteFooter() {
           <h3 className="mb-3 text-[14px] font-bold uppercase leading-8 lg:text-[16px]">{t('brandsTitle')}</h3>
           <ul>
             {BRANDS.map((brand) => (
-              <li key={brand}>
-                <Link href={`/brands/${brand.toLowerCase()}`} className={linkClass}>{brand}</Link>
+              <li key={brand.slug}>
+                <Link href={`/brands/${brand.slug}`} className={linkClass}>{brand.name}</Link>
               </li>
             ))}
           </ul>

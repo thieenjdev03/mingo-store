@@ -5,6 +5,7 @@
     "brands": "Brands",
     "partnership": "Partnership",
     "about": "About Mingo",
+    "stores": "Stores",
     "account": "Account",
     "cart": "Cart",
     "search": "Search",
@@ -92,35 +93,25 @@
       "hr": "Human resources",
       "support": "Customer support",
       "external": "External relations"
-    },
-    "distribution": {
-      "title": "DISTRIBUTION NETWORK",
-      "description": "Find a place to buy Mingo Ice Cream",
-      "line": "---Product line---",
-      "product": "---Select product---",
-      "city": "---Select Province/City---",
-      "district": "---Select District---",
-      "search": "Find a store",
-      "found": "Found {count} displayed stores",
-      "mapTitle": "Map of Mingo office on To Hieu Street",
-      "notFound": "No stores found",
-      "options": {
-        "bars": "Ice cream bars",
-        "boxes": "Ice cream tubs",
-        "cones": "Ice cream cones",
-        "creme": "Creme Caramel",
-        "matcha": "Matcha Red Bean",
-        "hcm": "Ho Chi Minh City",
-        "daNang": "Da Nang",
-        "district1": "District 1",
-        "tanPhu": "Tan Phu District"
-      },
-      "stores": {
-        "hoaTho": { "name": "HOA THO MART", "address": "Hoa Tho Mart, 36 Ong Ich Duong Street, Hoa Tho Dong Ward, Cam Le District, Da Nang" },
-        "jMart": { "name": "J MART", "address": "Gold View Building, Ben Van Don Street, Ward 1, District 4, Ho Chi Minh City" },
-        "xomCui": { "name": "G - Kitchen Xom Cui", "address": "113 Xom Cui Street, Ward 11, District 8, Ho Chi Minh City" },
-        "phanVanHan": { "name": "G - Kitchen Phan Van Han", "address": "25 Phan Van Han Street, Ward 19, Binh Thanh District, Ho Chi Minh City" }
-      }
+    }
+  },
+  "stores": {
+    "title": "DISTRIBUTION NETWORK",
+    "description": "Find a place to buy Mingo Ice Cream",
+    "line": "---Product line---",
+    "product": "---Select product---",
+    "city": "---Select Province/City---",
+    "district": "---Select District---",
+    "search": "Find a store",
+    "found": "Found {count} displayed stores",
+    "mapTitle": "Mingo store map",
+    "notFound": "No stores found",
+    "options": {
+      "bars": "Ice cream bars",
+      "boxes": "Ice cream tubs",
+      "cones": "Ice cream cones",
+      "creme": "Creme Caramel",
+      "matcha": "Matcha Red Bean"
     }
   },
   "cart": {
@@ -199,92 +190,79 @@
       "type": "Job Type",
       "apply": "Apply filters"
     },
-    "options": {
-      "groups": {
-        "admin": "Admin",
-        "sales": "Sales",
-        "marketing": "Marketing",
-        "human-resources": "Human Resources",
-        "finance-accounting": "Finance & Accounting",
-        "other": "Other"
-      },
-      "locations": {
-        "ho-chi-minh": "Ho Chi Minh",
-        "ha-noi": "Ha Noi"
-      },
-      "types": {
-        "admin": "Admin",
-        "manager": "Manager",
-        "intern": "Intern",
-        "fresher": "Fresher",
-        "other": "Other"
-      }
-    },
-    "jobs": {
-      "contentMarketing": {
-        "title": "Content Marketing",
-        "description": "Madly in love with ice-cold ice cream? Obsessed with pulling off wild and crazy stunts for explosive campaigns? Catching trends faster than ice cream melts under the sun? Help Mingo tell joyful brand stories."
-      },
-      "contentMarketingIntern": {
-        "title": "Content Marketing Intern",
-        "description": "Are you crazy about refreshing ice cream, love making bold campaign ideas and catching trends faster than ice cream melts under the sun? Come and explore new experiences with Mingo."
-      }
-    },
     "apply": "Apply now",
     "noResults": {
       "title": "No matching jobs found",
       "description": "Try another keyword or filter.",
       "reset": "View all jobs"
     },
-    "pagination": { "label": "Jobs pagination" },
     "detail": {
       "back": "Back to jobs",
       "overview": "Job overview",
-      "description": "Job description",
       "group": "Job group",
       "location": "Location",
       "type": "Job type",
       "sendApplication": "Send your application by email",
       "emailSubject": "Application for {title}",
       "applicationNote": "Ready to create sweet campaigns with Mingo? Send your CV and portfolio to our recruitment team.",
-      "sections": {
-        "responsibilities": {
-          "title": "Responsibilities",
-          "items": {
-            "one": "Develop and deliver content ideas for Mingo's communication channels.",
-            "two": "Work with design and marketing teams to execute campaigns on schedule.",
-            "three": "Track trends, measure performance and recommend content improvements."
-          }
-        },
-        "requirements": {
-          "title": "Requirements",
-          "items": {
-            "one": "A genuine interest in content, branding and consumer products.",
-            "two": "Clear writing, proactive collaboration and good time management skills.",
-            "three": "Familiarity with social media tools; a portfolio is an advantage."
-          }
-        },
-        "benefits": {
-          "title": "Benefits",
-          "items": {
-            "one": "A friendly, youthful workplace that encourages experimentation.",
-            "two": "Hands-on mentoring and opportunities to join real Mingo campaigns.",
-            "three": "Competitive benefits and long-term development opportunities."
-          }
-        }
-      }
+      "related": "Related jobs"
     }
   },
   "pages": {
-    "about": { "title": "About Mingo", "intro": "Mingo creates joyful moments, one ice cream bite at a time.", "body": "We believe a great ice cream can bring people together and turn an ordinary day into a memorable one.", "cta": "Explore products" },
-    "partnership": { "title": "Partner with Mingo", "intro": "Together, we can create sweeter experiences.", "body": "Mingo welcomes distributors, retailers and brands who want to build new ideas with us.", "cta": "Contact our team" },
-    "policies": { "title": "Privacy policy", "intro": "Your privacy is always respected at Mingo.", "body": "Information you share is used to support your shopping and communication experience in accordance with applicable regulations.", "cta": "Contact Mingo" },
-    "careers": { "title": "Careers", "intro": "Join the team creating joy in every bite.", "body": "If you love products, people and trying new things, send us your profile.", "cta": "Send your profile" },
-    "faqs": { "title": "Frequently asked questions", "intro": "A few quick answers for you.", "body": "Contact Mingo if you cannot find the information you need.", "cta": "Ask a question" },
-    "brands": { "title": "Brands", "intro": "Discover the brands that join Mingo.", "body": "From familiar flavours to new ideas, every brand has a story of its own.", "cta": "View product lines" },
-    "categories": { "title": "Product line", "intro": "Find an ice cream for every moment.", "body": "This page is being completed with collections organised by product line.", "cta": "View products" },
-    "checkout": { "title": "Checkout", "intro": "Complete your order.", "body": "Checkout is being prepared by Mingo. Your cart is still saved safely.", "cta": "Back to cart" },
-    "orders": { "title": "My orders", "intro": "Keep track of your Mingo shopping.", "body": "Sign in to view order history and delivery status.", "cta": "Sign in" }
+    "about": {
+      "title": "About Mingo",
+      "intro": "Mingo creates joyful moments, one ice cream bite at a time.",
+      "body": "We believe a great ice cream can bring people together and turn an ordinary day into a memorable one.",
+      "cta": "Explore products"
+    },
+    "partnership": {
+      "title": "Partner with Mingo",
+      "intro": "Together, we can create sweeter experiences.",
+      "body": "Mingo welcomes distributors, retailers and brands who want to build new ideas with us.",
+      "cta": "Contact our team"
+    },
+    "policies": {
+      "title": "Privacy policy",
+      "intro": "Your privacy is always respected at Mingo.",
+      "body": "Information you share is used to support your shopping and communication experience in accordance with applicable regulations.",
+      "cta": "Contact Mingo"
+    },
+    "careers": {
+      "title": "Careers",
+      "intro": "Join the team creating joy in every bite.",
+      "body": "If you love products, people and trying new things, send us your profile.",
+      "cta": "Send your profile"
+    },
+    "faqs": {
+      "title": "Frequently asked questions",
+      "intro": "A few quick answers for you.",
+      "body": "Contact Mingo if you cannot find the information you need.",
+      "cta": "Ask a question"
+    },
+    "brands": {
+      "title": "Brands",
+      "intro": "Discover the brands that join Mingo.",
+      "body": "From familiar flavours to new ideas, every brand has a story of its own.",
+      "cta": "View product lines"
+    },
+    "categories": {
+      "title": "Product line",
+      "intro": "Find an ice cream for every moment.",
+      "body": "This page is being completed with collections organised by product line.",
+      "cta": "View products"
+    },
+    "checkout": {
+      "title": "Checkout",
+      "intro": "Complete your order.",
+      "body": "Checkout is being prepared by Mingo. Your cart is still saved safely.",
+      "cta": "Back to cart"
+    },
+    "orders": {
+      "title": "My orders",
+      "intro": "Keep track of your Mingo shopping.",
+      "body": "Sign in to view order history and delivery status.",
+      "cta": "Sign in"
+    }
   },
   "product": {
     "addToCart": "Add to cart",

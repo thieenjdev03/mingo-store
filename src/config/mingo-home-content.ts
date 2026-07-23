@@ -13,6 +13,12 @@ export const MINGO_HOME_ASSETS = {
   heroPudding: '/assets/mingo/home/hero-pudding.png',
 } as const;
 
+// Slide banner ảnh full-bleed (sau slide composition đầu tiên) — nguồn: public/Sample banner
+export const HERO_BANNERS = [
+  { src: '/assets/mingo/home/banner-captain-hopper.jpg', alt: 'Captain Hopper for Kids ice cream' },
+  { src: '/assets/mingo/home/banner-rokka-cone.jpg', alt: 'Rokka cone' },
+] as const;
+
 export const MUST_TRY_PRODUCTS: ShowcaseProduct[] = [
   {
     id: 'creme-caramel-1',

@@ -7,7 +7,7 @@ const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? '';
 
 export interface FetchConfig {
   url: string;
-  method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
+  method: 'GET' | 'HEAD' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
   params?: Record<string, unknown>;
   data?: unknown;
   headers?: Record<string, string>;
@@ -52,5 +52,11 @@ export async function customFetch<T>(config: FetchConfig): Promise<T> {
     throw new ApiError(res.status, body);
   }
   if (res.status === 204) return undefined as T;
-  return (await res.json()) as T;
+  const body: unknown = await res.json();
+  // Backend TransformInterceptor bọc mọi response thành { success, data } —
+  // OpenAPI/generated types mô tả payload trần, nên unwrap tại đây (1 chỗ duy nhất).
+  if (body && typeof body === 'object' && 'success' in body && 'data' in body) {
+    return (body as { data: T }).data;
+  }
+  return body as T;
 }

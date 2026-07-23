@@ -14,6 +14,7 @@ const NAV = [
   { key: "brands", href: "/brands" },
   { key: "partnership", href: "/partnership" },
   { key: "about", href: "/about" },
+  { key: "stores", href: "/stores" },
 ] as const;
 
 const HEADER_ASSETS = {
