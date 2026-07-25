@@ -336,14 +336,16 @@ export interface VerifyOtpDto {
   otp: string;
 }
 
-/**
- * Variant name in multiple languages
- */
-export type ProductVariantDtoName = { [key: string]: unknown };
+export interface LocalizedStringDto {
+  /** @nullable */
+  en?: string | null;
+  /** @nullable */
+  vi?: string | null;
+}
 
 export interface ProductVariantDto {
   /** Variant name in multiple languages */
-  name: ProductVariantDtoName;
+  name: LocalizedStringDto;
   sku: string;
   price: number;
   stock: number;
@@ -362,26 +364,6 @@ export interface DimensionsDto {
   height?: number;
 }
 
-/**
- * Product name in multiple languages
- */
-export type CreateProductDtoName = { [key: string]: unknown };
-
-/**
- * Product slug in multiple languages
- */
-export type CreateProductDtoSlug = { [key: string]: unknown };
-
-/**
- * Product description in multiple languages
- */
-export type CreateProductDtoDescription = { [key: string]: unknown };
-
-/**
- * Short description in multiple languages
- */
-export type CreateProductDtoShortDescription = { [key: string]: unknown };
-
 export type CreateProductDtoStatus = typeof CreateProductDtoStatus[keyof typeof CreateProductDtoStatus];
 
 
@@ -394,25 +376,15 @@ export const CreateProductDtoStatus = {
   discontinued: 'discontinued',
 } as const;
 
-/**
- * Meta title in multiple languages
- */
-export type CreateProductDtoMetaTitle = { [key: string]: unknown };
-
-/**
- * Meta description in multiple languages
- */
-export type CreateProductDtoMetaDescription = { [key: string]: unknown };
-
 export interface CreateProductDto {
   /** Product name in multiple languages */
-  name: CreateProductDtoName;
+  name: LocalizedStringDto;
   /** Product slug in multiple languages */
-  slug: CreateProductDtoSlug;
+  slug: LocalizedStringDto;
   /** Product description in multiple languages */
-  description?: CreateProductDtoDescription;
+  description?: LocalizedStringDto;
   /** Short description in multiple languages */
-  short_description?: CreateProductDtoShortDescription;
+  short_description?: LocalizedStringDto;
   price: number;
   sale_price?: number;
   cost_price?: number;
@@ -427,34 +399,127 @@ export interface CreateProductDto {
   is_featured?: boolean;
   enable_sale_tag?: boolean;
   /** Meta title in multiple languages */
-  meta_title?: CreateProductDtoMetaTitle;
+  meta_title?: LocalizedStringDto;
   /** Meta description in multiple languages */
-  meta_description?: CreateProductDtoMetaDescription;
+  meta_description?: LocalizedStringDto;
   /** Weight in kg */
   weight?: number;
   /** Product dimensions in cm */
   dimensions?: DimensionsDto;
 }
 
-/**
- * Product name in multiple languages
- */
-export type UpdateProductDtoName = { [key: string]: unknown };
+export interface ProductDimensionsResponseDto {
+  length?: number;
+  width?: number;
+  height?: number;
+}
+
+export interface ProductCategorySummaryDto {
+  id: string;
+  name: string;
+  slug: string;
+}
+
+export interface ProductVariantColorDto {
+  id: string;
+  name: string;
+  /** @nullable */
+  hexCode?: string | null;
+  /** @nullable */
+  imageUrl?: string | null;
+}
+
+export interface ProductVariantSizeDto {
+  id: string;
+  name: string;
+}
+
+export interface ProductVariantResponseDto {
+  name: string;
+  sku: string;
+  price: number;
+  stock: number;
+  /** @nullable */
+  barcode?: string | null;
+  color_id: string;
+  size_id: string;
+  /** @nullable */
+  image_url?: string | null;
+  color?: ProductVariantColorDto;
+  size?: ProductVariantSizeDto;
+}
+
+export type ProductResponseDtoStatus = typeof ProductResponseDtoStatus[keyof typeof ProductResponseDtoStatus];
+
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const ProductResponseDtoStatus = {
+  active: 'active',
+  inactive: 'inactive',
+  draft: 'draft',
+  out_of_stock: 'out_of_stock',
+  discontinued: 'discontinued',
+} as const;
 
 /**
- * Product slug in multiple languages
+ * @nullable
  */
-export type UpdateProductDtoSlug = { [key: string]: unknown };
+export type ProductResponseDtoDimensions = ProductDimensionsResponseDto | null;
 
 /**
- * Product description in multiple languages
+ * @nullable
  */
-export type UpdateProductDtoDescription = { [key: string]: unknown };
+export type ProductResponseDtoCategory = ProductCategorySummaryDto | null;
 
-/**
- * Short description in multiple languages
- */
-export type UpdateProductDtoShortDescription = { [key: string]: unknown };
+export interface ProductResponseDto {
+  id: string;
+  name: string;
+  slug: string;
+  /** @nullable */
+  description?: string | null;
+  /** @nullable */
+  short_description?: string | null;
+  price: number;
+  /** @nullable */
+  sale_price?: number | null;
+  /** @nullable */
+  cost_price?: number | null;
+  images: string[];
+  stock_quantity: number;
+  /** @nullable */
+  sku?: string | null;
+  /** @nullable */
+  barcode?: string | null;
+  tags: string[];
+  status: ProductResponseDtoStatus;
+  is_featured: boolean;
+  enable_sale_tag: boolean;
+  /** @nullable */
+  meta_title?: string | null;
+  /** @nullable */
+  meta_description?: string | null;
+  /** @nullable */
+  weight?: number | null;
+  /** @nullable */
+  dimensions?: ProductResponseDtoDimensions;
+  created_at: string;
+  updated_at: string;
+  /** @nullable */
+  category?: ProductResponseDtoCategory;
+  variants?: ProductVariantResponseDto[];
+}
+
+export interface ProductListMetaDto {
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
+export interface ProductListDto {
+  data: ProductResponseDto[];
+  meta: ProductListMetaDto;
+}
 
 export type UpdateProductDtoStatus = typeof UpdateProductDtoStatus[keyof typeof UpdateProductDtoStatus];
 
@@ -468,25 +533,15 @@ export const UpdateProductDtoStatus = {
   discontinued: 'discontinued',
 } as const;
 
-/**
- * Meta title in multiple languages
- */
-export type UpdateProductDtoMetaTitle = { [key: string]: unknown };
-
-/**
- * Meta description in multiple languages
- */
-export type UpdateProductDtoMetaDescription = { [key: string]: unknown };
-
 export interface UpdateProductDto {
   /** Product name in multiple languages */
-  name?: UpdateProductDtoName;
+  name?: LocalizedStringDto;
   /** Product slug in multiple languages */
-  slug?: UpdateProductDtoSlug;
+  slug?: LocalizedStringDto;
   /** Product description in multiple languages */
-  description?: UpdateProductDtoDescription;
+  description?: LocalizedStringDto;
   /** Short description in multiple languages */
-  short_description?: UpdateProductDtoShortDescription;
+  short_description?: LocalizedStringDto;
   price?: number;
   sale_price?: number;
   cost_price?: number;
@@ -501,9 +556,9 @@ export interface UpdateProductDto {
   is_featured?: boolean;
   enable_sale_tag?: boolean;
   /** Meta title in multiple languages */
-  meta_title?: UpdateProductDtoMetaTitle;
+  meta_title?: LocalizedStringDto;
   /** Meta description in multiple languages */
-  meta_description?: UpdateProductDtoMetaDescription;
+  meta_description?: LocalizedStringDto;
   /** Weight in kg */
   weight?: number;
   /** Product dimensions in cm */

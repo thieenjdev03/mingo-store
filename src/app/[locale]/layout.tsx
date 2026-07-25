@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import localFont from 'next/font/local';
+import { Montserrat, Be_Vietnam_Pro } from 'next/font/google';
 import { NextIntlClientProvider, hasLocale } from 'next-intl';
 import { setRequestLocale } from 'next-intl/server';
 import { notFound } from 'next/navigation';
@@ -9,25 +9,19 @@ import { SiteHeader } from '@/components/layout/site-header';
 import { SiteFooter } from '@/components/layout/site-footer';
 import '@/styles/globals.css';
 
-// Font brand từ public/Font: Mikado cho display (trùng lettering logo),
-// Mitr cho body (có glyph tiếng Việt đầy đủ — Mikado thiếu thì fallback per-glyph sang Mitr).
-const mikado = localFont({
-  src: [
-    { path: '../../../public/Font/HVD Fonts - MikadoRegular.otf', weight: '400' },
-    { path: '../../../public/Font/HVD Fonts - MikadoBold.otf', weight: '700' },
-  ],
-  variable: '--font-mikado',
+// Font theo DESIGN.md: Montserrat cho display (chunky headline),
+// Be Vietnam Pro cho body/label (subset 'vietnamese' đầy đủ dấu tiếng Việt).
+const montserrat = Montserrat({
+  subsets: ['latin', 'vietnamese'],
+  weight: ['700', '800'],
+  variable: '--font-montserrat',
   display: 'swap',
 });
 
-const mitr = localFont({
-  src: [
-    { path: '../../../public/Font/Mitr/Mitr-Regular.ttf', weight: '400' },
-    { path: '../../../public/Font/Mitr/Mitr-Medium.ttf', weight: '500' },
-    { path: '../../../public/Font/Mitr/Mitr-SemiBold.ttf', weight: '600' },
-    { path: '../../../public/Font/Mitr/Mitr-Bold.ttf', weight: '700' },
-  ],
-  variable: '--font-mitr',
+const beVietnamPro = Be_Vietnam_Pro({
+  subsets: ['latin', 'vietnamese'],
+  weight: ['400', '600'],
+  variable: '--font-be-vietnam-pro',
   display: 'swap',
 });
 
@@ -52,7 +46,7 @@ export default async function LocaleLayout({
   setRequestLocale(locale);
 
   return (
-    <html lang={locale} className={`${mikado.variable} ${mitr.variable}`}>
+    <html lang={locale} className={`${montserrat.variable} ${beVietnamPro.variable}`}>
       <body className="flex min-h-screen flex-col">
         <NextIntlClientProvider>
           <CartProvider>

@@ -20,7 +20,7 @@ export async function SiteFooter() {
 
   return (
     <footer className="bg-white text-[#563e2b]">
-      <div className="mx-auto grid max-w-[1200px] gap-10 px-5 py-10 sm:grid-cols-2 sm:px-8 lg:h-[400px] lg:grid-cols-[120px_120px_155px_1fr] lg:gap-[31px] lg:px-0 lg:py-6">
+      <div className="mx-auto grid max-w-[1200px] gap-10 px-5 py-10 sm:grid-cols-2 sm:px-8 lg:h-[400px] lg:grid-cols-[120px_120px_155px_1fr] lg:gap-[31px] min-[1264px]:px-0 lg:py-6">
         <div>
           <h3 className="mb-3 text-[14px] font-bold uppercase leading-8 lg:text-[16px]">{t('aboutTitle')}</h3>
           <ul>
@@ -74,7 +74,7 @@ export async function SiteFooter() {
       </div>
 
       <div className="border-t border-[#563e2b]">
-        <p className="mx-auto max-w-[1200px] px-5 py-[18px] text-[12px] text-black sm:px-8 lg:px-0 lg:text-[14px]">
+        <p className="mx-auto max-w-[1200px] px-5 py-[18px] text-[12px] text-black sm:px-8 min-[1264px]:px-0 lg:text-[14px]">
           Hồng Tân Phát Co.,Ltd.
         </p>
       </div>

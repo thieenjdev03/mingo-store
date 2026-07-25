@@ -23,20 +23,19 @@ There is no test runner configured in this repo yet.
 
 | Tier | Location | Rule |
 |---|---|---|
-| 1. API | `src/lib/api/generated` (orval output) / `src/types/api-placeholder.ts` (temporary, pre-codegen) | Machine-generated or backend-shaped. Never hand-edit, never import directly into components. |
-| 2. View model | `src/features/*/types.ts` | `toXxxView(api, locale)` mappers resolve localized JSONB (`{vi, en}`) to plain strings, compute `effectivePrice`, and shape data for the UI. This is the guard against the "2-3 parallel models" problem from the previous repo iteration. |
+| 1. API | `src/lib/api/generated` (orval output, generated from `../shared/openapi.json`) | Machine-generated. Never hand-edit, never import directly into components. |
+| 2. View model | `src/features/*/types.ts` | `toXxxView(api, locale)` mappers resolve localized text to plain strings, compute `effectivePrice`, and shape data for the UI. This is the guard against the "2-3 parallel models" problem from the previous repo iteration. |
 | 3. Component | `interface XxxProps` per file | Every component has explicit props; pages use typed `params`/`searchParams`. |
 
 Components must only receive tier-2/3 types, never raw API types.
 
-### API layer (transitional state)
+### API layer
 
-`src/types/api-placeholder.ts` mirrors the backend's documented shape (`docs backend §3`: JSONB localized fields, embedded variants, snake_case) just so mappers compile before codegen exists. Once the backend exports `docs/openapi.json` and `npm run api:gen` runs:
-1. Delete `src/types/api-placeholder.ts`.
-2. Repoint imports in `src/features/*/types.ts` to `@/lib/api/generated`.
-3. If generated JSONB fields collapse to `Record<string, any>`, fix it via the NestJS `@ApiProperty` decorators (e.g. a `LocalizedString` class) and regenerate — do not patch shapes by hand on the frontend.
+Product/category types come from `@/lib/api/generated/ecomAPI.schemas` (`ProductResponseDto`, `ProductListDto`, `ProductCategorySummaryDto`, etc.) — the backend now documents concrete response DTOs and a `LocalizedStringDto` (`{vi?, en?}`) shape for input fields, so these are trustworthy. Two things to know when reading them:
+- **Product content fields are read-only pre-resolved strings.** `ProductResponseDto.name`/`slug`/`description`/`short_description`/`meta_title`/`meta_description`, and variant `name`, come back as plain `string` for whichever `locale` query param was passed to the GET request (backend resolves it server-side) — they are NOT `{vi, en}` objects on the read side, only on `CreateProductDto`/`UpdateProductDto` (the write side). `resolveLocalized()` still gets called on them in the tier-2 mappers for safety (it already passes plain strings through unchanged), but don't expect a locale object here.
+- **`category`/`collections` are flat strings, not localized.** `Category`/`Collection` entities are plain `varchar` in the backend, not JSONB — `ProductCategorySummaryDto.name`/`slug` are plain `string`. `ProductResponseDto` has no `collections` field at all yet (the backend's `transformProductForLocale()` doesn't populate `productCollections`) — `toProductDetailView()` sets `collectionName`/`collectionSlug` to `null` with a `TODO(collections)` comment until that's wired up as its own backend task.
 
-All HTTP requests go through `src/lib/api/fetcher.ts` (`customFetch`, the orval mutator). Auth (JWT + refresh) is not implemented yet — see TODOs inline there.
+All HTTP requests go through `src/lib/api/fetcher.ts` (`customFetch`, the orval mutator). Auth (JWT + refresh) is not implemented yet — see TODOs inline there. Note: `products`/`categories`/`colors`/`sizes`/`files` write endpoints (POST/PATCH/DELETE) now require an admin bearer token on the backend — this storefront only reads (GET), so it's unaffected, but any future admin-facing code added here would need auth wired up first.
 
 ### Pricing — single source of truth
 

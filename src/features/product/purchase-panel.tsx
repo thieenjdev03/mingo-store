@@ -48,7 +48,7 @@ export function PurchasePanel({ product }: PurchasePanelProps) {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="@container space-y-6">
       {/* Radio quy cách */}
       {product.variants.length > 0 && (
         <fieldset className="space-y-3">
@@ -56,9 +56,9 @@ export function PurchasePanel({ product }: PurchasePanelProps) {
           {product.variants.map((v) => (
             <label
               key={v.sku}
-              className="flex cursor-pointer items-center justify-between gap-4 has-[:disabled]:cursor-not-allowed has-[:disabled]:opacity-50"
+              className="flex cursor-pointer items-center justify-between gap-4 py-1.5 has-[:disabled]:cursor-not-allowed has-[:disabled]:opacity-50"
             >
-              <span className="flex items-center gap-3 font-bold uppercase tracking-wide">
+              <span className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1 font-bold uppercase tracking-wide">
                 <input
                   type="radio"
                   name="variant"
@@ -74,15 +74,18 @@ export function PurchasePanel({ product }: PurchasePanelProps) {
                 {v.label}
                 {!v.inStock && <span className="text-xs font-semibold text-muted-foreground">({t('outOfStock')})</span>}
               </span>
-              <span className="font-bold">{fCurrencyVND(v.price)}</span>
+              <span className="shrink-0 font-bold">{fCurrencyVND(v.price)}</span>
             </label>
           ))}
         </fieldset>
       )}
 
       {/* Stepper + CTA */}
-      <div className="flex gap-3">
-        <div className="flex items-center rounded-lg border-2 border-foreground/80 bg-card">
+      {/* CTA label ("100.000Đ | THÊM VÀO GIỎ HÀNG") is nowrap → stack below the stepper
+          whenever the panel itself is too narrow. Container query, not viewport: the
+          panel is a 55% PDP column on tablet, far narrower than the screen. */}
+      <div className="flex flex-col gap-3 @min-[25rem]:flex-row">
+        <div className="flex w-fit shrink-0 items-center rounded-lg border-2 border-foreground/80 bg-card">
           <button
             type="button"
             aria-label="Giảm số lượng"
@@ -104,7 +107,7 @@ export function PurchasePanel({ product }: PurchasePanelProps) {
           </button>
         </div>
 
-        <Button className="flex-1" onClick={handleAdd} disabled={!canBuy}>
+        <Button className="min-w-0 flex-1 px-4 text-xs sm:px-6 sm:text-sm" onClick={handleAdd} disabled={!canBuy}>
           {canBuy ? `${fCurrencyVND(unitPrice * quantity)} | ${t('addToCart')}` : t('outOfStock')}
         </Button>
       </div>

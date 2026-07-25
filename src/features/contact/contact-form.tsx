@@ -86,7 +86,7 @@ export function ContactForm() {
             aria-invalid={Boolean(fieldError('fullName'))}
             aria-describedby={describedBy('fullName')}
             {...register('fullName')}
-            className="mt-1 h-8 w-full bg-transparent text-foreground outline-none"
+            className="mt-1 h-11 w-full bg-transparent text-foreground outline-none"
           />
         </FormField>
 
@@ -99,7 +99,7 @@ export function ContactForm() {
               aria-invalid={Boolean(fieldError('email'))}
               aria-describedby={describedBy('email')}
               {...register('email')}
-              className="mt-1 h-8 w-full bg-transparent text-foreground outline-none"
+              className="mt-1 h-11 w-full bg-transparent text-foreground outline-none"
             />
           </FormField>
           <FormField id="phone" label={t('fields.phone')} error={fieldError('phone')}>
@@ -110,7 +110,7 @@ export function ContactForm() {
               aria-invalid={Boolean(fieldError('phone'))}
               aria-describedby={describedBy('phone')}
               {...register('phone')}
-              className="mt-1 h-8 w-full bg-transparent text-foreground outline-none"
+              className="mt-1 h-11 w-full bg-transparent text-foreground outline-none"
             />
           </FormField>
         </div>
@@ -122,7 +122,7 @@ export function ContactForm() {
             aria-describedby={describedBy('department')}
             defaultValue=""
             {...register('department')}
-            className="mt-1 h-8 w-full appearance-none bg-transparent text-foreground outline-none"
+            className="mt-1 h-11 w-full appearance-none bg-transparent text-foreground outline-none"
           >
             <option value="" disabled />
             {DEPARTMENTS.map((department) => (
@@ -140,7 +140,7 @@ export function ContactForm() {
             aria-invalid={Boolean(fieldError('subject'))}
             aria-describedby={describedBy('subject')}
             {...register('subject')}
-            className="mt-1 h-8 w-full bg-transparent text-foreground outline-none"
+            className="mt-1 h-11 w-full bg-transparent text-foreground outline-none"
           />
         </FormField>
 
@@ -151,7 +151,7 @@ export function ContactForm() {
             aria-invalid={Boolean(fieldError('message'))}
             aria-describedby={describedBy('message')}
             {...register('message')}
-            className="mt-1 h-10 w-full resize-none bg-transparent text-foreground outline-none"
+            className="mt-1 min-h-24 w-full resize-y bg-transparent text-foreground outline-none"
           />
         </FormField>
 

@@ -48,6 +48,16 @@ export function SiteHeader() {
     return () => window.removeEventListener("keydown", closeOnEscape);
   }, [menuOpen, searchOpen]);
 
+  // Mobile menu overlays the page — stop the body scrolling underneath it.
+  useEffect(() => {
+    if (!menuOpen) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [menuOpen]);
+
   const submitSearch = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
@@ -92,12 +102,7 @@ export function SiteHeader() {
         </nav>
 
         <div className="ml-auto flex items-center gap-4 xl:absolute xl:left-[76.7361%] xl:top-[34px] xl:ml-0 xl:gap-[44px] min-[1400px]:gap-[60px]">
-          <div className="hidden xl:block">
-            <LocaleSwitcher />
-          </div>
-          <div className="xl:hidden">
-            <LocaleSwitcher />
-          </div>
+          <LocaleSwitcher />
           <Link
             href="/account"
             aria-label={t("account")}
@@ -125,7 +130,10 @@ export function SiteHeader() {
             type="button"
             aria-label={t("search")}
             aria-expanded={searchOpen}
-            onClick={() => setSearchOpen((open) => !open)}
+            onClick={() => {
+              setSearchOpen((open) => !open);
+              setMenuOpen(false);
+            }}
             className="relative size-7 transition-opacity hover:opacity-60 xl:size-8"
           >
             <Image src={HEADER_ASSETS.search} alt="" fill sizes="32px" />
@@ -135,7 +143,10 @@ export function SiteHeader() {
             type="button"
             aria-label={menuOpen ? "Đóng menu" : "Mở menu"}
             aria-expanded={menuOpen}
-            onClick={() => setMenuOpen((open) => !open)}
+            onClick={() => {
+              setMenuOpen((open) => !open);
+              setSearchOpen(false);
+            }}
             className="transition-colors hover:text-primary xl:hidden"
           >
             {menuOpen ? <X className="size-7" /> : <Menu className="size-7" />}
@@ -174,7 +185,7 @@ export function SiteHeader() {
       {menuOpen ? (
         <nav
           aria-label={t("mainNav")}
-          className="absolute inset-x-0 top-full border-t border-border bg-white px-5 py-6 shadow-lg xl:hidden"
+          className="absolute inset-x-0 top-full max-h-[calc(100dvh-72px)] overflow-y-auto border-t border-border bg-white px-5 py-6 shadow-lg xl:hidden"
         >
           <div className="mx-auto flex max-w-xl flex-col">
             {NAV.map((item) => (

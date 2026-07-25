@@ -40,7 +40,7 @@ export function ProductCarousel({ products }: { products: ShowcaseProduct[] }) {
         aria-label="Sản phẩm trước"
         disabled={!canGoBack}
         onClick={() => move(-1)}
-        className="absolute left-1 top-[46%] z-10 grid size-11 -translate-y-1/2 place-items-center rounded-full bg-background/85 text-foreground transition disabled:opacity-40 sm:-left-12 lg:-left-20 lg:top-[172px]"
+        className="absolute left-1 top-[46%] z-10 grid size-11 -translate-y-1/2 place-items-center rounded-full bg-background/85 text-foreground transition disabled:opacity-40 lg:top-[172px] min-[1360px]:-left-20"
       >
         <ChevronLeft className="size-8" strokeWidth={1.25} />
       </button>
@@ -65,7 +65,7 @@ export function ProductCarousel({ products }: { products: ShowcaseProduct[] }) {
                 className="object-contain transition-transform duration-300 motion-reduce:transition-none group-hover:-translate-y-2 group-hover:scale-[1.02]"
               />
             </div>
-            <h3 className="mt-12 text-[24px] font-semibold leading-7 text-[#563e2b] transition-colors group-hover:text-primary lg:text-[32px] lg:leading-6">
+            <h3 className="mt-6 text-[22px] font-semibold leading-7 text-[#563e2b] transition-colors group-hover:text-primary sm:mt-10 sm:text-[24px] lg:mt-12 lg:text-[32px] lg:leading-6">
               {product.name}
             </h3>
           </Link>
@@ -77,7 +77,7 @@ export function ProductCarousel({ products }: { products: ShowcaseProduct[] }) {
         aria-label="Sản phẩm tiếp theo"
         disabled={!canGoForward}
         onClick={() => move(1)}
-        className="absolute right-1 top-[46%] z-10 grid size-11 -translate-y-1/2 place-items-center rounded-full bg-background/85 text-foreground transition disabled:opacity-40 sm:-right-12 lg:-right-20 lg:top-[172px]"
+        className="absolute right-1 top-[46%] z-10 grid size-11 -translate-y-1/2 place-items-center rounded-full bg-background/85 text-foreground transition disabled:opacity-40 lg:top-[172px] min-[1360px]:-right-20"
       >
         <ChevronRight className="size-8" strokeWidth={1.25} />
       </button>

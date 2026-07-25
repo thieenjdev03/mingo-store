@@ -41,8 +41,10 @@ export async function CareersSearchView({ query = '', groups = [], locations = [
       <CareersHero query={query} />
 
       <section className="mx-auto max-w-[1200px] px-5 py-12 sm:px-8 sm:py-16 lg:py-20">
+        {/* Filters sit under the results below lg — otherwise mobile users scroll
+            past every checkbox before seeing a single job. */}
         <div className="grid gap-10 lg:grid-cols-[230px_1fr] lg:gap-12">
-          <aside>
+          <aside className="order-2 lg:order-none">
             <form method="get" className="space-y-8">
               <input type="hidden" name="q" value={query} />
               <FilterGroup title={t('filters.group')} name="group" values={distinct(allJobs.map((j) => j.category))} selected={groups} />
@@ -51,7 +53,7 @@ export async function CareersSearchView({ query = '', groups = [], locations = [
               <button type="submit" className="h-11 rounded-lg bg-primary px-5 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary-dark">{t('filters.apply')}</button>
             </form>
           </aside>
-          <div>
+          <div className="order-1 lg:order-none">
             {jobs.length > 0 ? (
               <div className="space-y-4" aria-live="polite">
                 {jobs.map((job) => <JobCard key={job.slug} job={job} applyLabel={t('apply')} />)}
@@ -77,7 +79,7 @@ function FilterGroup({ title, name, values, selected }: { title: string; name: s
       <legend className="font-display text-2xl font-normal text-foreground">{title}</legend>
       <div className="mt-4 space-y-3">
         {values.map((value) => (
-          <label key={value} className="flex cursor-pointer items-center gap-3 text-sm text-foreground/75">
+          <label key={value} className="flex min-h-9 cursor-pointer items-center gap-3 text-sm text-foreground/75">
             <input type="checkbox" name={name} value={value} defaultChecked={selected.includes(value)} className="size-5 appearance-none rounded-md border border-foreground/70 bg-transparent checked:border-primary checked:bg-primary focus-visible:ring-2 focus-visible:ring-primary/30" />
             <span>{value}</span>
           </label>

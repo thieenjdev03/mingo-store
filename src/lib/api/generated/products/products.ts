@@ -19,6 +19,8 @@ import type {
 
 import type {
   CreateProductDto,
+  ProductListDto,
+  ProductResponseDto,
   ProductsControllerCreateParams,
   ProductsControllerFindAllParams,
   ProductsControllerFindBySlugParams,
@@ -42,7 +44,7 @@ export const productsControllerCreate = (
     createProductDto: CreateProductDto,
     params: ProductsControllerCreateParams,
  ) => {
-    return customFetch<void>(
+    return customFetch<ProductResponseDto>(
     {url: `/products`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
       data: createProductDto,
@@ -88,7 +90,7 @@ export const useProductsControllerCreate = <TError = unknown>(
 export const productsControllerFindAll = (
     params?: ProductsControllerFindAllParams,
  ) => {
-    return customFetch<void>(
+    return customFetch<ProductListDto>(
     {url: `/products`, method: 'GET',
         params
     },
@@ -127,7 +129,7 @@ export const useProductsControllerFindAll = <TError = unknown>(
 export const productsControllerSearch = (
     params: ProductsControllerSearchParams,
  ) => {
-    return customFetch<void>(
+    return customFetch<ProductResponseDto[]>(
     {url: `/products/search`, method: 'GET',
         params
     },
@@ -167,7 +169,7 @@ export const productsControllerFindBySlug = (
     slug: string,
     params: ProductsControllerFindBySlugParams,
  ) => {
-    return customFetch<void>(
+    return customFetch<ProductResponseDto>(
     {url: `/products/slug/${slug}`, method: 'GET',
         params
     },
@@ -209,7 +211,7 @@ export const productsControllerFindOne = (
     id: string,
     params: ProductsControllerFindOneParams,
  ) => {
-    return customFetch<void>(
+    return customFetch<ProductResponseDto>(
     {url: `/products/${id}`, method: 'GET',
         params
     },
@@ -252,7 +254,7 @@ export const productsControllerUpdate = (
     updateProductDto: UpdateProductDto,
     params: ProductsControllerUpdateParams,
  ) => {
-    return customFetch<void>(
+    return customFetch<ProductResponseDto>(
     {url: `/products/${id}`, method: 'PATCH',
       headers: {'Content-Type': 'application/json', },
       data: updateProductDto,
@@ -384,7 +386,7 @@ export const productsControllerUpdateVariantStock = (
     sku: string,
     params: ProductsControllerUpdateVariantStockParams,
  ) => {
-    return customFetch<void>(
+    return customFetch<ProductResponseDto>(
     {url: `/products/${id}/variants/${sku}/stock`, method: 'PATCH',
         params
     },

@@ -5,30 +5,50 @@ import { Chip } from '@/components/ui/chip';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { PurchasePanel } from '@/features/product/purchase-panel';
 import { toProductDetailView } from '@/features/product/types';
-import type { ApiProduct } from '@/types/api-placeholder';
+import type { ProductResponseDto } from '@/lib/api/generated/ecomAPI.schemas';
 import { routing } from '@/i18n/routing';
 
 /**
  * PDP (stub) — layout 2 cột theo mockup. Mock data chạy qua ĐÚNG pipeline thật:
- * ApiProduct -> toProductDetailView(locale) -> component chỉ thấy view model.
- * TODO(data): thay MOCK bằng fetch API theo slug sau khi api:gen (xem mingo-pdp-frontend-plan.md).
+ * ProductResponseDto -> toProductDetailView(locale) -> component chỉ thấy view model.
+ * The real backend resolves name/slug/description per the requested `locale` query param
+ * server-side (see ProductsService.transformProductForLocale), so a single mock object
+ * (fixed text) stands in fine here — no vi/en variants needed at this layer.
+ * TODO(data): thay MOCK bằng fetch API theo slug (GET /products/slug/:slug?locale=).
  */
-const MOCK: ApiProduct = {
+const MOCK: ProductResponseDto = {
   id: 'demo-1',
-  name: { vi: 'Creme Caramel', en: 'Creme Caramel' },
-  slug: { vi: 'creme-caramel', en: 'creme-caramel' },
-  description: { vi: 'Kem que vị caramel custard, topping trân châu đường đen.', en: 'Custard caramel ice cream bar with brown-sugar boba.' },
+  name: 'Creme Caramel',
+  slug: 'creme-caramel',
+  description: 'Kem que vị caramel custard, topping trân châu đường đen.',
+  short_description: null,
   price: 100000,
   sale_price: null,
+  cost_price: null,
   images: [],
   stock_quantity: 0,
+  sku: null,
+  barcode: null,
+  tags: [],
   status: 'active',
   is_featured: true,
-  tags: [],
-  category: { id: 'c1', name: { vi: 'Kem que', en: 'Ice cream bars' }, slug: { vi: 'kem-que', en: 'bars' } },
-  collections: [{ id: 'col1', name: { vi: 'Dessert Collection', en: 'Dessert Collection' }, slug: 'dessert-collection' }],
+  enable_sale_tag: false,
+  meta_title: null,
+  meta_description: null,
+  weight: null,
+  dimensions: null,
+  created_at: new Date(0).toISOString(),
+  updated_at: new Date(0).toISOString(),
+  category: { id: 'c1', name: 'Kem que', slug: 'kem-que' },
   variants: [
-    { sku: 'CC-24', name: { vi: '24 Cây/Thùng', en: '24 Bars/Carton' }, price: 100000, stock: 12, size_id: 's1', color_id: null },
+    {
+      sku: 'CC-24',
+      name: '24 Cây/Thùng',
+      price: 100000,
+      stock: 12,
+      color_id: '00000000-0000-0000-0000-000000000000',
+      size_id: '00000000-0000-0000-0000-000000000001',
+    },
   ],
 };
 
@@ -45,10 +65,11 @@ export default async function ProductDetailPage({
   const product = toProductDetailView(MOCK, safeLocale);
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-10 md:px-8">
-      <div className="grid gap-12 md:grid-cols-[45%_1fr]">
+    <div className="mx-auto max-w-7xl px-5 py-8 sm:px-8 sm:py-12">
+      {/* minmax(0,…): plain 1fr floors at min-content, which the nowrap CTA blew past on tablet */}
+      <div className="grid gap-8 md:grid-cols-[45%_minmax(0,1fr)] md:gap-10 lg:gap-12">
         {/* Gallery */}
-        <div className="relative aspect-[3/4]">
+        <div className="relative mx-auto aspect-[3/4] w-full max-w-[320px] md:max-w-none">
           {product.image ? (
             <Image src={product.image} alt={product.name} fill className="object-contain" priority />
           ) : (
@@ -63,8 +84,8 @@ export default async function ProductDetailPage({
               {product.collectionName}
             </p>
           )}
-          <h1 className="font-display text-5xl">{product.name}</h1>
-          <div className="flex gap-2">
+          <h1 className="font-display text-3xl sm:text-4xl lg:text-5xl">{product.name}</h1>
+          <div className="flex flex-wrap gap-2">
             {product.collectionName && <Chip>{product.collectionName}</Chip>}
             {product.categoryName && <Chip>{product.categoryName}</Chip>}
           </div>
