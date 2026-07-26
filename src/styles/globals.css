@@ -19,6 +19,7 @@
   --mingo-sand: #ffd9a0; /* banner accent ấm */
   --mingo-coral: #ef6b0a; /* tertiary-container — about story panel */
   --mingo-butter: #ffdf82; /* about history panel */
+  --mingo-fog: #f5f4f2; /* nền trung tính nhạt — lưới sản phẩm trang danh mục */
   --mingo-white: #ffffff;
 
   /* --- Semantic (shadcn/ui đọc các biến này) --- */
@@ -70,6 +71,7 @@
   --color-sand: var(--mingo-sand);
   --color-coral: var(--mingo-coral);
   --color-butter: var(--mingo-butter);
+  --color-fog: var(--mingo-fog);
   --color-destructive: var(--destructive);
 
   /* --- Rounded scale (DESIGN.md `rounded`) --- */

@@ -37,6 +37,7 @@ export function PurchasePanel({ product }: PurchasePanelProps) {
   function handleAdd() {
     addItem({
       productId: product.id,
+      slug: product.slug,
       sku: selected?.sku ?? product.id,
       name: product.name,
       variantLabel: selected?.label ?? null,

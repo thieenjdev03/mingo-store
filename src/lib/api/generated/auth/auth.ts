@@ -16,6 +16,8 @@ import type {
 
 import type {
   LoginDto,
+  LoginResponseDto,
+  LoginUserDto,
   RegisterDto
 } from '../ecomAPI.schemas';
 
@@ -31,7 +33,7 @@ import { customFetch } from '../../fetcher';
 export const authControllerRegister = (
     registerDto: RegisterDto,
  ) => {
-    return customFetch<void>(
+    return customFetch<LoginUserDto>(
     {url: `/auth/register`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
       data: registerDto
@@ -76,7 +78,7 @@ export const useAuthControllerRegister = <TError = void>(
 export const authControllerLogin = (
     loginDto: LoginDto,
  ) => {
-    return customFetch<void>(
+    return customFetch<LoginResponseDto>(
     {url: `/auth/login`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
       data: loginDto

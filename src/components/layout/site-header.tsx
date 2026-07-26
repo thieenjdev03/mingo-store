@@ -2,19 +2,19 @@
 
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import Image from "next/image";
-import { Menu, X } from "lucide-react";
+import { ChevronDown, Menu, X } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Link, useRouter } from "@/i18n/navigation";
 import { useCart } from "@/features/cart/cart-context";
 import { CartDrawer } from "@/features/cart/cart-drawer";
 import { LocaleSwitcher } from "@/components/layout/locale-switcher";
+import { useNavCategories } from "@/features/catalog/use-nav-categories";
 
 const NAV = [
   { key: "products", href: "/products" },
   { key: "brands", href: "/brands" },
   { key: "partnership", href: "/partnership" },
   { key: "about", href: "/about" },
-  { key: "stores", href: "/stores" },
 ] as const;
 
 const HEADER_ASSETS = {
@@ -28,8 +28,10 @@ export function SiteHeader() {
   const t = useTranslations("nav");
   const router = useRouter();
   const { totalQuantity, isDrawerOpen, openDrawer } = useCart();
+  const categories = useNavCategories();
   const [menuOpen, setMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [catalogOpen, setCatalogOpen] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -37,16 +39,17 @@ export function SiteHeader() {
   }, [searchOpen]);
 
   useEffect(() => {
-    if (!menuOpen && !searchOpen) return;
+    if (!menuOpen && !searchOpen && !catalogOpen) return;
     const closeOnEscape = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         setMenuOpen(false);
         setSearchOpen(false);
+        setCatalogOpen(false);
       }
     };
     window.addEventListener("keydown", closeOnEscape);
     return () => window.removeEventListener("keydown", closeOnEscape);
-  }, [menuOpen, searchOpen]);
+  }, [menuOpen, searchOpen, catalogOpen]);
 
   // Mobile menu overlays the page — stop the body scrolling underneath it.
   useEffect(() => {
@@ -71,10 +74,13 @@ export function SiteHeader() {
   return (
     <header className="sticky top-0 z-50 h-[72px] bg-white xl:h-[100px]">
       <div className="relative mx-auto flex h-full max-w-[1440px] items-center px-4 sm:px-8 xl:block xl:px-0">
+        {/* Logo phải nằm gọn trong chiều cao header (căn giữa dọc, không lố xuống dưới)
+            để KHÔNG đè lên ảnh banner homepage lúc tải trang. Trên xl header dùng layout
+            absolute nên logo giữ absolute + căn giữa qua top-1/2/-translate-y-1/2. */}
         <Link
           href="/"
           aria-label="Mingo — trang chủ"
-          className="relative -ml-2 block size-[92px] shrink-0 xl:absolute xl:left-[7.4306%] xl:top-[-27px] xl:ml-0 xl:size-[154px]"
+          className="relative -ml-2 block size-[56px] shrink-0 xl:absolute xl:left-[7.4306%] xl:top-1/2 xl:ml-0 xl:size-[84px] xl:-translate-y-1/2"
         >
           <Image
             src={HEADER_ASSETS.logo}
@@ -90,15 +96,59 @@ export function SiteHeader() {
           aria-label={t("mainNav")}
           className="absolute left-[31.8056%] top-[34px] hidden h-8 items-center gap-[44px] min-[1400px]:gap-[60px] xl:flex"
         >
-          {NAV.map((item) => (
-            <Link
-              key={item.key}
-              href={item.href}
-              className="flex h-8 items-center whitespace-nowrap text-[16px] font-bold uppercase leading-6 text-[#563e2b] transition-colors hover:text-primary"
-            >
-              {t(item.key)}
-            </Link>
-          ))}
+          {NAV.map((item) =>
+            item.key === "products" && categories.length > 0 ? (
+              <div
+                key={item.key}
+                className="group relative flex h-8 items-center"
+                onMouseEnter={() => setCatalogOpen(true)}
+                onMouseLeave={() => setCatalogOpen(false)}
+              >
+                <Link
+                  href={item.href}
+                  aria-haspopup="true"
+                  aria-expanded={catalogOpen}
+                  onFocus={() => setCatalogOpen(true)}
+                  className={`flex h-8 items-center gap-1 whitespace-nowrap text-[16px] font-bold uppercase leading-6 transition-colors ${
+                    catalogOpen ? "text-primary" : "text-[#563e2b] group-hover:text-primary"
+                  }`}
+                >
+                  {t(item.key)}
+                  <ChevronDown className="size-4" aria-hidden="true" />
+                </Link>
+                <NavUnderline active={catalogOpen} />
+                {catalogOpen ? (
+                  // pt-[34px] = khoảng cách từ đáy nav item xuống đáy header, vừa làm cầu hover
+                  // vừa cho dropdown mở ngay dưới header (khớp ảnh mockup).
+                  <div className="absolute left-0 top-full z-40 pt-[34px]">
+                    <ul className="min-w-[240px] rounded-b-lg border-x border-b border-border bg-white py-2 shadow-xl">
+                      {categories.map((category) => (
+                        <li key={category.slug}>
+                          <Link
+                            href={`/categories/${category.slug}`}
+                            onClick={() => setCatalogOpen(false)}
+                            className="block px-6 py-3 text-[15px] font-bold uppercase tracking-wide text-[#563e2b] transition-colors hover:bg-blush hover:text-primary"
+                          >
+                            {category.name}
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ) : null}
+              </div>
+            ) : (
+              <div key={item.key} className="group relative flex h-8 items-center">
+                <Link
+                  href={item.href}
+                  className="flex h-8 items-center whitespace-nowrap text-[16px] font-bold uppercase leading-6 text-[#563e2b] transition-colors group-hover:text-primary"
+                >
+                  {t(item.key)}
+                </Link>
+                <NavUnderline active={false} />
+              </div>
+            ),
+          )}
         </nav>
 
         <div className="ml-auto flex items-center gap-4 xl:absolute xl:left-[76.7361%] xl:top-[34px] xl:ml-0 xl:gap-[44px] min-[1400px]:gap-[60px]">
@@ -189,14 +239,30 @@ export function SiteHeader() {
         >
           <div className="mx-auto flex max-w-xl flex-col">
             {NAV.map((item) => (
-              <Link
-                key={item.key}
-                href={item.href}
-                onClick={() => setMenuOpen(false)}
-                className="border-b border-border py-4 text-base font-bold uppercase text-[#563e2b] last:border-0 hover:text-primary"
-              >
-                {t(item.key)}
-              </Link>
+              <div key={item.key} className="border-b border-border last:border-0">
+                <Link
+                  href={item.href}
+                  onClick={() => setMenuOpen(false)}
+                  className="block py-4 text-base font-bold uppercase text-[#563e2b] hover:text-primary"
+                >
+                  {t(item.key)}
+                </Link>
+                {item.key === "products" && categories.length > 0 ? (
+                  <ul className="-mt-1 flex flex-col gap-1 pb-4 pl-4">
+                    {categories.map((category) => (
+                      <li key={category.slug}>
+                        <Link
+                          href={`/categories/${category.slug}`}
+                          onClick={() => setMenuOpen(false)}
+                          className="block py-1.5 text-sm font-semibold uppercase tracking-wide text-muted-foreground hover:text-primary"
+                        >
+                          {category.name}
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                ) : null}
+              </div>
             ))}
             <Link
               href="/account"
@@ -214,5 +280,20 @@ export function SiteHeader() {
 
       <CartDrawer />
     </header>
+  );
+}
+
+/**
+ * Gạch chân cam dưới nav item, canh ở đáy header (nav item cách đáy header 34px).
+ * Hiện khi hover (group-hover) hoặc khi dropdown đang mở (active).
+ */
+function NavUnderline({ active }: { active: boolean }) {
+  return (
+    <span
+      aria-hidden="true"
+      className={`pointer-events-none absolute -bottom-[34px] left-0 right-0 h-[3px] origin-left rounded-full bg-primary transition-transform duration-200 ${
+        active ? "scale-x-100" : "scale-x-0 group-hover:scale-x-100"
+      }`}
+    />
   );
 }

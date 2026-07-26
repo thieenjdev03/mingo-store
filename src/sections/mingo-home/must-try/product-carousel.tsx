@@ -4,9 +4,9 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Link } from '@/i18n/navigation';
-import type { ShowcaseProduct } from '@/config/mingo-home-content';
+import type { ProductCardView } from '@/features/product/types';
 
-export function ProductCarousel({ products }: { products: ShowcaseProduct[] }) {
+export function ProductCarousel({ products }: { products: ProductCardView[] }) {
   const trackRef = useRef<HTMLDivElement>(null);
   const [canGoBack, setCanGoBack] = useState(false);
   const [canGoForward, setCanGoForward] = useState(false);
@@ -57,13 +57,19 @@ export function ProductCarousel({ products }: { products: ShowcaseProduct[] }) {
             className="group block min-w-0 shrink-0 basis-[82%] snap-start text-center sm:basis-[48%] lg:basis-[calc(25%-18px)]"
           >
             <div className="relative mx-auto h-[330px] w-full sm:h-[390px] lg:h-[376px]">
-              <Image
-                src={product.imageUrl}
-                alt={product.imageAlt}
-                fill
-                sizes="(max-width: 640px) 82vw, (max-width: 1024px) 48vw, 282px"
-                className="object-contain transition-transform duration-300 motion-reduce:transition-none group-hover:-translate-y-2 group-hover:scale-[1.02]"
-              />
+              {product.image ? (
+                <Image
+                  src={product.image}
+                  alt={product.name}
+                  fill
+                  sizes="(max-width: 640px) 82vw, (max-width: 1024px) 48vw, 282px"
+                  className="object-contain transition-transform duration-300 motion-reduce:transition-none group-hover:-translate-y-2 group-hover:scale-[1.02]"
+                />
+              ) : (
+                <div className="flex h-full items-center justify-center rounded-lg bg-muted text-5xl text-muted-foreground">
+                  🍦
+                </div>
+              )}
             </div>
             <h3 className="mt-6 text-[22px] font-semibold leading-7 text-[#563e2b] transition-colors group-hover:text-primary sm:mt-10 sm:text-[24px] lg:mt-12 lg:text-[32px] lg:leading-6">
               {product.name}

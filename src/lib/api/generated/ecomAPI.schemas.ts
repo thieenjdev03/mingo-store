@@ -15,7 +15,31 @@ export interface RegisterDto {
   marketingOptIn?: boolean;
 }
 
-export interface LoginDto { [key: string]: unknown }
+export type LoginUserDtoRole = typeof LoginUserDtoRole[keyof typeof LoginUserDtoRole];
+
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const LoginUserDtoRole = {
+  admin: 'admin',
+  user: 'user',
+} as const;
+
+export interface LoginUserDto {
+  id: string;
+  email: string;
+  role: LoginUserDtoRole;
+}
+
+export interface LoginDto {
+  email: string;
+  password: string;
+}
+
+export interface LoginResponseDto {
+  /** JWT access token */
+  accessToken: string;
+  user: LoginUserDto;
+}
 
 /**
  * User role
@@ -160,6 +184,14 @@ export interface User {
   id: string;
   /** User email address */
   email: string;
+  /** User first name */
+  firstName?: string;
+  /** User last name */
+  lastName?: string;
+  /** User country */
+  country?: string;
+  /** User phone number */
+  phoneNumber?: string;
   /** User role */
   role: UserRole;
   /** User profile information */
@@ -170,7 +202,7 @@ export interface User {
   updatedAt: string;
 }
 
-export interface OrderItemDto {
+export interface MailOrderItemDto {
   /** Product name */
   name: string;
   /** Quantity ordered */
@@ -191,7 +223,7 @@ export interface SendOrderConfirmationDto {
   /** Currency code */
   currency: string;
   /** Order items */
-  items: OrderItemDto[];
+  items: MailOrderItemDto[];
 }
 
 export interface SendPasswordResetDto {
@@ -350,7 +382,7 @@ export interface ProductVariantDto {
   price: number;
   stock: number;
   barcode?: string;
-  color_id: string;
+  color_id?: string;
   size_id: string;
   image_url?: string;
 }
@@ -420,6 +452,14 @@ export interface ProductCategorySummaryDto {
   slug: string;
 }
 
+export interface ProductBrandSummaryDto {
+  id: string;
+  name: string;
+  slug: string;
+  /** @nullable */
+  logo_url?: string | null;
+}
+
 export interface ProductVariantColorDto {
   id: string;
   name: string;
@@ -441,7 +481,8 @@ export interface ProductVariantResponseDto {
   stock: number;
   /** @nullable */
   barcode?: string | null;
-  color_id: string;
+  /** @nullable */
+  color_id?: string | null;
   size_id: string;
   /** @nullable */
   image_url?: string | null;
@@ -470,6 +511,11 @@ export type ProductResponseDtoDimensions = ProductDimensionsResponseDto | null;
  * @nullable
  */
 export type ProductResponseDtoCategory = ProductCategorySummaryDto | null;
+
+/**
+ * @nullable
+ */
+export type ProductResponseDtoBrand = ProductBrandSummaryDto | null;
 
 export interface ProductResponseDto {
   id: string;
@@ -506,6 +552,8 @@ export interface ProductResponseDto {
   updated_at: string;
   /** @nullable */
   category?: ProductResponseDtoCategory;
+  /** @nullable */
+  brand: ProductResponseDtoBrand;
   variants?: ProductVariantResponseDto[];
 }
 
@@ -593,6 +641,27 @@ export interface CreateSizeDto { [key: string]: unknown }
 
 export interface UpdateSizeDto { [key: string]: unknown }
 
+export interface OrderItemDto {
+  /** Product ID (UUID) */
+  productId: string;
+  /** Product name */
+  productName: string;
+  /** Product slug */
+  productSlug: string;
+  /** Variant ID for products with variants */
+  variantId?: string;
+  /** Variant name */
+  variantName?: string;
+  /** Quantity */
+  quantity: number;
+  /** Unit price (formatted as string with two decimals) */
+  unitPrice: string;
+  /** Total price for this item (formatted as string with two decimals) */
+  totalPrice: string;
+  /** SKU */
+  sku?: string;
+}
+
 export interface OrderSummaryDto {
   /** Subtotal amount (formatted as string with two decimals) */
   subtotal: string;
@@ -650,6 +719,7 @@ export const CreateOrderDtoPaymentMethod = {
   PAYPAL: 'PAYPAL',
   STRIPE: 'STRIPE',
   COD: 'COD',
+  VIETQR: 'VIETQR',
 } as const;
 
 export interface CreateOrderDto {
@@ -706,6 +776,7 @@ export const UpdateOrderDtoPaymentMethod = {
   PAYPAL: 'PAYPAL',
   STRIPE: 'STRIPE',
   COD: 'COD',
+  VIETQR: 'VIETQR',
 } as const;
 
 export interface UpdateOrderDto {
@@ -793,6 +864,8 @@ export interface CreateCollectionDto {
   seo_description?: string;
   /** Is collection active */
   is_active?: boolean;
+  /** Marks this collection as the source for a homepage section (e.g. "must_try"). At most one active collection should claim a given section. */
+  homepage_section?: string;
 }
 
 export interface UpdateCollectionDto {
@@ -810,6 +883,8 @@ export interface UpdateCollectionDto {
   seo_description?: string;
   /** Is collection active */
   is_active?: boolean;
+  /** Marks this collection as the source for a homepage section (e.g. "must_try"). At most one active collection should claim a given section. */
+  homepage_section?: string;
 }
 
 export interface AssignProductsDto {
@@ -836,6 +911,9 @@ export interface CreateCareerDto {
   level?: string;
   /** HTML content (sanitized on save) */
   content: string;
+  /** Cover image URL from /files/upload. Also accepts `coverUrl`. */
+  cover_url?: string;
+  /** Also accepts `isPrimary`. */
   is_primary?: boolean;
   status?: CreateCareerDtoStatus;
   /** Related career IDs */
@@ -864,6 +942,11 @@ export interface CareerDto {
   level?: string | null;
   /** Sanitized HTML */
   content: string;
+  /**
+   * Cover image URL
+   * @nullable
+   */
+  cover_url?: string | null;
   is_primary: boolean;
   status: CareerDtoStatus;
   /** @nullable */
@@ -881,6 +964,35 @@ export interface CareerListDto {
    * @nullable
    */
   nextCursor: string | null;
+}
+
+export interface CareerApplicationReceiptDto {
+  id: string;
+  created_at: string;
+}
+
+export type CareerApplicationDtoStatus = typeof CareerApplicationDtoStatus[keyof typeof CareerApplicationDtoStatus];
+
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const CareerApplicationDtoStatus = {
+  new: 'new',
+  reviewing: 'reviewing',
+  rejected: 'rejected',
+  hired: 'hired',
+} as const;
+
+export interface CareerApplicationDto {
+  id: string;
+  career_id: string;
+  full_name: string;
+  email: string;
+  phone: string;
+  /** @nullable */
+  cover_letter?: string | null;
+  cv_url: string;
+  status: CareerApplicationDtoStatus;
+  created_at: string;
 }
 
 export type UpdateCareerDtoStatus = typeof UpdateCareerDtoStatus[keyof typeof UpdateCareerDtoStatus];
@@ -902,10 +1014,192 @@ export interface UpdateCareerDto {
   level?: string;
   /** HTML content (sanitized on save) */
   content?: string;
+  /** Cover image URL from /files/upload. Also accepts `coverUrl`. */
+  cover_url?: string;
+  /** Also accepts `isPrimary`. */
   is_primary?: boolean;
   status?: UpdateCareerDtoStatus;
   /** Related career IDs */
   subCareerIds?: string[];
+}
+
+export type UpdateCareerApplicationDtoStatus = typeof UpdateCareerApplicationDtoStatus[keyof typeof UpdateCareerApplicationDtoStatus];
+
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const UpdateCareerApplicationDtoStatus = {
+  new: 'new',
+  reviewing: 'reviewing',
+  rejected: 'rejected',
+  hired: 'hired',
+} as const;
+
+export interface UpdateCareerApplicationDto {
+  status: UpdateCareerApplicationDtoStatus;
+}
+
+export interface CreateBrandDto {
+  name: string;
+  slug: string;
+  /** @nullable */
+  logo_url?: string | null;
+  /** @nullable */
+  description?: string | null;
+  display_order?: number;
+  is_active?: boolean;
+}
+
+export interface BrandDto {
+  id: string;
+  name: string;
+  slug: string;
+  /** @nullable */
+  logo_url?: string | null;
+  /** @nullable */
+  description?: string | null;
+  display_order: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface UpdateBrandDto {
+  name?: string;
+  slug?: string;
+  /** @nullable */
+  logo_url?: string | null;
+  /** @nullable */
+  description?: string | null;
+  display_order?: number;
+  is_active?: boolean;
+}
+
+export interface CreateHomepageBannerDto {
+  /** Banner image URL, from /files/upload(-multiple) */
+  image_url: string;
+  alt_text?: string;
+  /** Optional CTA target when the banner is clicked */
+  link_url?: string;
+  /** Lower shows first */
+  display_order?: number;
+  is_active?: boolean;
+}
+
+export interface UpdateHomepageBannerDto { [key: string]: unknown }
+
+export interface CreateDistributorDto {
+  name: string;
+  address_line: string;
+  /** @nullable */
+  district_text?: string | null;
+  ward_code: string;
+  ward_name: string;
+  province_code: string;
+  province_name: string;
+  /** @nullable */
+  description?: string | null;
+  /** Raw Google Maps <iframe> tag or embed URL */
+  maps_embed: string;
+  is_active?: boolean;
+  category_ids: string[];
+  collection_ids: string[];
+}
+
+export interface DistributorCategoryDto {
+  id: string;
+  name: string;
+}
+
+export interface DistributorCollectionDto {
+  id: string;
+  name: string;
+}
+
+export interface DistributorDto {
+  id: string;
+  name: string;
+  slug: string;
+  address_line: string;
+  /** @nullable */
+  district_text?: string | null;
+  ward_code: string;
+  ward_name: string;
+  province_code: string;
+  province_name: string;
+  /** @nullable */
+  description?: string | null;
+  maps_embed_src: string;
+  is_active: boolean;
+  categories: DistributorCategoryDto[];
+  collections: DistributorCollectionDto[];
+  created_at: string;
+  updated_at: string;
+}
+
+export interface DistributorListDto {
+  data: DistributorDto[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
+export interface UpdateDistributorDto {
+  name?: string;
+  address_line?: string;
+  /** @nullable */
+  district_text?: string | null;
+  ward_code?: string;
+  ward_name?: string;
+  province_code?: string;
+  province_name?: string;
+  /** @nullable */
+  description?: string | null;
+  /** Raw Google Maps <iframe> tag or embed URL */
+  maps_embed?: string;
+  is_active?: boolean;
+  category_ids?: string[];
+  collection_ids?: string[];
+}
+
+export interface CreatePolicyDto {
+  /** Tên mục chính */
+  title: string;
+  /** Auto-generated from title if omitted */
+  slug?: string;
+  /** HTML content (sanitized server-side) */
+  content: string;
+  display_order?: number;
+  is_active?: boolean;
+}
+
+export interface PolicyDto {
+  id: string;
+  title: string;
+  slug: string;
+  content: string;
+  display_order: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface UpdatePolicyDto {
+  /** Tên mục chính */
+  title?: string;
+  /** Auto-generated from title if omitted */
+  slug?: string;
+  /** HTML content (sanitized server-side) */
+  content?: string;
+  display_order?: number;
+  is_active?: boolean;
+}
+
+export interface PolicyListItemDto {
+  id: string;
+  title: string;
+  slug: string;
+  display_order: number;
+  is_active: boolean;
 }
 
 export type HealthControllerGetHealth200 = {
@@ -1150,7 +1444,24 @@ limit?: number;
  * Cursor token for pagination
  */
 cursor?: string;
+/**
+ * Filter collections by their homepage section marker
+ */
+homepage_section?: string;
+/**
+ * Locale used to resolve product name/slug/description when fetching a collection's products (default: en)
+ */
+locale?: CollectionsControllerFindAllLocale;
 };
+
+export type CollectionsControllerFindAllLocale = typeof CollectionsControllerFindAllLocale[keyof typeof CollectionsControllerFindAllLocale];
+
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const CollectionsControllerFindAllLocale = {
+  en: 'en',
+  vi: 'vi',
+} as const;
 
 export type CollectionsControllerGetProductsParams = {
 /**
@@ -1161,7 +1472,24 @@ limit?: number;
  * Cursor token for pagination
  */
 cursor?: string;
+/**
+ * Filter collections by their homepage section marker
+ */
+homepage_section?: string;
+/**
+ * Locale used to resolve product name/slug/description when fetching a collection's products (default: en)
+ */
+locale?: CollectionsControllerGetProductsLocale;
 };
+
+export type CollectionsControllerGetProductsLocale = typeof CollectionsControllerGetProductsLocale[keyof typeof CollectionsControllerGetProductsLocale];
+
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const CollectionsControllerGetProductsLocale = {
+  en: 'en',
+  vi: 'vi',
+} as const;
 
 export type CareersControllerFindAllParams = {
 category?: string;
@@ -1188,4 +1516,66 @@ export const CareersControllerFindAllStatus = {
   published: 'published',
   closed: 'closed',
 } as const;
+
+export type CareersControllerApplyBody = {
+  full_name: string;
+  email: string;
+  phone: string;
+  cover_letter?: string;
+  /** .pdf/.doc/.docx, max 5MB */
+  cv: Blob;
+};
+
+export type BrandsControllerFindAllParams = {
+/**
+ * Only active brands
+ */
+active?: boolean;
+};
+
+export type HomepageBannersControllerFindAllParams = {
+/**
+ * Filter to only active banners (used by the storefront)
+ */
+active?: boolean;
+};
+
+export type DistributorsControllerFindAllParams = {
+/**
+ * Search by name or address
+ */
+q?: string;
+province_code?: string;
+ward_code?: string;
+category_id?: string;
+collection_id?: string;
+is_active?: boolean;
+page?: number;
+limit?: number;
+};
+
+export type DistributorsPublicControllerFindAllParams = {
+/**
+ * Search by name or address
+ */
+q?: string;
+province_code?: string;
+ward_code?: string;
+category_id?: string;
+collection_id?: string;
+is_active?: boolean;
+page?: number;
+limit?: number;
+};
+
+export type PoliciesControllerFindAllParams = {
+/**
+ * Search by title
+ */
+search?: string;
+/**
+ * Filter by active state
+ */
+is_active?: boolean;
+};
 

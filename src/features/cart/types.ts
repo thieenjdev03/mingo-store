@@ -1,5 +1,6 @@
 export interface CartItem {
   productId: string;
+  slug: string;
   sku: string; // sku của variant (hoặc chính product nếu không có variant)
   name: string;
   variantLabel: string | null; // "24 Cây/Thùng"

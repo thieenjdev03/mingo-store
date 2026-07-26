@@ -18,10 +18,14 @@ import type {
 } from 'swr/mutation';
 
 import type {
+  CareerApplicationDto,
+  CareerApplicationReceiptDto,
   CareerDto,
   CareerListDto,
+  CareersControllerApplyBody,
   CareersControllerFindAllParams,
   CreateCareerDto,
+  UpdateCareerApplicationDto,
   UpdateCareerDto
 } from '../ecomAPI.schemas';
 
@@ -192,6 +196,98 @@ export const useCareersControllerFindBySlug = <TError = void>(
   }
 }
 /**
+ * @summary Apply for a job (public)
+ */
+export const careersControllerApply = (
+    id: string,
+    careersControllerApplyBody: CareersControllerApplyBody,
+ ) => {const formData = new FormData();
+formData.append(`full_name`, careersControllerApplyBody.full_name)
+formData.append(`email`, careersControllerApplyBody.email)
+formData.append(`phone`, careersControllerApplyBody.phone)
+if(careersControllerApplyBody.cover_letter !== undefined) {
+ formData.append(`cover_letter`, careersControllerApplyBody.cover_letter)
+ }
+formData.append(`cv`, careersControllerApplyBody.cv)
+
+    return customFetch<CareerApplicationReceiptDto>(
+    {url: `/careers/${id}/apply`, method: 'POST',
+      headers: {'Content-Type': 'multipart/form-data', },
+       data: formData
+    },
+    );
+  }
+
+
+
+export const getCareersControllerApplyMutationFetcher = (id: string, ) => {
+  return (_: Key, { arg }: { arg: CareersControllerApplyBody }) => {
+    return careersControllerApply(id, arg);
+  }
+}
+export const getCareersControllerApplyMutationKey = (id: string,) => [`/careers/${id}/apply`] as const;
+
+export type CareersControllerApplyMutationResult = NonNullable<Awaited<ReturnType<typeof careersControllerApply>>>
+export type CareersControllerApplyMutationError = void
+
+/**
+ * @summary Apply for a job (public)
+ */
+export const useCareersControllerApply = <TError = void>(
+  id: string, options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof careersControllerApply>>, TError, Key, CareersControllerApplyBody, Awaited<ReturnType<typeof careersControllerApply>>> & { swrKey?: string }, }
+) => {
+
+  const {swr: swrOptions} = options ?? {}
+
+  const swrKey = swrOptions?.swrKey ?? getCareersControllerApplyMutationKey(id);
+  const swrFn = getCareersControllerApplyMutationFetcher(id);
+
+  const query = useSWRMutation(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
+/**
+ * @summary List applications for a job (admin)
+ */
+export const careersControllerFindApplications = (
+    id: string,
+ ) => {
+    return customFetch<CareerApplicationDto[]>(
+    {url: `/careers/${id}/applications`, method: 'GET'
+    },
+    );
+  }
+
+
+
+export const getCareersControllerFindApplicationsKey = (id: string,) => [`/careers/${id}/applications`] as const;
+
+export type CareersControllerFindApplicationsQueryResult = NonNullable<Awaited<ReturnType<typeof careersControllerFindApplications>>>
+export type CareersControllerFindApplicationsQueryError = unknown
+
+/**
+ * @summary List applications for a job (admin)
+ */
+export const useCareersControllerFindApplications = <TError = unknown>(
+  id: string, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof careersControllerFindApplications>>, TError> & { swrKey?: Key, enabled?: boolean },  }
+) => {
+  const {swr: swrOptions} = options ?? {}
+
+  const isEnabled = swrOptions?.enabled !== false && !!(id)
+  const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getCareersControllerFindApplicationsKey(id) : null);
+  const swrFn = () => careersControllerFindApplications(id)
+
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
+/**
  * @summary Update a career (admin)
  */
 export const careersControllerUpdate = (
@@ -272,6 +368,52 @@ export const useCareersControllerRemove = <TError = unknown>(
 
   const swrKey = swrOptions?.swrKey ?? getCareersControllerRemoveMutationKey(id);
   const swrFn = getCareersControllerRemoveMutationFetcher(id);
+
+  const query = useSWRMutation(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
+/**
+ * @summary Update application status (admin)
+ */
+export const careerApplicationsControllerUpdate = (
+    id: string,
+    updateCareerApplicationDto: UpdateCareerApplicationDto,
+ ) => {
+    return customFetch<CareerApplicationDto>(
+    {url: `/career-applications/${id}`, method: 'PATCH',
+      headers: {'Content-Type': 'application/json', },
+      data: updateCareerApplicationDto
+    },
+    );
+  }
+
+
+
+export const getCareerApplicationsControllerUpdateMutationFetcher = (id: string, ) => {
+  return (_: Key, { arg }: { arg: UpdateCareerApplicationDto }) => {
+    return careerApplicationsControllerUpdate(id, arg);
+  }
+}
+export const getCareerApplicationsControllerUpdateMutationKey = (id: string,) => [`/career-applications/${id}`] as const;
+
+export type CareerApplicationsControllerUpdateMutationResult = NonNullable<Awaited<ReturnType<typeof careerApplicationsControllerUpdate>>>
+export type CareerApplicationsControllerUpdateMutationError = unknown
+
+/**
+ * @summary Update application status (admin)
+ */
+export const useCareerApplicationsControllerUpdate = <TError = unknown>(
+  id: string, options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof careerApplicationsControllerUpdate>>, TError, Key, UpdateCareerApplicationDto, Awaited<ReturnType<typeof careerApplicationsControllerUpdate>>> & { swrKey?: string }, }
+) => {
+
+  const {swr: swrOptions} = options ?? {}
+
+  const swrKey = swrOptions?.swrKey ?? getCareerApplicationsControllerUpdateMutationKey(id);
+  const swrFn = getCareerApplicationsControllerUpdateMutationFetcher(id);
 
   const query = useSWRMutation(swrKey, swrFn, swrOptions)
 

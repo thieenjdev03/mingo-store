@@ -1,9 +1,8 @@
-import { getTranslations, setRequestLocale } from 'next-intl/server';
-import { ContentPage } from '@/components/layout/content-page';
+import { setRequestLocale } from 'next-intl/server';
+import { CheckoutView } from '@/features/checkout/checkout-view';
 
 export default async function CheckoutPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   setRequestLocale(locale);
-  const t = await getTranslations('pages.checkout');
-  return <ContentPage title={t('title')} intro={t('intro')} body={t('body')} cta={t('cta')} ctaHref="/cart" />;
+  return <CheckoutView />;
 }

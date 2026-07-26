@@ -1,8 +1,10 @@
 /**
  * Fetch wrapper dùng làm mutator cho orval (xem orval.config.ts).
- * Mọi request đi qua đây: gắn base URL, JSON, và (sau này) JWT + refresh.
+ * Mọi request đi qua đây: gắn base URL, JSON, và JWT bearer token (nếu có).
  * TODO(auth): port logic refresh-token interceptor từ repo cũ (src/auth/context/jwt).
  */
+import { getAccessToken } from '@/lib/auth/token';
+
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? '';
 
 export interface FetchConfig {
@@ -36,12 +38,14 @@ function buildUrl(url: string, params?: Record<string, unknown>): string {
 export async function customFetch<T>(config: FetchConfig): Promise<T> {
   const { url, method, params, data, headers, signal } = config;
 
+  const token = getAccessToken();
+
   const res = await fetch(buildUrl(url, params), {
     method,
     signal,
     headers: {
       ...(data !== undefined ? { 'Content-Type': 'application/json' } : {}),
-      // TODO(auth): Authorization: `Bearer ${getAccessToken()}`
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...headers,
     },
     body: data !== undefined ? JSON.stringify(data) : undefined,

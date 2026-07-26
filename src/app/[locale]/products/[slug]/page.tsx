@@ -1,68 +1,38 @@
 import Image from 'next/image';
+import { notFound } from 'next/navigation';
 import { setRequestLocale, getTranslations } from 'next-intl/server';
 import { hasLocale } from 'next-intl';
 import { Chip } from '@/components/ui/chip';
+import { fWeight } from '@/lib/format';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { PurchasePanel } from '@/features/product/purchase-panel';
+import { getProductBySlug } from '@/features/product/api';
 import { toProductDetailView } from '@/features/product/types';
-import type { ProductResponseDto } from '@/lib/api/generated/ecomAPI.schemas';
+import { getMockupBySlug, toMockupProductDto } from '@/features/product/mockup-catalog';
 import { routing } from '@/i18n/routing';
 
 /**
- * PDP (stub) — layout 2 cột theo mockup. Mock data chạy qua ĐÚNG pipeline thật:
- * ProductResponseDto -> toProductDetailView(locale) -> component chỉ thấy view model.
- * The real backend resolves name/slug/description per the requested `locale` query param
- * server-side (see ProductsService.transformProductForLocale), so a single mock object
- * (fixed text) stands in fine here — no vi/en variants needed at this layer.
- * TODO(data): thay MOCK bằng fetch API theo slug (GET /products/slug/:slug?locale=).
+ * PDP — fetch thật qua GET /products/slug/:slug?locale=. Nếu backend chưa có sản phẩm với slug
+ * này (chưa seed), fallback về catalog mockup dùng chung với trang listing (mockup-catalog.ts).
  */
-const MOCK: ProductResponseDto = {
-  id: 'demo-1',
-  name: 'Creme Caramel',
-  slug: 'creme-caramel',
-  description: 'Kem que vị caramel custard, topping trân châu đường đen.',
-  short_description: null,
-  price: 100000,
-  sale_price: null,
-  cost_price: null,
-  images: [],
-  stock_quantity: 0,
-  sku: null,
-  barcode: null,
-  tags: [],
-  status: 'active',
-  is_featured: true,
-  enable_sale_tag: false,
-  meta_title: null,
-  meta_description: null,
-  weight: null,
-  dimensions: null,
-  created_at: new Date(0).toISOString(),
-  updated_at: new Date(0).toISOString(),
-  category: { id: 'c1', name: 'Kem que', slug: 'kem-que' },
-  variants: [
-    {
-      sku: 'CC-24',
-      name: '24 Cây/Thùng',
-      price: 100000,
-      stock: 12,
-      color_id: '00000000-0000-0000-0000-000000000000',
-      size_id: '00000000-0000-0000-0000-000000000001',
-    },
-  ],
-};
-
 export default async function ProductDetailPage({
   params,
 }: {
   params: Promise<{ locale: string; slug: string }>;
 }) {
-  const { locale } = await params;
+  const { locale, slug } = await params;
   setRequestLocale(locale);
   const safeLocale = hasLocale(routing.locales, locale) ? locale : routing.defaultLocale;
   const t = await getTranslations('product');
 
-  const product = toProductDetailView(MOCK, safeLocale);
+  const apiProduct = await getProductBySlug(slug, safeLocale).catch(() => null);
+  const mockup = getMockupBySlug(slug);
+  const dto = apiProduct ?? (mockup ? toMockupProductDto(mockup, safeLocale) : undefined);
+  if (!dto) notFound();
+
+  const isMockup = !apiProduct && !!mockup;
+
+  const product = toProductDetailView(dto, safeLocale);
 
   return (
     <div className="mx-auto max-w-7xl px-5 py-8 sm:px-8 sm:py-12">
@@ -79,6 +49,11 @@ export default async function ProductDetailPage({
 
         {/* Summary */}
         <div className="space-y-5">
+          {isMockup ? (
+            <span className="inline-flex rounded-full bg-foreground/85 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-white">
+              Mockup
+            </span>
+          ) : null}
           {product.collectionName && (
             <p className="font-display text-xl font-bold text-primary underline underline-offset-4">
               {product.collectionName}
@@ -86,8 +61,9 @@ export default async function ProductDetailPage({
           )}
           <h1 className="font-display text-3xl sm:text-4xl lg:text-5xl">{product.name}</h1>
           <div className="flex flex-wrap gap-2">
-            {product.collectionName && <Chip>{product.collectionName}</Chip>}
             {product.categoryName && <Chip>{product.categoryName}</Chip>}
+            {product.weightKg != null && <Chip>{fWeight(product.weightKg)}</Chip>}
+            {product.collectionName && <Chip>{product.collectionName}</Chip>}
           </div>
 
           <PurchasePanel product={product} />

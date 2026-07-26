@@ -27,10 +27,21 @@ export interface ProductDetailView extends ProductCardView {
   images: string[];
   descriptionMarkdown: string;
   categoryName: string | null;
+  /** Khối lượng theo kg (backend), null nếu chưa nhập. */
+  weightKg: number | null;
   collectionName: string | null;
   collectionSlug: string | null;
   variants: ProductVariantView[];
   purchasable: boolean;
+}
+
+/** Bỏ tag HTML + gộp khoảng trắng -> text thuần (mô tả sản phẩm import có thể chứa <p>, <br>...). */
+function stripHtml(html: string): string {
+  return html
+    .replace(/<[^>]*>/g, ' ')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
 }
 
 /** Quy tắc giá hiệu lực THỐNG NHẤT toàn site: variant.price ?? sale_price ?? price */
@@ -62,8 +73,10 @@ export function toProductDetailView(p: ProductResponseDto, locale: Locale): Prod
     ...toProductCardView(p, locale),
     images: p.images,
     variants,
-    descriptionMarkdown: resolveLocalized(p.description, locale),
+    // Mô tả từ backend có thể là HTML (sản phẩm import) — bỏ tag để hiển thị text sạch trong accordion.
+    descriptionMarkdown: stripHtml(resolveLocalized(p.description, locale)),
     categoryName: p.category?.name ?? null,
+    weightKg: p.weight ?? null,
     // collections omitted: backend doesn't populate productCollections in the response yet — see follow-up
     collectionName: null,
     collectionSlug: null,
