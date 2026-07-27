@@ -65,7 +65,7 @@ export function ImageUpload({ value, onChange, folder, className }: ImageUploadP
             <button
               type="button"
               onClick={() => onChange(null)}
-              className="absolute right-1 top-1 rounded-full bg-black/60 p-1 text-white hover:bg-black/80"
+              className="absolute right-1 top-1 rounded-md bg-black/60 p-1 text-white hover:bg-black/80"
               aria-label="Xoá ảnh"
             >
               <X className="size-3.5" />

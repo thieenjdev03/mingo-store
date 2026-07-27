@@ -12,6 +12,7 @@ const nextConfig: NextConfig = {
       { protocol: 'https', hostname: 'img.vietqr.io' },
       // Ảnh packshot catalog Mingo (backend seed trỏ trực tiếp về site thương hiệu)
       { protocol: 'https', hostname: 'mingoicecream.com' },
+      { protocol: 'https', hostname: 'top-virginia-05112023.s3.amazonaws.com' }
     ],
   },
   // Scaffold chưa kèm ESLint config — bật lại khi team chốt rule (npm run lint vẫn dùng được sau khi thêm eslint-config-next)

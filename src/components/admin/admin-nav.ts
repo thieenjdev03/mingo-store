@@ -38,7 +38,7 @@ export const ADMIN_NAV: AdminNavGroup[] = [
       { label: 'Danh mục', href: '/admin/categories', icon: FolderTree },
       { label: 'Bộ sưu tập', href: '/admin/collections', icon: Layers },
       { label: 'Màu sắc', href: '/admin/colors', icon: Palette },
-      { label: 'Kích cỡ', href: '/admin/sizes', icon: Ruler },
+      { label: 'Quy cách', href: '/admin/sizes', icon: Ruler },
     ],
   },
   {

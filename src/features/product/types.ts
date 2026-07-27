@@ -44,6 +44,22 @@ function stripHtml(html: string): string {
     .trim();
 }
 
+/**
+ * Nhãn quy cách đóng gói từ `size` (API sizes mở rộng). Luôn ưu tiên `name` (đã đúng định dạng:
+ * "24 cây / thùng", "Hộp 250ml"); chỉ build từ field khi thiếu name.
+ */
+export function packagingLabel(size: {
+  name: string;
+  unit?: string | null;
+  packQty?: number | null;
+  volumeMl?: number | null;
+}): string {
+  if (size.name?.trim()) return size.name.trim();
+  if (size.volumeMl) return `${size.unit ?? 'Hộp'} ${size.volumeMl}ml`;
+  if (size.packQty) return `${size.packQty} ${size.unit ?? ''}/thùng`.trim();
+  return size.name;
+}
+
 /** Quy tắc giá hiệu lực THỐNG NHẤT toàn site: variant.price ?? sale_price ?? price */
 export function getEffectivePrice(product: Pick<ProductResponseDto, 'price' | 'sale_price'>, variant?: ProductVariantResponseDto | null): number {
   if (variant?.price != null) return Number(variant.price);
@@ -63,7 +79,8 @@ export function toProductCardView(p: ProductResponseDto, locale: Locale): Produc
 export function toProductDetailView(p: ProductResponseDto, locale: Locale): ProductDetailView {
   const variants: ProductVariantView[] = (p.variants ?? []).map((v) => ({
     sku: v.sku,
-    label: resolveLocalized(v.name, locale),
+    // Trục variant = quy cách đóng gói: ưu tiên nhãn từ size, fallback tên variant (mockup chưa có size).
+    label: v.size ? packagingLabel(v.size) : resolveLocalized(v.name, locale),
     price: getEffectivePrice(p, v),
     stock: v.stock,
     inStock: v.stock > 0,

@@ -11,10 +11,20 @@ import { Switch } from '@/components/admin/ui/switch';
 import { Button } from '@/components/admin/ui/button';
 import { MultiImageUpload } from '@/components/admin/ui/multi-image-upload';
 import { useToast } from '@/components/admin/ui/toast';
+import { Plus, Trash2 } from 'lucide-react';
 import { slugify } from '@/lib/admin/slugify';
 import { getCategoryOptions } from '@/features/admin/shared/options';
+import { listSizes } from '@/features/admin/sizes/api';
+import { packagingLabel } from '@/features/product/types';
 import type { CreateProductDtoStatus } from '@/lib/api/generated/ecomAPI.schemas';
 import { getProductForEdit, createProduct, updateProduct } from './api';
+
+interface VariantRow {
+  size_id: string;
+  sku: string;
+  price: number;
+  stock: number;
+}
 
 interface ProductFormProps {
   open: boolean;
@@ -31,11 +41,10 @@ const STATUSES: { value: CreateProductDtoStatus; label: string }[] = [
   { value: 'discontinued', label: 'Ngừng bán' },
 ];
 
-const empty = { vi: '', en: '' };
-
 export function ProductForm({ open, onOpenChange, productId, onSaved }: ProductFormProps) {
   const { toast } = useToast();
   const { data: categoryOptions = [] } = useSWR('admin-category-options', getCategoryOptions);
+  const { data: sizeOptions = [] } = useSWR('admin-size-options', () => listSizes());
   const { data: editData, isLoading: loadingEdit } = useSWR(
     open && productId ? ['product-edit', productId] : null,
     () => getProductForEdit(productId!),
@@ -54,13 +63,28 @@ export function ProductForm({ open, onOpenChange, productId, onSaved }: ProductF
   const [status, setStatus] = useState<CreateProductDtoStatus>('active');
   const [isFeatured, setIsFeatured] = useState(false);
   const [enableSaleTag, setEnableSaleTag] = useState(false);
+  const [variants, setVariants] = useState<VariantRow[]>([]);
+  const [lang, setLang] = useState<'vi' | 'en'>('vi');
+  // Field bắt buộc (tên) tự mirror sang EN cho tới khi người dùng tự sửa tab EN.
+  const [nameEnEdited, setNameEnEdited] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+
+  const changeNameVi = (val: string) => {
+    setNameVi(val);
+    if (!nameEnEdited) setNameEn(val);
+  };
+  const changeNameEn = (val: string) => {
+    setNameEnEdited(true);
+    setNameEn(val);
+  };
 
   useEffect(() => {
     if (!open) return;
     setError(null);
+    setLang('vi');
     if (productId && editData) {
+      setNameEnEdited(!!editData.name.en);
       setNameVi(editData.name.vi); setNameEn(editData.name.en);
       setSlugVi(editData.slug.vi); setSlugEn(editData.slug.en);
       setShortVi(editData.short_description.vi); setShortEn(editData.short_description.en);
@@ -74,11 +98,21 @@ export function ProductForm({ open, onOpenChange, productId, onSaved }: ProductF
       setStatus((editData.base.status as CreateProductDtoStatus) ?? 'active');
       setIsFeatured(editData.base.is_featured ?? false);
       setEnableSaleTag(editData.base.enable_sale_tag ?? false);
+      setVariants(
+        (editData.base.variants ?? []).map((v) => ({
+          size_id: v.size_id ?? v.size?.id ?? '',
+          sku: v.sku,
+          price: Number(v.price) || 0,
+          stock: Number(v.stock) || 0,
+        })),
+      );
     } else if (!productId) {
+      setNameEnEdited(false);
       setNameVi(''); setNameEn(''); setSlugVi(''); setSlugEn('');
       setShortVi(''); setShortEn(''); setDescVi(''); setDescEn('');
       setPrice(0); setSalePrice(''); setStock(0); setSku(''); setCategoryId('');
       setImages([]); setStatus('active'); setIsFeatured(false); setEnableSaleTag(false);
+      setVariants([]);
     }
   }, [open, productId, editData]);
 
@@ -91,10 +125,18 @@ export function ProductForm({ open, onOpenChange, productId, onSaved }: ProductF
       setError('Giá phải lớn hơn 0.');
       return;
     }
+    if (variants.some((v) => !v.size_id || !v.sku.trim())) {
+      setError('Mỗi biến thể cần chọn quy cách và nhập SKU.');
+      return;
+    }
     setSaving(true);
     try {
       const loc = (vi: string, en: string) => ({ vi: vi || en, en: en || vi });
       const nm = loc(nameVi.trim(), nameEn.trim());
+      const variantPayload = variants.map((v) => {
+        const sizeName = sizeOptions.find((s) => s.id === v.size_id)?.name ?? v.sku;
+        return { name: { vi: sizeName, en: sizeName }, sku: v.sku.trim(), price: Number(v.price) || 0, stock: Number(v.stock) || 0, size_id: v.size_id };
+      });
       const payload = {
         name: nm,
         slug: loc(slugVi.trim() || slugify(nm.vi), slugEn.trim() || slugify(nm.en)),
@@ -103,6 +145,7 @@ export function ProductForm({ open, onOpenChange, productId, onSaved }: ProductF
         price: Number(price),
         sale_price: salePrice ? Number(salePrice) : undefined,
         images,
+        variants: variantPayload.length > 0 ? variantPayload : undefined,
         stock_quantity: Number(stock) || 0,
         sku: sku.trim() || undefined,
         category_id: categoryId || undefined,
@@ -145,17 +188,56 @@ export function ProductForm({ open, onOpenChange, productId, onSaved }: ProductF
         <p className="py-8 text-center text-sm text-muted-foreground">Đang tải…</p>
       ) : (
         <div className="flex flex-col gap-4">
-          <div className="grid gap-4 sm:grid-cols-2">
-            <Field id="nameVi" label="Tên (VI)"><Input id="nameVi" value={nameVi} onChange={(e) => setNameVi(e.target.value)} /></Field>
-            <Field id="nameEn" label="Tên (EN)" required={false}><Input id="nameEn" value={nameEn} onChange={(e) => setNameEn(e.target.value)} /></Field>
-            <Field id="slugVi" label="Slug (VI)" required={false} hint="Bỏ trống để tự sinh."><Input id="slugVi" value={slugVi} onChange={(e) => setSlugVi(e.target.value)} /></Field>
-            <Field id="slugEn" label="Slug (EN)" required={false}><Input id="slugEn" value={slugEn} onChange={(e) => setSlugEn(e.target.value)} /></Field>
-          </div>
-          <div className="grid gap-4 sm:grid-cols-2">
-            <Field id="shortVi" label="Mô tả ngắn (VI)" required={false}><Textarea id="shortVi" rows={2} value={shortVi} onChange={(e) => setShortVi(e.target.value)} /></Field>
-            <Field id="shortEn" label="Mô tả ngắn (EN)" required={false}><Textarea id="shortEn" rows={2} value={shortEn} onChange={(e) => setShortEn(e.target.value)} /></Field>
-            <Field id="descVi" label="Mô tả (VI)" required={false}><Textarea id="descVi" rows={4} value={descVi} onChange={(e) => setDescVi(e.target.value)} /></Field>
-            <Field id="descEn" label="Mô tả (EN)" required={false}><Textarea id="descEn" rows={4} value={descEn} onChange={(e) => setDescEn(e.target.value)} /></Field>
+          {/* Nội dung song ngữ dạng tab — ưu tiên Tiếng Việt; mở tab EN khi cần dịch. */}
+          <div className="rounded-md border border-border p-3">
+            <div className="mb-3 inline-flex rounded-md border border-border bg-muted/40 p-0.5 text-sm font-semibold">
+              {(['vi', 'en'] as const).map((l) => (
+                <button
+                  key={l}
+                  type="button"
+                  onClick={() => setLang(l)}
+                  className={
+                    lang === l
+                      ? 'rounded bg-white px-4 py-1.5 text-foreground shadow-sm'
+                      : 'rounded px-4 py-1.5 text-muted-foreground hover:text-foreground'
+                  }
+                >
+                  {l === 'vi' ? 'Tiếng Việt' : 'Tiếng Anh'}
+                </button>
+              ))}
+            </div>
+
+            {lang === 'vi' ? (
+              <div className="flex flex-col gap-4">
+                <Field id="nameVi" label="Tên sản phẩm">
+                  <Input id="nameVi" value={nameVi} onChange={(e) => changeNameVi(e.target.value)} />
+                </Field>
+                <Field id="slugVi" label="Slug" required={false} hint="Bỏ trống để tự sinh từ tên.">
+                  <Input id="slugVi" value={slugVi} onChange={(e) => setSlugVi(e.target.value)} />
+                </Field>
+                <Field id="shortVi" label="Mô tả ngắn" required={false}>
+                  <Textarea id="shortVi" rows={2} value={shortVi} onChange={(e) => setShortVi(e.target.value)} />
+                </Field>
+                <Field id="descVi" label="Mô tả" required={false}>
+                  <Textarea id="descVi" rows={4} value={descVi} onChange={(e) => setDescVi(e.target.value)} />
+                </Field>
+              </div>
+            ) : (
+              <div className="flex flex-col gap-4">
+                <Field id="nameEn" label="Product name" required={false} hint="Tự điền theo tiếng Việt — sửa nếu muốn bản dịch riêng.">
+                  <Input id="nameEn" value={nameEn} onChange={(e) => changeNameEn(e.target.value)} />
+                </Field>
+                <Field id="slugEn" label="Slug" required={false} hint="Bỏ trống để tự sinh.">
+                  <Input id="slugEn" value={slugEn} onChange={(e) => setSlugEn(e.target.value)} />
+                </Field>
+                <Field id="shortEn" label="Short description" required={false}>
+                  <Textarea id="shortEn" rows={2} value={shortEn} onChange={(e) => setShortEn(e.target.value)} />
+                </Field>
+                <Field id="descEn" label="Description" required={false}>
+                  <Textarea id="descEn" rows={4} value={descEn} onChange={(e) => setDescEn(e.target.value)} />
+                </Field>
+              </div>
+            )}
           </div>
           <Field id="images" label="Ảnh sản phẩm" required={false}>
             <MultiImageUpload value={images} onChange={setImages} folder="products" />
@@ -189,9 +271,60 @@ export function ProductForm({ open, onOpenChange, productId, onSaved }: ProductF
               <label htmlFor="saletag" className="text-sm font-semibold text-foreground">Hiện nhãn giảm giá</label>
             </div>
           </div>
-          <p className="rounded-md bg-muted/50 px-3 py-2 text-xs text-muted-foreground">
-            Biến thể màu/size chưa hỗ trợ (backend chưa khai báo OpenAPI cho /colors, /sizes; variant yêu cầu size_id).
-          </p>
+          {/* Biến thể theo quy cách (size). Mỗi variant = 1 quy cách + giá + tồn riêng. */}
+          <div className="rounded-md border border-border p-3">
+            <div className="mb-3 flex items-center justify-between">
+              <p className="text-sm font-semibold text-foreground">Biến thể theo quy cách</p>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setVariants((prev) => [...prev, { size_id: '', sku: '', price: price || 0, stock: 0 }])}
+              >
+                <Plus className="size-4" /> Thêm biến thể
+              </Button>
+            </div>
+            {variants.length === 0 ? (
+              <p className="text-xs text-muted-foreground">
+                Chưa có biến thể — sản phẩm bán theo giá/tồn chung ở trên. Thêm biến thể nếu bán nhiều quy cách (24 cây/thùng, Hộp 250ml…).
+              </p>
+            ) : (
+              <div className="flex flex-col gap-2">
+                {variants.map((v, i) => (
+                  <div key={i} className="grid grid-cols-[1fr_1fr_auto_auto_auto] items-center gap-2">
+                    <NativeSelect
+                      value={v.size_id}
+                      onChange={(e) => setVariants((prev) => prev.map((x, idx) => (idx === i ? { ...x, size_id: e.target.value } : x)))}
+                      aria-label="Quy cách"
+                    >
+                      <option value="">— Quy cách —</option>
+                      {sizeOptions.map((s) => (<option key={s.id} value={s.id}>{packagingLabel(s)}</option>))}
+                    </NativeSelect>
+                    <Input
+                      placeholder="SKU"
+                      value={v.sku}
+                      onChange={(e) => setVariants((prev) => prev.map((x, idx) => (idx === i ? { ...x, sku: e.target.value } : x)))}
+                    />
+                    <Input
+                      type="number" min={0} placeholder="Giá" className="w-24"
+                      value={v.price}
+                      onChange={(e) => setVariants((prev) => prev.map((x, idx) => (idx === i ? { ...x, price: Number(e.target.value) } : x)))}
+                    />
+                    <Input
+                      type="number" min={0} placeholder="Tồn" className="w-20"
+                      value={v.stock}
+                      onChange={(e) => setVariants((prev) => prev.map((x, idx) => (idx === i ? { ...x, stock: Number(e.target.value) } : x)))}
+                    />
+                    <Button variant="ghost" size="icon" aria-label="Xoá biến thể" onClick={() => setVariants((prev) => prev.filter((_, idx) => idx !== i))}>
+                      <Trash2 className="size-4 text-destructive" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            )}
+            {sizeOptions.length === 0 ? (
+              <p className="mt-2 text-xs text-muted-foreground">Chưa có quy cách nào — tạo ở mục “Quy cách” trước.</p>
+            ) : null}
+          </div>
         </div>
       )}
     </Dialog>

@@ -66,7 +66,7 @@ export function MultiImageUpload({ value, onChange, folder, max = 5 }: MultiImag
           <button
             type="button"
             onClick={() => removeAt(i)}
-            className="absolute right-1 top-1 rounded-full bg-black/60 p-0.5 text-white hover:bg-black/80"
+            className="absolute right-1 top-1 rounded-md bg-black/60 p-0.5 text-white hover:bg-black/80"
             aria-label="Xoá ảnh"
           >
             <X className="size-3" />

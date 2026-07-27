@@ -472,6 +472,18 @@ export interface ProductVariantColorDto {
 export interface ProductVariantSizeDto {
   id: string;
   name: string;
+  /** @nullable */
+  unit?: string | null;
+  /**
+   * Số lượng / thùng
+   * @nullable
+   */
+  packQty?: number | null;
+  /**
+   * Dung tích (ml)
+   * @nullable
+   */
+  volumeMl?: number | null;
 }
 
 export interface ProductVariantResponseDto {
@@ -637,9 +649,67 @@ export interface CreateColorDto { [key: string]: unknown }
 
 export interface UpdateColorDto { [key: string]: unknown }
 
-export interface CreateSizeDto { [key: string]: unknown }
+export interface CreateSizeDto {
+  /** Display label (quy cách / kích cỡ) */
+  name: string;
+  /** Category scope (optional) */
+  categoryId?: string;
+  /** Đơn vị lẻ: 'cây', 'hộp', 'lít'... */
+  unit?: string;
+  /** Số lượng / thùng (case pack) */
+  packQty?: number;
+  /** Dung tích (ml) */
+  volumeMl?: number;
+  /** Sort order */
+  sortOrder?: number;
+}
 
-export interface UpdateSizeDto { [key: string]: unknown }
+export interface SizeCategoryDto {
+  id: string;
+  name: string;
+}
+
+/**
+ * @nullable
+ */
+export type SizeDtoCategory = SizeCategoryDto | null;
+
+export interface SizeDto {
+  id: string;
+  name: string;
+  /** @nullable */
+  unit?: string | null;
+  /**
+   * Số lượng / thùng
+   * @nullable
+   */
+  packQty?: number | null;
+  /**
+   * Dung tích (ml)
+   * @nullable
+   */
+  volumeMl?: number | null;
+  sortOrder: number;
+  /** @nullable */
+  category?: SizeDtoCategory;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface UpdateSizeDto {
+  /** Display label (quy cách / kích cỡ) */
+  name?: string;
+  /** Category scope (optional) */
+  categoryId?: string;
+  /** Đơn vị lẻ: 'cây', 'hộp', 'lít'... */
+  unit?: string;
+  /** Số lượng / thùng (case pack) */
+  packQty?: number;
+  /** Dung tích (ml) */
+  volumeMl?: number;
+  /** Sort order */
+  sortOrder?: number;
+}
 
 export interface OrderItemDto {
   /** Product ID (UUID) */
@@ -1413,7 +1483,7 @@ active: string;
 };
 
 export type SizesControllerFindAllParams = {
-categoryId: string;
+categoryId?: string;
 };
 
 export type OrdersControllerFindAllParams = {

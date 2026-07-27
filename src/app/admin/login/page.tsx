@@ -48,7 +48,7 @@ export default function AdminLoginPage() {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-muted/30 px-4">
-      <div className="w-full max-w-sm rounded-xl border border-border bg-white p-8 shadow-sm">
+      <div className="w-full max-w-sm rounded-lg border border-border bg-white p-8 shadow-sm">
         <div className="mb-6 text-center">
           <span className="text-2xl font-black text-primary">Mingo</span>
           <p className="mt-1 text-sm text-muted-foreground">Đăng nhập trang quản trị</p>

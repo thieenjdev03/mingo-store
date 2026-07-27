@@ -19,6 +19,7 @@ import type {
 
 import type {
   CreateSizeDto,
+  SizeDto,
   SizesControllerFindAllParams,
   UpdateSizeDto
 } from '../ecomAPI.schemas';
@@ -29,10 +30,13 @@ import { customFetch } from '../../fetcher';
   
   
   
+/**
+ * @summary Create a size / packaging (admin)
+ */
 export const sizesControllerCreate = (
     createSizeDto: CreateSizeDto,
  ) => {
-    return customFetch<void>(
+    return customFetch<SizeDto>(
     {url: `/sizes`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
       data: createSizeDto
@@ -52,6 +56,9 @@ export const getSizesControllerCreateMutationKey = () => [`/sizes`] as const;
 export type SizesControllerCreateMutationResult = NonNullable<Awaited<ReturnType<typeof sizesControllerCreate>>>
 export type SizesControllerCreateMutationError = unknown
 
+/**
+ * @summary Create a size / packaging (admin)
+ */
 export const useSizesControllerCreate = <TError = unknown>(
    options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof sizesControllerCreate>>, TError, Key, CreateSizeDto, Awaited<ReturnType<typeof sizesControllerCreate>>> & { swrKey?: string }, }
 ) => {
@@ -68,10 +75,13 @@ export const useSizesControllerCreate = <TError = unknown>(
     ...query
   }
 }
+/**
+ * @summary List sizes / packaging, optionally filtered by category
+ */
 export const sizesControllerFindAll = (
-    params: SizesControllerFindAllParams,
+    params?: SizesControllerFindAllParams,
  ) => {
-    return customFetch<void>(
+    return customFetch<SizeDto[]>(
     {url: `/sizes`, method: 'GET',
         params
     },
@@ -80,13 +90,16 @@ export const sizesControllerFindAll = (
 
 
 
-export const getSizesControllerFindAllKey = (params: SizesControllerFindAllParams,) => [`/sizes`, ...(params ? [params]: [])] as const;
+export const getSizesControllerFindAllKey = (params?: SizesControllerFindAllParams,) => [`/sizes`, ...(params ? [params]: [])] as const;
 
 export type SizesControllerFindAllQueryResult = NonNullable<Awaited<ReturnType<typeof sizesControllerFindAll>>>
 export type SizesControllerFindAllQueryError = unknown
 
+/**
+ * @summary List sizes / packaging, optionally filtered by category
+ */
 export const useSizesControllerFindAll = <TError = unknown>(
-  params: SizesControllerFindAllParams, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof sizesControllerFindAll>>, TError> & { swrKey?: Key, enabled?: boolean },  }
+  params?: SizesControllerFindAllParams, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof sizesControllerFindAll>>, TError> & { swrKey?: Key, enabled?: boolean },  }
 ) => {
   const {swr: swrOptions} = options ?? {}
 
@@ -101,10 +114,13 @@ export const useSizesControllerFindAll = <TError = unknown>(
     ...query
   }
 }
+/**
+ * @summary Get a size by id
+ */
 export const sizesControllerFindOne = (
     id: string,
  ) => {
-    return customFetch<void>(
+    return customFetch<SizeDto>(
     {url: `/sizes/${id}`, method: 'GET'
     },
     );
@@ -115,9 +131,12 @@ export const sizesControllerFindOne = (
 export const getSizesControllerFindOneKey = (id: string,) => [`/sizes/${id}`] as const;
 
 export type SizesControllerFindOneQueryResult = NonNullable<Awaited<ReturnType<typeof sizesControllerFindOne>>>
-export type SizesControllerFindOneQueryError = unknown
+export type SizesControllerFindOneQueryError = void
 
-export const useSizesControllerFindOne = <TError = unknown>(
+/**
+ * @summary Get a size by id
+ */
+export const useSizesControllerFindOne = <TError = void>(
   id: string, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof sizesControllerFindOne>>, TError> & { swrKey?: Key, enabled?: boolean },  }
 ) => {
   const {swr: swrOptions} = options ?? {}
@@ -133,11 +152,14 @@ export const useSizesControllerFindOne = <TError = unknown>(
     ...query
   }
 }
+/**
+ * @summary Update a size / packaging (admin)
+ */
 export const sizesControllerUpdate = (
     id: string,
     updateSizeDto: UpdateSizeDto,
  ) => {
-    return customFetch<void>(
+    return customFetch<SizeDto>(
     {url: `/sizes/${id}`, method: 'PATCH',
       headers: {'Content-Type': 'application/json', },
       data: updateSizeDto
@@ -157,6 +179,9 @@ export const getSizesControllerUpdateMutationKey = (id: string,) => [`/sizes/${i
 export type SizesControllerUpdateMutationResult = NonNullable<Awaited<ReturnType<typeof sizesControllerUpdate>>>
 export type SizesControllerUpdateMutationError = unknown
 
+/**
+ * @summary Update a size / packaging (admin)
+ */
 export const useSizesControllerUpdate = <TError = unknown>(
   id: string, options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof sizesControllerUpdate>>, TError, Key, UpdateSizeDto, Awaited<ReturnType<typeof sizesControllerUpdate>>> & { swrKey?: string }, }
 ) => {
@@ -173,6 +198,9 @@ export const useSizesControllerUpdate = <TError = unknown>(
     ...query
   }
 }
+/**
+ * @summary Delete a size (admin)
+ */
 export const sizesControllerRemove = (
     id: string,
  ) => {
@@ -194,6 +222,9 @@ export const getSizesControllerRemoveMutationKey = (id: string,) => [`/sizes/${i
 export type SizesControllerRemoveMutationResult = NonNullable<Awaited<ReturnType<typeof sizesControllerRemove>>>
 export type SizesControllerRemoveMutationError = unknown
 
+/**
+ * @summary Delete a size (admin)
+ */
 export const useSizesControllerRemove = <TError = unknown>(
   id: string, options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof sizesControllerRemove>>, TError, Key, Arguments, Awaited<ReturnType<typeof sizesControllerRemove>>> & { swrKey?: string }, }
 ) => {

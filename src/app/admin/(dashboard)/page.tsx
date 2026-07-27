@@ -18,7 +18,7 @@ export default function AdminDashboardPage() {
             <Link
               key={item.href}
               href={item.href}
-              className="flex flex-col gap-3 rounded-xl border border-border bg-white p-5 transition-colors hover:border-primary hover:bg-muted/30"
+              className="flex flex-col gap-3 rounded-lg border border-border bg-white p-5 transition-colors hover:border-primary hover:bg-muted/30"
             >
               <Icon className="size-6 text-primary" />
               <span className="text-sm font-semibold text-foreground">{item.label}</span>

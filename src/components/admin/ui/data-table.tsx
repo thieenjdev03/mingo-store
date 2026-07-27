@@ -23,7 +23,7 @@ const alignClass = { left: 'text-left', center: 'text-center', right: 'text-righ
 /** Bảng danh sách admin: trạng thái loading / empty / error dùng chung. */
 export function DataTable<T>({ columns, rows, rowKey, loading, emptyMessage = 'Không có dữ liệu.', error }: DataTableProps<T>) {
   return (
-    <div className="overflow-x-auto rounded-xl border border-border bg-white">
+    <div className="overflow-x-auto rounded border border-border bg-white">
       <table className="w-full min-w-[640px] border-collapse text-sm">
         <thead>
           <tr className="border-b border-border bg-muted/50">
