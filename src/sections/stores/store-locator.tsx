@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Search } from 'lucide-react';
 import { useTranslations } from 'next-intl';
+import { SelectField } from '@/components/ui/select';
 import {
   provinces,
   getWardsByProvince,
@@ -163,20 +164,14 @@ function ComboSelect({ value, onChange, placeholder, options, disabled }: ComboS
   return (
     <label className="block">
       <span className="sr-only">{placeholder}</span>
-      <select
+      <SelectField
         value={value}
-        onChange={(e) => onChange(e.target.value)}
+        onValueChange={onChange}
         disabled={disabled}
-        className="h-12 w-full rounded-full border border-muted-foreground/55 bg-card px-5 text-sm text-muted-foreground outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/15 disabled:opacity-50"
-      >
-        <option value="">{placeholder}</option>
-        {options.map((option) => (
-          <option key={option.value} value={option.value}>
-            {option.label}
-          </option>
-        ))}
-      </select>
+        options={[{ value: '', label: placeholder }, ...options]}
+        className="rounded-full px-5 text-sm"
+        aria-label={placeholder}
+      />
     </label>
   );
 }
-

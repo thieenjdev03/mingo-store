@@ -2,9 +2,10 @@
 
 import { useMemo, useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { useForm, type FieldErrors, type Resolver } from 'react-hook-form';
+import { Controller, useForm, type FieldErrors, type Resolver } from 'react-hook-form';
 import { Link } from '@/i18n/navigation';
 import { FormField } from '@/components/ui/form-field';
+import { SelectField } from '@/components/ui/select';
 import { createContactFormSchema, type ContactFormValues } from './schema';
 import { useSubmitContact } from './use-submit-contact';
 
@@ -45,6 +46,7 @@ export function ContactForm() {
 
   const {
     register,
+    control,
     handleSubmit,
     reset,
     formState: { errors },
@@ -116,21 +118,26 @@ export function ContactForm() {
         </div>
 
         <FormField id="department" label={t('fields.department')} error={fieldError('department')}>
-          <select
-            id="department"
-            aria-invalid={Boolean(fieldError('department'))}
-            aria-describedby={describedBy('department')}
+          <Controller
+            name="department"
+            control={control}
             defaultValue=""
-            {...register('department')}
-            className="mt-1 h-11 w-full appearance-none bg-transparent text-foreground outline-none"
-          >
-            <option value="" disabled />
-            {DEPARTMENTS.map((department) => (
-              <option key={department} value={department}>
-                {t(`departments.${department}`)}
-              </option>
-            ))}
-          </select>
+            render={({ field }) => (
+              <SelectField
+                id="department"
+                value={field.value}
+                onValueChange={field.onChange}
+                placeholder={t('fields.department')}
+                options={DEPARTMENTS.map((department) => ({
+                  value: department,
+                  label: t(`departments.${department}`),
+                }))}
+                aria-invalid={Boolean(fieldError('department'))}
+                aria-describedby={describedBy('department')}
+                className="mt-1 h-11 border-0 bg-transparent px-0 shadow-none hover:border-transparent focus:ring-0 data-[state=open]:border-transparent data-[state=open]:ring-0"
+              />
+            )}
+          />
         </FormField>
 
         <FormField id="subject" label={t('fields.subject')} error={fieldError('subject')}>

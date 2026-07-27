@@ -1,20 +1,56 @@
-import * as React from 'react';
-import { cn } from '@/lib/utils';
+'use client';
 
-/** Select gốc (native) cho filter/form admin — nhẹ, không cần portal. */
-export const NativeSelect = React.forwardRef<HTMLSelectElement, React.SelectHTMLAttributes<HTMLSelectElement>>(
-  function NativeSelect({ className, children, ...props }, ref) {
-    return (
-      <select
-        ref={ref}
-        className={cn(
-          'h-10 w-full rounded-md border border-border bg-white px-3 text-sm text-foreground shadow-sm outline-none transition-colors focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/20 disabled:cursor-not-allowed disabled:opacity-60',
-          className,
-        )}
-        {...props}
-      >
-        {children}
-      </select>
-    );
-  },
-);
+import * as React from 'react';
+import { SelectField, type SelectOption } from '@/components/ui/select';
+
+type NativeSelectProps = Omit<
+  React.SelectHTMLAttributes<HTMLSelectElement>,
+  'multiple' | 'size' | 'value' | 'defaultValue'
+> & {
+  value?: string;
+  defaultValue?: string;
+};
+
+/**
+ * Adapter tương thích cho các form admin cũ.
+ * UI thực tế dùng cùng Radix Select/option styling với storefront.
+ */
+export function NativeSelect({
+  children,
+  value,
+  defaultValue,
+  onChange,
+  id,
+  disabled,
+  className,
+  'aria-label': ariaLabel,
+  'aria-describedby': ariaDescribedBy,
+  'aria-invalid': ariaInvalid,
+}: NativeSelectProps) {
+  const options = React.Children.toArray(children).flatMap<SelectOption>((child) => {
+    if (!React.isValidElement<{ value?: string; disabled?: boolean; children?: React.ReactNode }>(child)) return [];
+    return [{
+      value: String(child.props.value ?? ''),
+      label: child.props.children,
+      disabled: child.props.disabled,
+    }];
+  });
+
+  return (
+    <SelectField
+      id={id}
+      value={value}
+      defaultValue={defaultValue}
+      onValueChange={(nextValue) => {
+        onChange?.({ target: { value: nextValue } } as React.ChangeEvent<HTMLSelectElement>);
+      }}
+      options={options}
+      disabled={disabled}
+      size="sm"
+      className={className}
+      aria-label={ariaLabel}
+      aria-describedby={ariaDescribedBy}
+      aria-invalid={ariaInvalid === true || ariaInvalid === 'true'}
+    />
+  );
+}
