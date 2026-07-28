@@ -5,4 +5,6 @@ export const routing = defineRouting({
   defaultLocale: 'vi',
   // vi (mặc định) không có prefix: /products ; en: /en/products
   localePrefix: 'as-needed',
+  // Luôn mở tiếng Việt, không đoán theo Accept-Language của trình duyệt.
+  localeDetection: false,
 });

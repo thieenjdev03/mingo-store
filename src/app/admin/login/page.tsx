@@ -11,6 +11,7 @@ import { saveAdminSession } from '@/lib/admin/auth';
 import { Field } from '@/components/admin/ui/field';
 import { Input } from '@/components/admin/ui/input';
 import { Button } from '@/components/admin/ui/button';
+import { Logo } from '@/components/layout/logo';
 
 const schema = z.object({
   email: z.string().min(1, 'Nhập email').email('Email không hợp lệ'),
@@ -49,9 +50,9 @@ export default function AdminLoginPage() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-muted/30 px-4">
       <div className="w-full max-w-sm rounded-lg border border-border bg-white p-8 shadow-sm">
-        <div className="mb-6 text-center">
-          <span className="text-2xl font-black text-primary">Mingo</span>
-          <p className="mt-1 text-sm text-muted-foreground">Đăng nhập trang quản trị</p>
+        <div className="mb-6 flex flex-col items-center text-center">
+          <Logo height={44} priority />
+          <p className="mt-2 text-sm text-muted-foreground">Đăng nhập trang quản trị</p>
         </div>
         <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4" noValidate>
           <Field id="email" label="Email" error={errors.email?.message}>

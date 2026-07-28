@@ -2,37 +2,38 @@ import type { ChangeOrderStatusDtoToStatus } from '@/lib/api/generated/ecomAPI.s
 
 export type OrderStatus = ChangeOrderStatusDtoToStatus;
 
-/** Luồng trạng thái tuyến tính + trạng thái kết thúc (theo backend order-status). */
+/** Luồng trạng thái tuyến tính (theo backend ORDER_STATUS_FLOW). */
 export const ORDER_FLOW: OrderStatus[] = [
   'PENDING_PAYMENT',
   'PAID',
-  'PROCESSING',
+  'CONFIRMED',
   'PACKED',
-  'READY_TO_GO',
-  'AT_CARRIER_FACILITY',
   'IN_TRANSIT',
-  'ARRIVED_IN_COUNTRY',
-  'AT_LOCAL_FACILITY',
-  'OUT_FOR_DELIVERY',
   'DELIVERED',
 ];
+
+/** Trạng thái kết thúc — không đi tiếp trong flow tuyến tính. */
+const TERMINAL: OrderStatus[] = ['DELIVERED', 'CANCELLED', 'FAILED', 'REFUNDED'];
 
 export const ORDER_STATUS_LABEL: Record<OrderStatus, string> = {
   PENDING_PAYMENT: 'Chờ thanh toán',
   PAID: 'Đã thanh toán',
-  PROCESSING: 'Đang xử lý',
-  PACKED: 'Đã đóng gói',
-  READY_TO_GO: 'Sẵn sàng giao',
-  AT_CARRIER_FACILITY: 'Tại kho vận chuyển',
+  CONFIRMED: 'Đã xác nhận đơn hàng',
+  PACKED: 'Đã đóng gói và sẵn sàng giao hàng',
   IN_TRANSIT: 'Đang vận chuyển',
-  ARRIVED_IN_COUNTRY: 'Đã đến nước nhận',
-  AT_LOCAL_FACILITY: 'Tại kho địa phương',
-  OUT_FOR_DELIVERY: 'Đang giao',
   DELIVERED: 'Đã giao',
-  CANCELLED: 'Đã huỷ',
+  CANCELLED: 'Đã hủy',
   FAILED: 'Thất bại',
   REFUNDED: 'Đã hoàn tiền',
 };
+
+/** Thứ tự hiển thị đầy đủ (flow + trạng thái kết thúc), dùng cho dropdown/filter. */
+export const ORDER_STATUS_ORDER: OrderStatus[] = [
+  ...ORDER_FLOW,
+  'CANCELLED',
+  'FAILED',
+  'REFUNDED',
+];
 
 export function orderStatusTone(status: OrderStatus): 'success' | 'warning' | 'danger' | 'info' | 'neutral' {
   if (status === 'DELIVERED') return 'success';
@@ -42,10 +43,11 @@ export function orderStatusTone(status: OrderStatus): 'success' | 'warning' | 'd
   return 'info';
 }
 
-/** Trạng thái kế tiếp hợp lệ: bước tiếp trong flow + có thể huỷ/hoàn/thất bại (trừ khi đã kết thúc). */
+/** Trạng thái kế tiếp hợp lệ: bước tiếp trong flow + có thể huỷ/thất bại (trừ khi đã kết thúc). */
 export function nextOrderStatuses(current: OrderStatus): OrderStatus[] {
-  const terminal: OrderStatus[] = ['DELIVERED', 'CANCELLED', 'FAILED', 'REFUNDED'];
-  if (terminal.includes(current)) return current === 'DELIVERED' ? ['REFUNDED'] : [];
+  if (TERMINAL.includes(current)) {
+    return current === 'REFUNDED' ? [] : ['REFUNDED'];
+  }
   const idx = ORDER_FLOW.indexOf(current);
   const next = idx >= 0 && idx < ORDER_FLOW.length - 1 ? [ORDER_FLOW[idx + 1]!] : [];
   return [...next, 'CANCELLED', 'FAILED'];

@@ -5,8 +5,11 @@ import Image from 'next/image';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Link } from '@/i18n/navigation';
 import type { ProductCardView } from '@/features/product/types';
+import { fCurrencyVND } from '@/lib/format';
+import { useTranslations } from 'next-intl';
 
 export function ProductCarousel({ products }: { products: ProductCardView[] }) {
+  const t = useTranslations('product');
   const trackRef = useRef<HTMLDivElement>(null);
   const [canGoBack, setCanGoBack] = useState(false);
   const [canGoForward, setCanGoForward] = useState(false);
@@ -74,6 +77,11 @@ export function ProductCarousel({ products }: { products: ProductCardView[] }) {
             <h3 className="mt-6 text-[22px] font-semibold leading-7 text-[#563e2b] transition-colors group-hover:text-primary sm:mt-10 sm:text-[24px] lg:mt-12 lg:text-[32px] lg:leading-6">
               {product.name}
             </h3>
+            <div className="mt-3 flex flex-wrap items-baseline justify-center gap-2">
+              <span className="font-bold text-primary">{fCurrencyVND(product.price)}</span>
+              {product.compareAtPrice ? <span className="text-sm text-muted-foreground line-through">{fCurrencyVND(product.compareAtPrice)}</span> : null}
+            </div>
+            {!product.available ? <p className="mt-1 text-xs font-bold uppercase tracking-wide text-destructive">{t('outOfStock')}</p> : null}
           </Link>
         ))}
       </div>

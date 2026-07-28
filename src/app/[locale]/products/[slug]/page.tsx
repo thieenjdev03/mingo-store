@@ -8,12 +8,10 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/
 import { PurchasePanel } from '@/features/product/purchase-panel';
 import { getProductBySlug } from '@/features/product/api';
 import { toProductDetailView } from '@/features/product/types';
-import { getMockupBySlug, toMockupProductDto } from '@/features/product/mockup-catalog';
 import { routing } from '@/i18n/routing';
 
 /**
- * PDP — fetch thật qua GET /products/slug/:slug?locale=. Nếu backend chưa có sản phẩm với slug
- * này (chưa seed), fallback về catalog mockup dùng chung với trang listing (mockup-catalog.ts).
+ * PDP lấy dữ liệu trực tiếp từ GET /products/slug/:slug?locale=.
  */
 export default async function ProductDetailPage({
   params,
@@ -26,13 +24,9 @@ export default async function ProductDetailPage({
   const t = await getTranslations('product');
 
   const apiProduct = await getProductBySlug(slug, safeLocale).catch(() => null);
-  const mockup = getMockupBySlug(slug);
-  const dto = apiProduct ?? (mockup ? toMockupProductDto(mockup, safeLocale) : undefined);
-  if (!dto) notFound();
-
-  const isMockup = !apiProduct && !!mockup;
-
-  const product = toProductDetailView(dto, safeLocale);
+  if (!apiProduct) notFound();
+  const product = toProductDetailView(apiProduct, safeLocale);
+  const nutritionEntries = Object.entries(product.nutrition ?? {});
 
   return (
     <div className="mx-auto max-w-7xl px-5 py-8 sm:px-8 sm:py-12">
@@ -49,11 +43,6 @@ export default async function ProductDetailPage({
 
         {/* Summary */}
         <div className="space-y-5">
-          {isMockup ? (
-            <span className="inline-flex rounded-full bg-foreground/85 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-white">
-              Mockup
-            </span>
-          ) : null}
           {product.collectionName && (
             <p className="font-display text-xl font-bold text-primary underline underline-offset-4">
               {product.collectionName}
@@ -62,7 +51,8 @@ export default async function ProductDetailPage({
           <h1 className="font-display text-3xl sm:text-4xl lg:text-5xl">{product.name}</h1>
           <div className="flex flex-wrap gap-2">
             {product.categoryName && <Chip>{product.categoryName}</Chip>}
-            {product.weightKg != null && <Chip>{fWeight(product.weightKg)}</Chip>}
+            {product.weightGrams != null ? <Chip>{product.weightGrams} g</Chip> : null}
+            {product.weightGrams == null && product.weightKg != null ? <Chip>{fWeight(product.weightKg)}</Chip> : null}
             {product.collectionName && <Chip>{product.collectionName}</Chip>}
           </div>
 
@@ -75,16 +65,29 @@ export default async function ProductDetailPage({
               <AccordionContent>{product.descriptionMarkdown}</AccordionContent>
             </AccordionItem>
             <AccordionItem value="ingredients">
-              <AccordionTrigger>{t('ingredients')}</AccordionTrigger>
-              <AccordionContent>TODO: parse từ section markdown.</AccordionContent>
+              <AccordionTrigger>{t('allergens')}</AccordionTrigger>
+              <AccordionContent>
+                {product.allergens.length > 0 ? product.allergens.join(', ') : t('notProvided')}
+              </AccordionContent>
             </AccordionItem>
             <AccordionItem value="usage">
-              <AccordionTrigger>{t('usage')}</AccordionTrigger>
-              <AccordionContent>TODO: parse từ section markdown.</AccordionContent>
+              <AccordionTrigger>{t('nutrition')}</AccordionTrigger>
+              <AccordionContent>
+                {nutritionEntries.length > 0 ? (
+                  <dl className="grid gap-2 sm:grid-cols-2">
+                    {nutritionEntries.map(([key, value]) => (
+                      <div key={key} className="flex justify-between gap-4">
+                        <dt className="font-semibold">{key}</dt>
+                        <dd>{String(value)}</dd>
+                      </div>
+                    ))}
+                  </dl>
+                ) : t('notProvided')}
+              </AccordionContent>
             </AccordionItem>
             <AccordionItem value="notes">
-              <AccordionTrigger>{t('notes')}</AccordionTrigger>
-              <AccordionContent>TODO: parse từ section markdown.</AccordionContent>
+              <AccordionTrigger>{t('barcode')}</AccordionTrigger>
+              <AccordionContent>{product.barcode ?? t('notProvided')}</AccordionContent>
             </AccordionItem>
           </Accordion>
         </div>

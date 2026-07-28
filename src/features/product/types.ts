@@ -21,6 +21,9 @@ export interface ProductCardView {
   name: string;
   image: string | null;
   price: number;
+  compareAtPrice: number | null;
+  stock: number;
+  available: boolean;
 }
 
 export interface ProductDetailView extends ProductCardView {
@@ -29,6 +32,10 @@ export interface ProductDetailView extends ProductCardView {
   categoryName: string | null;
   /** Khối lượng theo kg (backend), null nếu chưa nhập. */
   weightKg: number | null;
+  weightGrams: number | null;
+  allergens: string[];
+  nutrition: Record<string, unknown> | null;
+  barcode: string | null;
   collectionName: string | null;
   collectionSlug: string | null;
   variants: ProductVariantView[];
@@ -67,12 +74,19 @@ export function getEffectivePrice(product: Pick<ProductResponseDto, 'price' | 's
 }
 
 export function toProductCardView(p: ProductResponseDto, locale: Locale): ProductCardView {
+  const price = getEffectivePrice(p);
   return {
     id: p.id,
     slug: resolveLocalized(p.slug, locale),
     name: resolveLocalized(p.name, locale),
     image: p.images[0] ?? null,
-    price: getEffectivePrice(p),
+    price,
+    compareAtPrice:
+      p.compare_at_price != null && Number(p.compare_at_price) > price
+        ? Number(p.compare_at_price)
+        : null,
+    stock: Number(p.stock_quantity),
+    available: p.status === 'active' && Number(p.stock_quantity) > 0,
   };
 }
 
@@ -94,9 +108,15 @@ export function toProductDetailView(p: ProductResponseDto, locale: Locale): Prod
     descriptionMarkdown: stripHtml(resolveLocalized(p.description, locale)),
     categoryName: p.category?.name ?? null,
     weightKg: p.weight ?? null,
-    // collections omitted: backend doesn't populate productCollections in the response yet — see follow-up
-    collectionName: null,
-    collectionSlug: null,
-    purchasable: p.status === 'active' && (variants.some((v) => v.inStock) || p.stock_quantity > 0),
+    weightGrams: p.weight_grams ?? null,
+    allergens: p.allergens ?? [],
+    nutrition:
+      p.nutrition && typeof p.nutrition === 'object'
+        ? (p.nutrition as Record<string, unknown>)
+        : null,
+    barcode: p.barcode ?? null,
+    collectionName: p.collections?.[0]?.name ?? null,
+    collectionSlug: p.collections?.[0]?.slug ?? null,
+    purchasable: p.status === 'active' && p.stock_quantity > 0,
   };
 }

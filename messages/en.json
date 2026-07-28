@@ -31,7 +31,11 @@
     "collectionTitle": "Dessert Collection",
     "subtitle": "Discover Mingo's playful ice cream flavours — from sticks and cups to desserts.",
     "countLabel": "{count} products",
-    "viewAll": "View all"
+    "viewAll": "View all",
+    "otherCategory": "Other products",
+    "loadError": "Products are unavailable right now. Please try again later.",
+    "empty": "There are no active products yet.",
+    "outOfStock": "Out of stock"
   },
   "contact": {
     "title": "Mingo is always here to listen!",
@@ -131,7 +135,12 @@
     "summary": "Order summary",
     "clear": "Clear all",
     "emptyPageDescription": "You have no products in your cart yet.",
-    "secureNote": "Safe and transparent checkout with Mingo."
+    "secureNote": "Safe and transparent checkout with Mingo.",
+    "loading": "Loading your cart...",
+    "loadError": "We could not load your cart.",
+    "updateError": "We could not update your cart.",
+    "unavailable": "Price or availability has changed",
+    "dismissError": "Dismiss error"
   },
   "checkout": {
     "title": "Checkout",
@@ -163,7 +172,22 @@
     "transferContentNote": "Please use this exact transfer content: {orderNumber}",
     "manualVerificationNote": "Your order is awaiting payment confirmation. Once you've transferred the amount, the Mingo team will verify and confirm it shortly.",
     "vietqrNotConfigured": "The VietQR receiving account isn't configured yet — please contact Mingo to complete payment.",
-    "viewAccount": "View my account"
+    "viewAccount": "View my account",
+    "district": "District/Area",
+    "districtPlaceholder": "Select District/Area",
+    "loading": "Checking your cart...",
+    "unsupportedArea": "Delivery is not available in this area yet.",
+    "vnpayLabel": "Online payment with VNPay",
+    "vnpayDescription": "You will continue to VNPay's secure gateway. Payment is only successful after Mingo receives an authenticated confirmation.",
+    "checkShipping": "Check delivery area and fee",
+    "quoting": "Calculating delivery fee...",
+    "directDelivery": "Delivered directly by Mingo",
+    "dealerDelivery": "Delivered by the dealer serving your area",
+    "dealerName": "Dealer: {name}",
+    "shippingFee": "Delivery fee",
+    "total": "Total",
+    "payWithVnpay": "Pay with VNPay",
+    "redirecting": "Redirecting to VNPay..."
   },
   "auth": {
     "loginTitle": "Welcome back",
@@ -232,6 +256,8 @@
     "quantityShort": "Qty: {count}",
     "paidVia": "Payment: {method}",
     "orderStatus": {
+      "NEW": "New order",
+      "DELIVERING": "Delivering",
       "PENDING_PAYMENT": "Pending payment",
       "PAID": "Paid",
       "PROCESSING": "Processing",
@@ -246,6 +272,11 @@
       "CANCELLED": "Cancelled",
       "FAILED": "Failed",
       "REFUNDED": "Refunded"
+    },
+    "paymentStatus": {
+      "PENDING": "Payment pending",
+      "PAID": "Payment successful",
+      "FAILED": "Payment failed"
     },
     "myWallet": "My wallet",
     "walletCardExpiry": "Priority card • Expires {date}",
@@ -289,10 +320,22 @@
       "group": "Job group",
       "location": "Location",
       "type": "Job type",
-      "sendApplication": "Send your application by email",
-      "emailSubject": "Application for {title}",
-      "applicationNote": "Ready to create sweet campaigns with Mingo? Send your CV and portfolio to our recruitment team.",
-      "related": "Related jobs"
+      "related": "Related jobs",
+      "form": {
+        "eyebrow": "Apply",
+        "title": "Apply for {title}",
+        "fullName": "Full name",
+        "phone": "Phone number",
+        "email": "Email",
+        "coverLetter": "Cover letter (optional)",
+        "cv": "CV / Resume",
+        "cvHint": ".pdf, .doc or .docx, up to 5MB.",
+        "cvRequired": "Please attach your CV.",
+        "submit": "Submit application",
+        "submitting": "Submitting…",
+        "successNote": "Thank you! Mingo has received your application and will reach out soon.",
+        "genericError": "Submission failed, please try again."
+      }
     }
   },
   "pages": {
@@ -329,7 +372,14 @@
       "title": "Brands",
       "intro": "Discover the brands that join Mingo.",
       "body": "From familiar flavours to new ideas, every brand has a story of its own.",
-      "cta": "View product lines"
+      "cta": "View product lines",
+      "joy": {
+        "title": "Joy in every bite!",
+        "paragraphOne": "Welcome to the world of Mingo Ice Cream — where boundless creativity brings you the most complete tasting experience!",
+        "paragraphTwo": "From the fresh, natural fruit flavours of Fruitesia and Fruttega, the tropical charm of Verano and Oasis, the bold modern style of Vivi, to the crunchy, top-tier shell of Impact, we proudly bring you a rich collection of ice cream for every taste. Don't miss the unique combination of Rokka and Sandwich, where the chewy, soft-crisp shell wraps around delicious creamy filling, creating a bite that's both uplifting and completely refreshing!",
+        "exploreCta": "Explore more",
+        "aboutCta": "About Mingo"
+      }
     },
     "categories": {
       "title": "Product line",
@@ -350,6 +400,40 @@
       "cta": "Sign in"
     }
   },
+  "orders": {
+    "loading": "Loading order...",
+    "loadError": "We could not load this order.",
+    "back": "Back to orders",
+    "order": "Order",
+    "payment": "Payment",
+    "fulfillment": "Order status",
+    "subtotal": "Subtotal",
+    "shipping": "Delivery fee",
+    "total": "Total",
+    "delivery": "Delivery method",
+    "direct": "Delivered directly by Mingo",
+    "dealer": "Delivered by the dealer serving your area",
+    "address": "Delivery address"
+  },
+  "vnpayReturn": {
+    "checkingTitle": "Checking your payment",
+    "checkingDescription": "Mingo is reading the actual order status from the server.",
+    "unableTitle": "Unable to verify this transaction",
+    "invalidReturn": "The VNPay return information is invalid.",
+    "loadError": "We could not load the order status. Please check it again from Orders.",
+    "paidTitle": "Payment successful",
+    "paidDescription": "Mingo has confirmed your payment and is preparing your order.",
+    "failedTitle": "Payment failed",
+    "failedDescription": "The transaction was unsuccessful and the order has been updated.",
+    "pendingTitle": "Payment is pending",
+    "pendingDescription": "VNPay returned you to Mingo, but the server has not confirmed payment yet. Please check again shortly.",
+    "orderCode": "Order code",
+    "paymentStatus": "Payment status",
+    "orderStatus": "Order status",
+    "total": "Total",
+    "viewOrder": "View order details",
+    "continueShopping": "Continue shopping"
+  },
   "product": {
     "addToCart": "Add to cart",
     "outOfStock": "Out of stock",
@@ -357,6 +441,12 @@
     "ingredients": "Ingredients & nutrition",
     "usage": "How to enjoy",
     "notes": "Notes",
-    "suggestions": "You may also like"
+    "suggestions": "You may also like",
+    "allergens": "Allergens",
+    "nutrition": "Nutrition",
+    "barcode": "Barcode",
+    "notProvided": "Not provided",
+    "decreaseQuantity": "Decrease quantity",
+    "increaseQuantity": "Increase quantity"
   }
 }

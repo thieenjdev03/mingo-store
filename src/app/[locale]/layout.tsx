@@ -18,9 +18,12 @@ const montserrat = Montserrat({
   display: 'swap',
 });
 
+// Weights phải phủ hết các class font-* đang dùng (font-medium 500, font-bold 700).
+// Thiếu weight -> trình duyệt tổng hợp giả bold từ weight gần nhất, metrics khác
+// với font fallback lúc swap => chữ nhảy (rõ nhất ở footer).
 const beVietnamPro = Be_Vietnam_Pro({
   subsets: ['latin', 'vietnamese'],
-  weight: ['400', '600'],
+  weight: ['400', '500', '600', '700'],
   variable: '--font-be-vietnam-pro',
   display: 'swap',
 });

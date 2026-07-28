@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node -e \"const m=require\\('./messages/vi.json'\\); console.log\\(JSON.stringify\\(m.about.distribution,null,1\\)\\)\")",
+      "Bash(node -e \"JSON.parse\\(require\\('fs'\\).readFileSync\\('messages/vi.json'\\)\\);JSON.parse\\(require\\('fs'\\).readFileSync\\('messages/en.json'\\)\\);console.log\\('json ok'\\)\")",
+      "Bash(npx tsc *)",
+      "Bash(node --experimental-strip-types -e ' *)"
+    ]
+  }
+}

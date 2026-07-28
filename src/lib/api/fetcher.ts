@@ -14,6 +14,7 @@ export interface FetchConfig {
   data?: unknown;
   headers?: Record<string, string>;
   signal?: AbortSignal;
+  cache?: RequestCache;
 }
 
 export class ApiError extends Error {
@@ -36,19 +37,26 @@ function buildUrl(url: string, params?: Record<string, unknown>): string {
 }
 
 export async function customFetch<T>(config: FetchConfig): Promise<T> {
-  const { url, method, params, data, headers, signal } = config;
+  const { url, method, params, data, headers, signal, cache } = config;
 
   const token = getAccessToken();
+  // FormData (file uploads) must be sent as-is — JSON.stringify would collapse
+  // it to "{}", and setting Content-Type ourselves drops the multipart boundary.
+  const isFormData = data instanceof FormData;
+
+  const mergedHeaders: Record<string, string> = {
+    ...(data !== undefined && !isFormData ? { 'Content-Type': 'application/json' } : {}),
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    ...headers,
+  };
+  if (isFormData) delete mergedHeaders['Content-Type'];
 
   const res = await fetch(buildUrl(url, params), {
     method,
     signal,
-    headers: {
-      ...(data !== undefined ? { 'Content-Type': 'application/json' } : {}),
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      ...headers,
-    },
-    body: data !== undefined ? JSON.stringify(data) : undefined,
+    cache,
+    headers: mergedHeaders,
+    body: isFormData ? (data as FormData) : data !== undefined ? JSON.stringify(data) : undefined,
   });
 
   if (!res.ok) {

@@ -31,7 +31,11 @@
     "collectionTitle": "Dessert Collection",
     "subtitle": "Khám phá các vị kem tươi vui của Mingo — từ kem que, kem ly đến tráng miệng.",
     "countLabel": "{count} sản phẩm",
-    "viewAll": "Xem tất cả"
+    "viewAll": "Xem tất cả",
+    "otherCategory": "Sản phẩm khác",
+    "loadError": "Chưa thể tải sản phẩm. Vui lòng thử lại sau.",
+    "empty": "Hiện chưa có sản phẩm đang bán.",
+    "outOfStock": "Tạm hết hàng"
   },
   "contact": {
     "title": "Mingo luôn ở đây để lắng nghe chia sẻ của bạn!",
@@ -131,7 +135,12 @@
     "summary": "Tóm tắt đơn hàng",
     "clear": "Xóa tất cả",
     "emptyPageDescription": "Bạn chưa có sản phẩm nào trong giỏ hàng.",
-    "secureNote": "Thanh toán an toàn và minh bạch cùng Mingo."
+    "secureNote": "Thanh toán an toàn và minh bạch cùng Mingo.",
+    "loading": "Đang tải giỏ hàng...",
+    "loadError": "Chưa thể tải giỏ hàng.",
+    "updateError": "Chưa thể cập nhật giỏ hàng.",
+    "unavailable": "Giá hoặc tồn kho đã thay đổi",
+    "dismissError": "Đóng thông báo lỗi"
   },
   "checkout": {
     "title": "Thanh toán",
@@ -163,7 +172,22 @@
     "transferContentNote": "Vui lòng nhập đúng nội dung chuyển khoản: {orderNumber}",
     "manualVerificationNote": "Đơn hàng đang chờ xác nhận thanh toán. Sau khi chuyển khoản, đội ngũ Mingo sẽ kiểm tra và xác nhận đơn trong thời gian sớm nhất.",
     "vietqrNotConfigured": "Chưa cấu hình tài khoản nhận VietQR — vui lòng liên hệ Mingo để hoàn tất thanh toán.",
-    "viewAccount": "Xem tài khoản của tôi"
+    "viewAccount": "Xem tài khoản của tôi",
+    "district": "Quận/Huyện/Khu vực",
+    "districtPlaceholder": "Chọn Quận/Huyện/Khu vực",
+    "loading": "Đang kiểm tra giỏ hàng...",
+    "unsupportedArea": "Khu vực hiện chưa hỗ trợ giao hàng.",
+    "vnpayLabel": "Thanh toán trực tuyến qua VNPay",
+    "vnpayDescription": "Bạn sẽ được chuyển sang cổng VNPay an toàn. Chỉ thông báo xác nhận từ hệ thống Mingo mới được xem là thanh toán thành công.",
+    "checkShipping": "Kiểm tra khu vực và phí giao hàng",
+    "quoting": "Đang tính phí giao hàng...",
+    "directDelivery": "Giao trực tiếp bởi Mingo",
+    "dealerDelivery": "Giao qua đại lý phụ trách khu vực",
+    "dealerName": "Đại lý: {name}",
+    "shippingFee": "Phí giao hàng",
+    "total": "Tổng thanh toán",
+    "payWithVnpay": "Thanh toán với VNPay",
+    "redirecting": "Đang chuyển đến VNPay..."
   },
   "auth": {
     "loginTitle": "Chào mừng bạn trở lại",
@@ -232,6 +256,8 @@
     "quantityShort": "SL: {count}",
     "paidVia": "Thanh toán: {method}",
     "orderStatus": {
+      "NEW": "Đơn mới",
+      "DELIVERING": "Đang giao",
       "PENDING_PAYMENT": "Chờ thanh toán",
       "PAID": "Đã thanh toán",
       "PROCESSING": "Đang xử lý",
@@ -246,6 +272,11 @@
       "CANCELLED": "Đã hủy",
       "FAILED": "Thất bại",
       "REFUNDED": "Đã hoàn tiền"
+    },
+    "paymentStatus": {
+      "PENDING": "Thanh toán chờ xử lý",
+      "PAID": "Thanh toán thành công",
+      "FAILED": "Thanh toán thất bại"
     },
     "myWallet": "Ví của tôi",
     "walletCardExpiry": "Thẻ ưu tiên • Hết hạn {date}",
@@ -289,10 +320,22 @@
       "group": "Nhóm công việc",
       "location": "Địa điểm",
       "type": "Hình thức",
-      "sendApplication": "Gửi hồ sơ qua email",
-      "emailSubject": "Ứng tuyển vị trí {title}",
-      "applicationNote": "Sẵn sàng cùng Mingo tạo nên những chiến dịch ngọt ngào? Hãy gửi CV và portfolio của bạn cho đội ngũ tuyển dụng.",
-      "related": "Công việc liên quan"
+      "related": "Công việc liên quan",
+      "form": {
+        "eyebrow": "Ứng tuyển",
+        "title": "Ứng tuyển vị trí {title}",
+        "fullName": "Họ và tên",
+        "phone": "Số điện thoại",
+        "email": "Email",
+        "coverLetter": "Thư giới thiệu (không bắt buộc)",
+        "cv": "CV / Hồ sơ",
+        "cvHint": "Định dạng .pdf, .doc hoặc .docx, tối đa 5MB.",
+        "cvRequired": "Vui lòng đính kèm CV.",
+        "submit": "Gửi đơn ứng tuyển",
+        "submitting": "Đang gửi…",
+        "successNote": "Cảm ơn bạn! Mingo đã nhận được đơn ứng tuyển và sẽ liên hệ sớm.",
+        "genericError": "Gửi đơn thất bại, vui lòng thử lại."
+      }
     }
   },
   "pages": {
@@ -329,7 +372,14 @@
       "title": "Thương hiệu",
       "intro": "Khám phá các thương hiệu đồng hành cùng Mingo.",
       "body": "Từ những hương vị quen thuộc đến ý tưởng mới, mỗi thương hiệu đều có một câu chuyện riêng.",
-      "cta": "Xem dòng sản phẩm"
+      "cta": "Xem dòng sản phẩm",
+      "joy": {
+        "title": "Joy in every bite!",
+        "paragraphOne": "Chào bạn đến với thế giới của Mingo Ice Cream — nơi sáng tạo không giới hạn để mang đến cho bạn những trải nghiệm thưởng thức trọn vẹn nhất!",
+        "paragraphTwo": "Từ những hương vị trái cây tự nhiên tươi mát của Fruitesia và Fruttega, nét quyến rũ nhiệt đới cùng Verano và Oasis, nét hiện đại đầy phong cách từ Vivi, cho đến lớp vỏ giòn rụm bùng nổ đỉnh cao từ Impact, chúng tôi tự hào mang đến bộ sưu tập kem phong phú cho mọi gu thưởng thức. Đừng quên khám phá sự kết hợp độc đáo từ Rokka và Sandwich, nơi lớp vỏ dai dẻo, xốp mịn đặc trưng ôm trọn lấy chất kem thơm ngon, tạo nên từng nụ cắn thăng hoa và trọn vẹn sảng khoái!",
+        "exploreCta": "Khám phá thêm",
+        "aboutCta": "Về Mingo"
+      }
     },
     "categories": {
       "title": "Dòng sản phẩm",
@@ -350,6 +400,40 @@
       "cta": "Đăng nhập"
     }
   },
+  "orders": {
+    "loading": "Đang tải đơn hàng...",
+    "loadError": "Chưa thể tải chi tiết đơn hàng.",
+    "back": "Quay lại đơn hàng",
+    "order": "Đơn hàng",
+    "payment": "Thanh toán",
+    "fulfillment": "Trạng thái đơn",
+    "subtotal": "Tạm tính",
+    "shipping": "Phí giao hàng",
+    "total": "Tổng cộng",
+    "delivery": "Hình thức giao hàng",
+    "direct": "Giao trực tiếp bởi Mingo",
+    "dealer": "Giao qua đại lý phụ trách khu vực",
+    "address": "Địa chỉ nhận hàng"
+  },
+  "vnpayReturn": {
+    "checkingTitle": "Đang kiểm tra thanh toán",
+    "checkingDescription": "Mingo đang đọc trạng thái đơn hàng thực tế từ hệ thống.",
+    "unableTitle": "Không thể xác minh giao dịch",
+    "invalidReturn": "Thông tin VNPay trả về không hợp lệ.",
+    "loadError": "Chưa thể tải trạng thái đơn hàng. Vui lòng mở lại trong mục Đơn hàng.",
+    "paidTitle": "Thanh toán thành công",
+    "paidDescription": "Mingo đã xác nhận thanh toán và đang chuẩn bị đơn hàng của bạn.",
+    "failedTitle": "Thanh toán thất bại",
+    "failedDescription": "Giao dịch không thành công và đơn hàng đã được cập nhật.",
+    "pendingTitle": "Thanh toán đang chờ xử lý",
+    "pendingDescription": "VNPay đã đưa bạn trở lại nhưng hệ thống chưa nhận xác nhận thanh toán. Vui lòng kiểm tra lại sau.",
+    "orderCode": "Mã đơn",
+    "paymentStatus": "Trạng thái thanh toán",
+    "orderStatus": "Trạng thái đơn",
+    "total": "Tổng tiền",
+    "viewOrder": "Xem chi tiết đơn",
+    "continueShopping": "Tiếp tục mua sắm"
+  },
   "product": {
     "addToCart": "Thêm vào giỏ hàng",
     "outOfStock": "Hết hàng",
@@ -357,6 +441,12 @@
     "ingredients": "Thành phần & dinh dưỡng",
     "usage": "Hướng dẫn sử dụng",
     "notes": "Chú ý",
-    "suggestions": "Gợi ý cho bạn"
+    "suggestions": "Gợi ý cho bạn",
+    "allergens": "Chất gây dị ứng",
+    "nutrition": "Thông tin dinh dưỡng",
+    "barcode": "Mã vạch",
+    "notProvided": "Chưa cập nhật",
+    "decreaseQuantity": "Giảm số lượng",
+    "increaseQuantity": "Tăng số lượng"
   }
 }

@@ -12,7 +12,13 @@ cp .env.example .env.local
 npm run dev            # http://localhost:3001 (đổi port nếu backend đang chiếm 3000)
 ```
 
-## Generate types từ backend (việc ĐẦU TIÊN khi có backend)
+Biến môi trường frontend:
+
+```dotenv
+NEXT_PUBLIC_API_URL=http://localhost:3000
+```
+
+## Generate types từ backend
 
 ```bash
 # Phía backend (ecom-website):
@@ -22,10 +28,9 @@ npm run openapi:export           # -> ../shared/openapi.json
 npm run api:gen                  # orval sinh types + SWR hooks vào src/lib/api/generated
 ```
 
-Sau khi gen xong:
-1. **Xoá `src/types/api-placeholder.ts`** (placeholder chỉ để scaffold compile được).
-2. Sửa import trong `src/features/product/types.ts` sang types generated.
-3. Nếu types gen ra bị `Record<string, any>` ở các field JSONB (name đa ngôn ngữ, variants, order items) → **sửa decorator `@ApiProperty` phía NestJS** (tạo class `LocalizedString`, `ProductVariantDto`...) rồi export + gen lại. KHÔNG vá tay ở FE.
+Nếu types gen ra bị `Record<string, any>` hoặc `void` ở response đã có shape xác
+định, sửa decorator Swagger phía NestJS rồi export và gen lại. Không vá file
+trong `src/lib/api/generated`.
 
 ## Quy ước types 3 tầng (bắt buộc)
 
@@ -37,7 +42,22 @@ Sau khi gen xong:
 
 `tsconfig` bật `strict` + `noUncheckedIndexedAccess` — `items[0]` trả về `T | undefined`, xử lý ngay lúc viết.
 
-Quy tắc giá **duy nhất toàn site**: `getEffectivePrice()` trong `features/product/types.ts` (`variant.price ?? sale_price ?? price`). Hiển thị tiền qua `fCurrencyVND()` — "100.000Đ".
+Quy tắc giá **duy nhất toàn site**: catalog dùng `getEffectivePrice()` trong
+`features/product/types.ts`; cart/checkout/order dùng nguyên giá và tổng tiền
+backend trả về. Hiển thị tiền qua `fCurrencyVND()` — ví dụ `100.000 ₫`.
+
+## Luồng storefront API
+
+- Homepage: `GET /storefront/home`; chỉ dùng hero local khi endpoint lỗi.
+- Cart: mọi request gửi guest token ngẫu nhiên qua `X-Cart-Token`. Cart API là
+  nguồn duy nhất cho tồn kho, line total, subtotal và trạng thái hợp lệ.
+- Sau đăng nhập/đăng ký, storefront gọi `POST /cart/merge`.
+- Checkout: lưu địa chỉ → `POST /shipping/quote` → `POST /checkout/quote` →
+  `POST /checkout/create-order` → redirect `paymentUrl` của VNPay.
+- Trang `/checkout/vnpay-return` không tin browser return URL để kết luận thành
+  công; trang gọi lại `/me/orders/:orderCode` và đọc `paymentStatus`.
+- Lịch sử và chi tiết đơn: `/orders`, `/orders/:orderCode`, dữ liệu từ
+  `GET /me/orders` và `GET /me/orders/:orderCode`.
 
 ## Design system
 
@@ -88,7 +108,8 @@ src/
 │   └── product/             # ProductCard
 ├── features/
 │   ├── product/             # types.ts (view model + mapper), purchase-panel
-│   └── cart/                # CartProvider (reducer + localStorage persist)
+│   ├── cart/                # Cart API state + X-Cart-Token
+│   └── checkout/            # shipping quote + VNPay + order types
 ├── lib/
 │   ├── api/fetcher.ts       # mutator cho orval (TODO: JWT + refresh interceptor)
 │   ├── format.ts            # fCurrencyVND
@@ -97,12 +118,10 @@ src/
 └── types/                   # localized.ts, api-placeholder.ts (XOÁ sau api:gen)
 ```
 
-## Việc tiếp theo (theo thứ tự trong init plan §6)
+## Việc còn lại
 
-1. Connect Figma → thay tokens + bật next/font.
-2. `api:gen` + xoá placeholder → nối landing "Phải thử" với `is_featured=true`.
-3. Hero carousel thật (config hardcode v1) + listing/filter.
-4. PDP hoàn chỉnh theo `mingo-pdp-frontend-plan.md` (gallery nhiều ảnh, parser markdown 4 accordion, suggestions).
-5. Cart page + Checkout multi-step (port `onValidateAndRefreshCart` từ repo cũ) — COD/PayPal trước, VNPay cắm sau khi BE-1 xong.
-6. Auth JWT (port từ repo cũ, chỉ giữ JWT) + account + đơn hàng.
-7. ESLint config (`eslint-config-next`) + bỏ `ignoreDuringBuilds` trong `next.config.ts`; sitemap + JSON-LD.
+1. Bổ sung refresh-token/cookie strategy cho auth thay cho access token trong
+   localStorage.
+2. Bổ sung test runner và cấu hình ESLint CLI (`next lint` hiện chưa được cấu
+   hình trong scaffold).
+3. Bổ sung sitemap, JSON-LD và theo dõi lỗi production.

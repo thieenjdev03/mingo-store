@@ -4,11 +4,14 @@ import {
   careersControllerCreate,
   careersControllerUpdate,
   careersControllerRemove,
+  careersControllerFindApplications,
+  careerApplicationsControllerUpdate,
 } from '@/lib/api/generated/careers/careers';
 import type {
   CareersControllerFindAllParams,
   CreateCareerDto,
   UpdateCareerDto,
+  UpdateCareerApplicationDto,
 } from '@/lib/api/generated/ecomAPI.schemas';
 
 export function careersKey(params: CareersControllerFindAllParams) {
@@ -25,4 +28,14 @@ export function updateCareer(id: string, dto: UpdateCareerDto) {
 }
 export function deleteCareer(id: string) {
   return careersControllerRemove(id);
+}
+
+export function applicationsKey(careerId: string) {
+  return [`/careers/${careerId}/applications`] as const;
+}
+export function listApplications(careerId: string) {
+  return careersControllerFindApplications(careerId);
+}
+export function updateApplicationStatus(id: string, dto: UpdateCareerApplicationDto) {
+  return careerApplicationsControllerUpdate(id, dto);
 }

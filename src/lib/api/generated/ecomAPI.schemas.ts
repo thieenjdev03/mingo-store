@@ -408,6 +408,8 @@ export const CreateProductDtoStatus = {
   discontinued: 'discontinued',
 } as const;
 
+export type CreateProductDtoNutrition = { [key: string]: unknown };
+
 export interface CreateProductDto {
   /** Product name in multiple languages */
   name: LocalizedStringDto;
@@ -419,6 +421,8 @@ export interface CreateProductDto {
   short_description?: LocalizedStringDto;
   price: number;
   sale_price?: number;
+  /** Original/list price displayed before a discount */
+  compare_at_price?: number;
   cost_price?: number;
   images?: string[];
   variants?: ProductVariantDto[];
@@ -436,8 +440,17 @@ export interface CreateProductDto {
   meta_description?: LocalizedStringDto;
   /** Weight in kg */
   weight?: number;
+  /** Canonical product weight in grams */
+  weight_grams?: number;
+  /** Known food allergens */
+  allergens?: string[];
+  nutrition?: CreateProductDtoNutrition;
   /** Product dimensions in cm */
   dimensions?: DimensionsDto;
+  /** Quy cách: loại đóng gói */
+  packaging_type?: string;
+  /** Quy cách: số lượng trong một đóng gói */
+  packaging_quantity?: number;
 }
 
 export interface ProductDimensionsResponseDto {
@@ -447,6 +460,12 @@ export interface ProductDimensionsResponseDto {
 }
 
 export interface ProductCategorySummaryDto {
+  id: string;
+  name: string;
+  slug: string;
+}
+
+export interface ProductCollectionSummaryDto {
   id: string;
   name: string;
   slug: string;
@@ -517,6 +536,11 @@ export const ProductResponseDtoStatus = {
 /**
  * @nullable
  */
+export type ProductResponseDtoNutrition = { [key: string]: unknown } | null;
+
+/**
+ * @nullable
+ */
 export type ProductResponseDtoDimensions = ProductDimensionsResponseDto | null;
 
 /**
@@ -540,6 +564,11 @@ export interface ProductResponseDto {
   price: number;
   /** @nullable */
   sale_price?: number | null;
+  /**
+   * Original/list price before a discount
+   * @nullable
+   */
+  compare_at_price?: number | null;
   /** @nullable */
   cost_price?: number | null;
   images: string[];
@@ -559,11 +588,27 @@ export interface ProductResponseDto {
   /** @nullable */
   weight?: number | null;
   /** @nullable */
+  weight_grams?: number | null;
+  allergens: string[];
+  /** @nullable */
+  nutrition?: ProductResponseDtoNutrition;
+  /** @nullable */
   dimensions?: ProductResponseDtoDimensions;
+  /**
+   * Quy cách: loại đóng gói
+   * @nullable
+   */
+  packaging_type?: string | null;
+  /**
+   * Quy cách: số lượng trong một đóng gói
+   * @nullable
+   */
+  packaging_quantity?: number | null;
   created_at: string;
   updated_at: string;
   /** @nullable */
   category?: ProductResponseDtoCategory;
+  collections: ProductCollectionSummaryDto[];
   /** @nullable */
   brand: ProductResponseDtoBrand;
   variants?: ProductVariantResponseDto[];
@@ -593,6 +638,8 @@ export const UpdateProductDtoStatus = {
   discontinued: 'discontinued',
 } as const;
 
+export type UpdateProductDtoNutrition = { [key: string]: unknown };
+
 export interface UpdateProductDto {
   /** Product name in multiple languages */
   name?: LocalizedStringDto;
@@ -604,6 +651,8 @@ export interface UpdateProductDto {
   short_description?: LocalizedStringDto;
   price?: number;
   sale_price?: number;
+  /** Original/list price displayed before a discount */
+  compare_at_price?: number;
   cost_price?: number;
   images?: string[];
   variants?: ProductVariantDto[];
@@ -621,8 +670,17 @@ export interface UpdateProductDto {
   meta_description?: LocalizedStringDto;
   /** Weight in kg */
   weight?: number;
+  /** Canonical product weight in grams */
+  weight_grams?: number;
+  /** Known food allergens */
+  allergens?: string[];
+  nutrition?: UpdateProductDtoNutrition;
   /** Product dimensions in cm */
   dimensions?: DimensionsDto;
+  /** Quy cách: loại đóng gói */
+  packaging_type?: string;
+  /** Quy cách: số lượng trong một đóng gói */
+  packaging_quantity?: number;
 }
 
 export interface CreateCategoryDto {
@@ -652,8 +710,8 @@ export interface UpdateColorDto { [key: string]: unknown }
 export interface CreateSizeDto {
   /** Display label (quy cách / kích cỡ) */
   name: string;
-  /** Category scope (optional) */
-  categoryId?: string;
+  /** Các category có thể dùng quy cách này; mảng rỗng = dùng chung toàn hệ thống */
+  categoryIds?: string[];
   /** Đơn vị lẻ: 'cây', 'hộp', 'lít'... */
   unit?: string;
   /** Số lượng / thùng (case pack) */
@@ -668,11 +726,6 @@ export interface SizeCategoryDto {
   id: string;
   name: string;
 }
-
-/**
- * @nullable
- */
-export type SizeDtoCategory = SizeCategoryDto | null;
 
 export interface SizeDto {
   id: string;
@@ -690,8 +743,7 @@ export interface SizeDto {
    */
   volumeMl?: number | null;
   sortOrder: number;
-  /** @nullable */
-  category?: SizeDtoCategory;
+  categories: SizeCategoryDto[];
   createdAt: string;
   updatedAt: string;
 }
@@ -699,8 +751,8 @@ export interface SizeDto {
 export interface UpdateSizeDto {
   /** Display label (quy cách / kích cỡ) */
   name?: string;
-  /** Category scope (optional) */
-  categoryId?: string;
+  /** Các category có thể dùng quy cách này; mảng rỗng = dùng chung toàn hệ thống */
+  categoryIds?: string[];
   /** Đơn vị lẻ: 'cây', 'hộp', 'lít'... */
   unit?: string;
   /** Số lượng / thùng (case pack) */
@@ -821,14 +873,9 @@ export type UpdateOrderDtoStatus = typeof UpdateOrderDtoStatus[keyof typeof Upda
 export const UpdateOrderDtoStatus = {
   PENDING_PAYMENT: 'PENDING_PAYMENT',
   PAID: 'PAID',
-  PROCESSING: 'PROCESSING',
+  CONFIRMED: 'CONFIRMED',
   PACKED: 'PACKED',
-  READY_TO_GO: 'READY_TO_GO',
-  AT_CARRIER_FACILITY: 'AT_CARRIER_FACILITY',
   IN_TRANSIT: 'IN_TRANSIT',
-  ARRIVED_IN_COUNTRY: 'ARRIVED_IN_COUNTRY',
-  AT_LOCAL_FACILITY: 'AT_LOCAL_FACILITY',
-  OUT_FOR_DELIVERY: 'OUT_FOR_DELIVERY',
   DELIVERED: 'DELIVERED',
   CANCELLED: 'CANCELLED',
   FAILED: 'FAILED',
@@ -880,14 +927,9 @@ export type ChangeOrderStatusDtoToStatus = typeof ChangeOrderStatusDtoToStatus[k
 export const ChangeOrderStatusDtoToStatus = {
   PENDING_PAYMENT: 'PENDING_PAYMENT',
   PAID: 'PAID',
-  PROCESSING: 'PROCESSING',
+  CONFIRMED: 'CONFIRMED',
   PACKED: 'PACKED',
-  READY_TO_GO: 'READY_TO_GO',
-  AT_CARRIER_FACILITY: 'AT_CARRIER_FACILITY',
   IN_TRANSIT: 'IN_TRANSIT',
-  ARRIVED_IN_COUNTRY: 'ARRIVED_IN_COUNTRY',
-  AT_LOCAL_FACILITY: 'AT_LOCAL_FACILITY',
-  OUT_FOR_DELIVERY: 'OUT_FOR_DELIVERY',
   DELIVERED: 'DELIVERED',
   CANCELLED: 'CANCELLED',
   FAILED: 'FAILED',
@@ -919,6 +961,23 @@ export interface CaptureOrderDto {
   orderId?: string;
 }
 
+export interface ShippingQuoteDto {
+  /** Vietnam province/city code */
+  province_code: string;
+  /** Vietnam district code */
+  district_code: string;
+}
+
+export type CreateCollectionDtoPlacement = typeof CreateCollectionDtoPlacement[keyof typeof CreateCollectionDtoPlacement];
+
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const CreateCollectionDtoPlacement = {
+  HERO: 'HERO',
+  HOME_SECTION: 'HOME_SECTION',
+  NORMAL: 'NORMAL',
+} as const;
+
 export interface CreateCollectionDto {
   /** Collection name */
   name: string;
@@ -928,6 +987,10 @@ export interface CreateCollectionDto {
   description?: string;
   /** Banner image URL */
   banner_image_url?: string;
+  mobile_banner_image_url?: string;
+  cta_label?: string;
+  placement?: CreateCollectionDtoPlacement;
+  sort_order?: number;
   /** SEO title */
   seo_title?: string;
   /** SEO description */
@@ -938,6 +1001,16 @@ export interface CreateCollectionDto {
   homepage_section?: string;
 }
 
+export type UpdateCollectionDtoPlacement = typeof UpdateCollectionDtoPlacement[keyof typeof UpdateCollectionDtoPlacement];
+
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const UpdateCollectionDtoPlacement = {
+  HERO: 'HERO',
+  HOME_SECTION: 'HOME_SECTION',
+  NORMAL: 'NORMAL',
+} as const;
+
 export interface UpdateCollectionDto {
   /** Collection name */
   name?: string;
@@ -947,6 +1020,10 @@ export interface UpdateCollectionDto {
   description?: string;
   /** Banner image URL */
   banner_image_url?: string;
+  mobile_banner_image_url?: string;
+  cta_label?: string;
+  placement?: UpdateCollectionDtoPlacement;
+  sort_order?: number;
   /** SEO title */
   seo_title?: string;
   /** SEO description */
@@ -960,6 +1037,32 @@ export interface UpdateCollectionDto {
 export interface AssignProductsDto {
   /** Array of product IDs to assign to the collection */
   productIds: string[];
+}
+
+export interface StorefrontCollectionDto {
+  id: string;
+  slug: string;
+  name: string;
+  /** @nullable */
+  description?: string | null;
+  /** @nullable */
+  bannerImageUrl?: string | null;
+  /** @nullable */
+  mobileBannerImageUrl?: string | null;
+  /** @nullable */
+  ctaLabel?: string | null;
+  sortOrder: number;
+  /**
+   * Homepage section this collection powers (e.g. "must_try"). Null when the collection is a generic home section.
+   * @nullable
+   */
+  homepageSection?: string | null;
+  products: ProductResponseDto[];
+}
+
+export interface StorefrontHomeDto {
+  heroCollections: StorefrontCollectionDto[];
+  homeSections: StorefrontCollectionDto[];
 }
 
 export type CreateCareerDtoStatus = typeof CreateCareerDtoStatus[keyof typeof CreateCareerDtoStatus];
@@ -1272,6 +1375,66 @@ export interface PolicyListItemDto {
   is_active: boolean;
 }
 
+export interface CartProductDto {
+  id: string;
+  name: string;
+  slug: string;
+  /** @nullable */
+  image: string | null;
+  stock: number;
+  available: boolean;
+}
+
+export interface CartItemResponseDto {
+  id: string;
+  quantity: number;
+  unitPrice: number;
+  lineTotal: number;
+  product: CartProductDto;
+}
+
+export interface CartResponseDto {
+  id: string;
+  items: CartItemResponseDto[];
+  subtotal: number;
+  totalQuantity: number;
+  valid: boolean;
+}
+
+export interface AddCartItemDto {
+  productId: string;
+  /**
+   * @minimum 1
+   * @maximum 100
+   */
+  quantity: number;
+}
+
+export interface UpdateCartItemDto {
+  /**
+   * @minimum 1
+   * @maximum 100
+   */
+  quantity: number;
+}
+
+export interface CheckoutQuoteDto {
+  shipping_address_id: string;
+  /** Vietnam province/city code */
+  province_code: string;
+  /** Vietnam district code */
+  district_code: string;
+}
+
+export interface CreateCheckoutOrderDto {
+  shipping_address_id: string;
+  /** Vietnam province/city code */
+  province_code: string;
+  /** Vietnam district code */
+  district_code: string;
+  notes?: string;
+}
+
 export type HealthControllerGetHealth200 = {
   status?: string;
   timestamp?: number;
@@ -1399,6 +1562,10 @@ category_id?: string;
  * Filter by collection ID
  */
 collection_id?: string;
+/**
+ * Filter by brand ID
+ */
+brand_id?: string;
 status?: ProductsControllerFindAllStatus;
 is_featured?: boolean;
 enable_sale_tag?: boolean;
@@ -1457,6 +1624,78 @@ locale: string;
 };
 
 export type ProductsControllerFindBySlugParams = {
+locale: string;
+};
+
+export type ProductsControllerFindAllAdminParams = {
+/**
+ * Locale for language (default: en)
+ */
+locale?: ProductsControllerFindAllAdminLocale;
+/**
+ * Filter by category ID
+ */
+category_id?: string;
+/**
+ * Filter by collection ID
+ */
+collection_id?: string;
+/**
+ * Filter by brand ID
+ */
+brand_id?: string;
+status?: ProductsControllerFindAllAdminStatus;
+is_featured?: boolean;
+enable_sale_tag?: boolean;
+search?: string;
+page?: number;
+limit?: number;
+sort_by?: ProductsControllerFindAllAdminSortBy;
+sort_order?: ProductsControllerFindAllAdminSortOrder;
+};
+
+export type ProductsControllerFindAllAdminLocale = typeof ProductsControllerFindAllAdminLocale[keyof typeof ProductsControllerFindAllAdminLocale];
+
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const ProductsControllerFindAllAdminLocale = {
+  en: 'en',
+  vi: 'vi',
+} as const;
+
+export type ProductsControllerFindAllAdminStatus = typeof ProductsControllerFindAllAdminStatus[keyof typeof ProductsControllerFindAllAdminStatus];
+
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const ProductsControllerFindAllAdminStatus = {
+  active: 'active',
+  draft: 'draft',
+  out_of_stock: 'out_of_stock',
+  discontinued: 'discontinued',
+} as const;
+
+export type ProductsControllerFindAllAdminSortBy = typeof ProductsControllerFindAllAdminSortBy[keyof typeof ProductsControllerFindAllAdminSortBy];
+
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const ProductsControllerFindAllAdminSortBy = {
+  created_at: 'created_at',
+  updated_at: 'updated_at',
+  name: 'name',
+  price: 'price',
+  status: 'status',
+} as const;
+
+export type ProductsControllerFindAllAdminSortOrder = typeof ProductsControllerFindAllAdminSortOrder[keyof typeof ProductsControllerFindAllAdminSortOrder];
+
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const ProductsControllerFindAllAdminSortOrder = {
+  ASC: 'ASC',
+  DESC: 'DESC',
+} as const;
+
+export type ProductsControllerFindOneAdminParams = {
 locale: string;
 };
 

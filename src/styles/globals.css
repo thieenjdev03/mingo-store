@@ -75,11 +75,11 @@
   --color-destructive: var(--destructive);
 
   /* --- Rounded scale (DESIGN.md `rounded`) --- */
-  --radius: 1rem;
-  --radius-sm: 0.5rem;
-  --radius-md: 1.5rem;
-  --radius-lg: 2rem;
-  --radius-xl: 3rem;
+  --radius: 0.6rem;
+  --radius-sm: 0.3rem;
+  --radius-md: 1rem;
+  --radius-lg: 1.2rem;
+  --radius-xl: 1.5rem;
 
   --container-content: 1280px;
 

@@ -9,6 +9,9 @@ export interface ProductListCard {
   image: string | null;
   /** VND; 0 hoặc null -> ẩn giá */
   price: number | null;
+  compareAtPrice?: number | null;
+  stock?: number;
+  available?: boolean;
   categoryName?: string | null;
   isMockup?: boolean;
 }
@@ -17,7 +20,7 @@ export interface ProductListCard {
  * Lưới sản phẩm: packshot trên nền kem bo tròn, tên + danh mục + giá bên dưới.
  * Sản phẩm mockup gắn nhãn góc "Mockup" để phân biệt với dữ liệu thật (backend chưa seed).
  */
-export function ProductShowcaseGrid({ products }: { products: ProductListCard[] }) {
+export function ProductShowcaseGrid({ products, outOfStockLabel }: { products: ProductListCard[]; outOfStockLabel: string }) {
   return (
     <div className="mx-auto grid max-w-[1200px] grid-cols-2 gap-x-5 gap-y-8 px-5 sm:gap-x-6 sm:gap-y-10 sm:px-8 lg:grid-cols-4 min-[1264px]:px-0">
       {products.map((product) => (
@@ -55,8 +58,12 @@ export function ProductShowcaseGrid({ products }: { products: ProductListCard[] 
               {product.name}
             </h2>
             {product.price ? (
-              <p className="mt-auto pt-2 text-lg font-bold text-primary">{fCurrencyVND(product.price)}</p>
+              <div className="mt-auto flex flex-wrap items-baseline gap-2 pt-2">
+                <p className="text-lg font-bold text-primary">{fCurrencyVND(product.price)}</p>
+                {product.compareAtPrice ? <p className="text-sm text-muted-foreground line-through">{fCurrencyVND(product.compareAtPrice)}</p> : null}
+              </div>
             ) : null}
+            {product.available === false ? <p className="mt-1 text-xs font-bold uppercase tracking-wide text-destructive">{outOfStockLabel}</p> : null}
           </div>
         </Link>
       ))}

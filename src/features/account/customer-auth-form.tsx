@@ -2,11 +2,13 @@
 
 import { useState, type FormEvent } from 'react';
 import { ArrowLeft, Eye, EyeOff } from 'lucide-react';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { Link, useRouter } from '@/i18n/navigation';
 import { authControllerLogin, authControllerRegister } from '@/lib/api/generated/auth/auth';
 import { setAccessToken } from '@/lib/auth/token';
 import { ApiError } from '@/lib/api/fetcher';
+import { mergeCart } from '@/features/cart/api';
+import { notifyCartUpdated } from '@/features/cart/cart-token';
 
 type AuthMode = 'login' | 'register' | 'forgot';
 
@@ -21,6 +23,7 @@ interface CustomerAuthFormProps {
 
 export function CustomerAuthForm({ mode, onAuthenticated }: CustomerAuthFormProps) {
   const t = useTranslations('auth');
+  const locale = useLocale();
   const router = useRouter();
   const [submitting, setSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -45,6 +48,7 @@ export function CustomerAuthForm({ mode, onAuthenticated }: CustomerAuthFormProp
       if (mode === 'login') {
         const res = await authControllerLogin({ email, password });
         setAccessToken(res.accessToken);
+        await mergeCartAfterAuthentication(locale);
         if (onAuthenticated) onAuthenticated();
         else router.push('/account');
         return;
@@ -67,6 +71,7 @@ export function CustomerAuthForm({ mode, onAuthenticated }: CustomerAuthFormProp
         // Backend không trả accessToken khi đăng ký — đăng nhập lại ngay bằng thông tin vừa tạo.
         const loginRes = await authControllerLogin({ email, password });
         setAccessToken(loginRes.accessToken);
+        await mergeCartAfterAuthentication(locale);
         if (onAuthenticated) onAuthenticated();
         else router.push('/account');
         return;
@@ -143,6 +148,15 @@ export function CustomerAuthForm({ mode, onAuthenticated }: CustomerAuthFormProp
       </div>
     </div>
   );
+}
+
+async function mergeCartAfterAuthentication(locale: string): Promise<void> {
+  try {
+    await mergeCart(locale);
+    notifyCartUpdated();
+  } catch {
+    // Đăng nhập vẫn thành công nếu merge giỏ lỗi; CartProvider sẽ tải lại và hiển thị lỗi API khi cần.
+  }
 }
 
 function errorMessageFromApiError(error: ApiError): string {

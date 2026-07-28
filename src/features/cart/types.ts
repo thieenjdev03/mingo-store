@@ -1,22 +1,53 @@
-export interface CartItem {
-  productId: string;
-  slug: string;
-  sku: string; // sku của variant (hoặc chính product nếu không có variant)
+import type { CartResponseDto } from '@/lib/api/generated/ecomAPI.schemas';
+
+export interface CartProductView {
+  id: string;
   name: string;
-  variantLabel: string | null; // "24 Cây/Thùng"
+  slug: string;
   image: string | null;
-  /** Giá snapshot lúc thêm vào giỏ — checkout sẽ validate lại với server trước khi thanh toán */
-  price: number;
+  stock: number;
+  available: boolean;
+}
+
+export interface CartItemView {
+  id: string;
   quantity: number;
+  unitPrice: number;
+  lineTotal: number;
+  product: CartProductView;
 }
 
-export interface CartState {
-  items: CartItem[];
+export interface CartView {
+  id: string | null;
+  items: CartItemView[];
+  subtotal: number;
+  totalQuantity: number;
+  valid: boolean;
 }
 
-export type CartAction =
-  | { type: 'ADD'; item: CartItem }
-  | { type: 'REMOVE'; sku: string }
-  | { type: 'SET_QTY'; sku: string; quantity: number }
-  | { type: 'CLEAR' }
-  | { type: 'HYDRATE'; state: CartState };
+export const EMPTY_CART: CartView = {
+  id: null,
+  items: [],
+  subtotal: 0,
+  totalQuantity: 0,
+  valid: false,
+};
+
+export function toCartView(cart: CartResponseDto): CartView {
+  return {
+    id: cart.id,
+    items: cart.items.map((item) => ({
+      id: item.id,
+      quantity: item.quantity,
+      unitPrice: Number(item.unitPrice),
+      lineTotal: Number(item.lineTotal),
+      product: {
+        ...item.product,
+        stock: Number(item.product.stock),
+      },
+    })),
+    subtotal: Number(cart.subtotal),
+    totalQuantity: Number(cart.totalQuantity),
+    valid: cart.valid,
+  };
+}

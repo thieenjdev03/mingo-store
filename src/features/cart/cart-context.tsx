@@ -1,53 +1,37 @@
 'use client';
 
-/**
- * Cart tầng client: Context + reducer, persist localStorage.
- * Nâng cấp so với repo cũ (cart chỉ sống trong memory).
- * TODO(checkout): port onValidateAndRefreshCart từ repo cũ — validate tồn kho
- * với server TRƯỚC bước thanh toán, không tin snapshot phía client.
- */
-import { createContext, useContext, useEffect, useMemo, useReducer, useState, type ReactNode } from 'react';
-import type { CartAction, CartItem, CartState } from './types';
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from 'react';
+import { useLocale, useTranslations } from 'next-intl';
+import { getApiErrorMessage } from '@/lib/api/error-message';
+import {
+  addCartItem,
+  clearCart,
+  getCart,
+  removeCartItem,
+  updateCartItem,
+} from './api';
+import { CART_UPDATED_EVENT } from './cart-token';
+import { EMPTY_CART, type CartView } from './types';
 
-const STORAGE_KEY = 'mingo-cart-v1';
-const EMPTY: CartState = { items: [] };
-
-function reducer(state: CartState, action: CartAction): CartState {
-  switch (action.type) {
-    case 'HYDRATE':
-      return action.state;
-    case 'ADD': {
-      const existing = state.items.find((i) => i.sku === action.item.sku);
-      if (existing) {
-        return {
-          items: state.items.map((i) =>
-            i.sku === action.item.sku ? { ...i, quantity: i.quantity + action.item.quantity } : i,
-          ),
-        };
-      }
-      return { items: [...state.items, action.item] };
-    }
-    case 'REMOVE':
-      return { items: state.items.filter((i) => i.sku !== action.sku) };
-    case 'SET_QTY':
-      return {
-        items: state.items
-          .map((i) => (i.sku === action.sku ? { ...i, quantity: action.quantity } : i))
-          .filter((i) => i.quantity > 0),
-      };
-    case 'CLEAR':
-      return EMPTY;
-  }
-}
-
-interface CartContextValue extends CartState {
-  totalQuantity: number;
-  subtotal: number;
+interface CartContextValue extends CartView {
+  isLoading: boolean;
+  isMutating: boolean;
+  errorMessage: string | null;
   isDrawerOpen: boolean;
-  addItem: (item: CartItem) => void;
-  removeItem: (sku: string) => void;
-  setQuantity: (sku: string, quantity: number) => void;
-  clear: () => void;
+  addItem: (productId: string, quantity: number) => Promise<boolean>;
+  removeItem: (itemId: string) => Promise<void>;
+  setQuantity: (itemId: string, quantity: number) => Promise<void>;
+  clear: () => Promise<void>;
+  refresh: () => Promise<void>;
+  dismissError: () => void;
   openDrawer: () => void;
   closeDrawer: () => void;
 }
@@ -55,48 +39,122 @@ interface CartContextValue extends CartState {
 const CartContext = createContext<CartContextValue | null>(null);
 
 export function CartProvider({ children }: { children: ReactNode }) {
-  const [state, dispatch] = useReducer(reducer, EMPTY);
+  const locale = useLocale();
+  const t = useTranslations('cart');
+  const [cart, setCart] = useState<CartView>(EMPTY_CART);
+  const [isLoading, setLoading] = useState(true);
+  const [isMutating, setMutating] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isDrawerOpen, setDrawerOpen] = useState(false);
 
-  // Hydrate sau mount để tránh mismatch SSR
-  useEffect(() => {
+  const refresh = useCallback(async () => {
     try {
-      const raw = window.localStorage.getItem(STORAGE_KEY);
-      if (raw) dispatch({ type: 'HYDRATE', state: JSON.parse(raw) as CartState });
-    } catch {
-      /* localStorage hỏng -> bỏ qua, giỏ rỗng */
+      setCart(await getCart(locale));
+      setErrorMessage(null);
+    } catch (error) {
+      setErrorMessage(getApiErrorMessage(error, t('loadError')));
+    } finally {
+      setLoading(false);
     }
-  }, []);
+  }, [locale, t]);
 
   useEffect(() => {
+    void refresh();
+    window.addEventListener(CART_UPDATED_EVENT, refresh);
+    return () => window.removeEventListener(CART_UPDATED_EVENT, refresh);
+  }, [refresh]);
+
+  const runMutation = useCallback(
+    async (request: () => Promise<CartView>): Promise<boolean> => {
+      setMutating(true);
+      setErrorMessage(null);
+      try {
+        setCart(await request());
+        return true;
+      } catch (error) {
+        setErrorMessage(getApiErrorMessage(error, t('updateError')));
+        await refresh();
+        return false;
+      } finally {
+        setMutating(false);
+      }
+    },
+    [refresh, t],
+  );
+
+  const addItem = useCallback(
+    async (productId: string, quantity: number) => {
+      const success = await runMutation(() =>
+        addCartItem({ productId, quantity }, locale),
+      );
+      if (success) setDrawerOpen(true);
+      return success;
+    },
+    [locale, runMutation],
+  );
+
+  const removeItem = useCallback(
+    async (itemId: string) => {
+      await runMutation(() => removeCartItem(itemId, locale));
+    },
+    [locale, runMutation],
+  );
+
+  const setQuantity = useCallback(
+    async (itemId: string, quantity: number) => {
+      await runMutation(() => updateCartItem(itemId, { quantity }, locale));
+    },
+    [locale, runMutation],
+  );
+
+  const clear = useCallback(async () => {
+    setMutating(true);
+    setErrorMessage(null);
     try {
-      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-    } catch {
-      /* quota/private mode -> bỏ qua */
+      await clearCart();
+      setCart(EMPTY_CART);
+    } catch (error) {
+      setErrorMessage(getApiErrorMessage(error, t('updateError')));
+    } finally {
+      setMutating(false);
     }
-  }, [state]);
+  }, [t]);
 
   const value = useMemo<CartContextValue>(
     () => ({
-      ...state,
-      totalQuantity: state.items.reduce((s, i) => s + i.quantity, 0),
-      subtotal: state.items.reduce((s, i) => s + i.price * i.quantity, 0),
+      ...cart,
+      isLoading,
+      isMutating,
+      errorMessage,
       isDrawerOpen,
-      addItem: (item) => dispatch({ type: 'ADD', item }),
-      removeItem: (sku) => dispatch({ type: 'REMOVE', sku }),
-      setQuantity: (sku, quantity) => dispatch({ type: 'SET_QTY', sku, quantity }),
-      clear: () => dispatch({ type: 'CLEAR' }),
+      addItem,
+      removeItem,
+      setQuantity,
+      clear,
+      refresh,
+      dismissError: () => setErrorMessage(null),
       openDrawer: () => setDrawerOpen(true),
       closeDrawer: () => setDrawerOpen(false),
     }),
-    [isDrawerOpen, state],
+    [
+      addItem,
+      cart,
+      clear,
+      errorMessage,
+      isDrawerOpen,
+      isLoading,
+      isMutating,
+      refresh,
+      removeItem,
+      setQuantity,
+    ],
   );
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
 }
 
 export function useCart(): CartContextValue {
-  const ctx = useContext(CartContext);
-  if (!ctx) throw new Error('useCart phải dùng bên trong <CartProvider>');
-  return ctx;
+  const context = useContext(CartContext);
+  if (!context) throw new Error('useCart phải dùng bên trong <CartProvider>');
+  return context;
 }

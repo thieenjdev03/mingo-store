@@ -1,32 +1,69 @@
-/**
- * TẦNG 2 — View model của feature home (landing page).
- * Components chỉ nhận type ở đây. Must-try products dùng lại
- * ProductCardView/toProductCardView của feature product (không tạo mapper riêng)
- * để tránh trùng lặp dữ liệu sản phẩm — xem docs/plans/ladning-page-plan.md §13.
- */
+import type {
+  StorefrontCollectionDto,
+  StorefrontHomeDto,
+} from '@/lib/api/generated/ecomAPI.schemas';
+import {
+  toProductCardView,
+  type ProductCardView,
+} from '@/features/product/types';
+import type { Locale } from '@/types/localized';
 
 export interface HeroBannerView {
   id: string;
   imageUrl: string;
+  mobileImageUrl: string | null;
   alt: string;
-  linkUrl: string | null;
+  ctaLabel: string | null;
+  linkUrl: string;
 }
 
-/** Raw shape trả về từ GET /homepage/banners (generated client type là `void` vì backend chưa khai báo @ApiOkResponse type). */
-export interface HomepageBannerDto {
+export interface HomeCollectionView {
   id: string;
-  image_url: string;
-  alt_text: string | null;
-  link_url: string | null;
-  display_order: number;
-  is_active: boolean;
+  slug: string;
+  title: string;
+  description: string | null;
+  /** Section trang chủ mà collection này đại diện (vd 'must_try'). */
+  homepageSection: string | null;
+  products: ProductCardView[];
 }
 
-export function toHeroBannerView(b: HomepageBannerDto): HeroBannerView {
+export interface StorefrontHomeView {
+  heroes: HeroBannerView[];
+  sections: HomeCollectionView[];
+}
+
+function toHeroView(collection: StorefrontCollectionDto): HeroBannerView | null {
+  if (!collection.bannerImageUrl) return null;
   return {
-    id: b.id,
-    imageUrl: b.image_url,
-    alt: b.alt_text ?? '',
-    linkUrl: b.link_url ?? null,
+    id: collection.id,
+    imageUrl: collection.bannerImageUrl,
+    mobileImageUrl: collection.mobileBannerImageUrl ?? null,
+    alt: collection.name,
+    ctaLabel: collection.ctaLabel ?? null,
+    linkUrl: `/collections/${collection.slug}`,
+  };
+}
+
+export function toStorefrontHomeView(
+  home: StorefrontHomeDto,
+  locale: Locale,
+): StorefrontHomeView {
+  return {
+    heroes: home.heroCollections.flatMap((collection) => {
+      const hero = toHeroView(collection);
+      return hero ? [hero] : [];
+    }),
+    sections: home.homeSections
+      .map((collection) => ({
+        id: collection.id,
+        slug: collection.slug,
+        title: collection.name,
+        description: collection.description ?? null,
+        homepageSection: collection.homepageSection ?? null,
+        products: collection.products.map((product) =>
+          toProductCardView(product, locale),
+        ),
+      }))
+      .filter((collection) => collection.products.length > 0),
   };
 }

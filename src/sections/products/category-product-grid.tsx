@@ -9,6 +9,8 @@ export interface CategoryProductCard {
   image: string | null;
   /** VND; 0/null -> ẩn giá */
   price: number | null;
+  compareAtPrice?: number | null;
+  available?: boolean;
   /** Quy cách đóng gói, vd "100ml | 24 cây | thùng" */
   spec: string | null;
 }
@@ -43,6 +45,7 @@ export function CategoryProductGrid({ products }: { products: CategoryProductCar
             <span className="min-w-0 truncate">{product.spec ?? ''}</span>
             {product.price ? <span className="shrink-0 font-medium">{fCurrencyVND(product.price)}</span> : null}
           </div>
+          {product.compareAtPrice ? <p className="mt-1 text-right text-xs text-muted-foreground line-through">{fCurrencyVND(product.compareAtPrice)}</p> : null}
         </Link>
       ))}
     </div>

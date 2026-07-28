@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { LogOut, Menu, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Logo } from '@/components/layout/logo';
 import { ADMIN_NAV } from './admin-nav';
 import { clearAdminSession, getAdminUser } from '@/lib/admin/auth';
 
@@ -61,7 +62,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
       {/* Sidebar desktop */}
       <aside className="hidden w-64 shrink-0 border-r border-border bg-white lg:block">
         <div className="flex h-16 items-center border-b border-border px-6">
-          <span className="text-xl font-black text-primary">Mingo</span>
+          <Logo height={28} />
           <span className="ml-2 text-sm font-semibold text-muted-foreground">Admin</span>
         </div>
         <div className="h-[calc(100vh-4rem)] overflow-y-auto">{nav}</div>
@@ -73,7 +74,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
           <div className="absolute inset-0 bg-black/40" onClick={() => setMobileOpen(false)} />
           <aside className="absolute left-0 top-0 h-full w-64 overflow-y-auto bg-white">
             <div className="flex h-16 items-center justify-between border-b border-border px-6">
-              <span className="text-xl font-black text-primary">Mingo</span>
+              <Logo height={28} />
               <button onClick={() => setMobileOpen(false)} className="text-muted-foreground">
                 <X className="size-5" />
               </button>

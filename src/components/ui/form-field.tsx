@@ -14,7 +14,15 @@ export function FormField({ id, label, required = true, error, className, childr
   const errorId = `${id}-error`;
 
   return (
-    <div className={cn('relative min-h-[92px] bg-blush px-4 py-4 sm:px-5', error && 'pb-8', className)}>
+    <div
+      className={cn(
+        // flex-col + justify-center: canh nhóm label+input giữa khung theo chiều dọc.
+        // py-4 vẫn là padding tối thiểu khi nội dung cao hơn min-h.
+        'relative flex min-h-[92px] flex-col justify-center bg-blush px-4 py-4 sm:px-5',
+        error && 'pb-8',
+        className,
+      )}
+    >
       <label htmlFor={id} className="block text-[16px] font-bold leading-6 text-primary sm:text-[18px]">
         {label}
         {required ? <span aria-hidden="true"> *</span> : null}

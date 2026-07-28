@@ -9,8 +9,10 @@ import { LOCAL_HERO_SLIDE_COUNT, MINGO_HOME_ASSETS } from '@/config/mingo-home-c
 import type { HeroBannerView } from '@/features/home/types';
 
 interface HeroCarouselProps {
-  /** Banner active do backend trả về; được nối sau các campaign local. */
+  /** Banner active do GET /storefront/home trả về. */
   banners: HeroBannerView[];
+  /** Chỉ bật khi endpoint homepage lỗi, không trộn campaign hard-code với dữ liệu API. */
+  useLocalFallback: boolean;
 }
 
 /**
@@ -75,7 +77,7 @@ function BannerThree() {
 
   return (
     <>
-      <div className="absolute inset-0 -z-20 lg:-top-[100px] lg:h-[900px]">
+      <div className="absolute inset-0 -z-20 lg:-top-[88px] lg:h-[900px]">
         <Image
           src={assets.background}
           alt=""
@@ -110,28 +112,24 @@ function BannerThree() {
 }
 
 function BackendBanner({ banner }: { banner: HeroBannerView }) {
-  const image = (
-    // URL banner do CMS quản lý nên không giới hạn hostname như next/image.
-    // eslint-disable-next-line @next/next/no-img-element
-    <img src={banner.imageUrl} alt={banner.alt} className="h-full w-full object-cover" />
-  );
-
-  return banner.linkUrl ? (
-    <Link href={banner.linkUrl} className="absolute inset-0">
-      {image}
-    </Link>
-  ) : (
-    <div className="absolute inset-0">{image}</div>
+  return (
+    <picture className="absolute inset-0">
+      {banner.mobileImageUrl ? <source media="(max-width: 639px)" srcSet={banner.mobileImageUrl} /> : null}
+      {/* URL ảnh do CMS quản lý, dùng picture để hỗ trợ desktop/mobile khác nhau. */}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src={banner.imageUrl} alt={banner.alt} className="h-full w-full object-cover" />
+    </picture>
   );
 }
 
-export function HeroCarousel({ banners }: HeroCarouselProps) {
+export function HeroCarousel({ banners, useLocalFallback }: HeroCarouselProps) {
   const t = useTranslations('home');
   const [slide, setSlide] = useState(0);
-  const slideCount = LOCAL_HERO_SLIDE_COUNT + banners.length;
-  const backendBanner = slide >= LOCAL_HERO_SLIDE_COUNT ? banners[slide - LOCAL_HERO_SLIDE_COUNT] : undefined;
-  // Backend banner đã bọc toàn ảnh trong Link riêng nên không hiện thêm CTA cố định.
-  const ctaHref = backendBanner ? undefined : LOCAL_HERO_CTA_LINKS[slide];
+  const localSlideCount = useLocalFallback ? LOCAL_HERO_SLIDE_COUNT : 0;
+  const slideCount = Math.max(1, localSlideCount + banners.length);
+  const backendBanner = banners[slide - localSlideCount];
+  const ctaHref = backendBanner?.linkUrl ?? (useLocalFallback ? LOCAL_HERO_CTA_LINKS[slide] : undefined);
+  const ctaLabel = backendBanner?.ctaLabel ?? t('seeProduct');
 
   return (
     <section
@@ -140,17 +138,18 @@ export function HeroCarousel({ banners }: HeroCarouselProps) {
       aria-roledescription="carousel"
       aria-label="Sản phẩm nổi bật"
     >
-      {slide === 0 && <BannerOne />}
-      {slide === 1 && <BannerTwo />}
-      {slide === 2 && <BannerThree />}
+      {useLocalFallback && slide === 0 && <BannerOne />}
+      {useLocalFallback && slide === 1 && <BannerTwo />}
+      {useLocalFallback && slide === 2 && <BannerThree />}
       {backendBanner && <BackendBanner banner={backendBanner} />}
+      {!backendBanner && !useLocalFallback ? <div className="absolute inset-0 bg-secondary" /> : null}
 
       {ctaHref && (
         <Link
           href={ctaHref}
           className="absolute bottom-[12%] left-[9%] z-20 inline-flex h-11 items-center rounded-full border-2 border-white px-7 font-bold text-white transition-colors hover:bg-white hover:text-primary sm:left-[14%]"
         >
-          {t('seeProduct')}
+          {ctaLabel}
         </Link>
       )}
 

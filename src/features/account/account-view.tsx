@@ -1,21 +1,15 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { CreditCard, LayoutGrid, LogOut, Mail, Receipt, ShoppingBag, Star, type LucideIcon } from 'lucide-react';
+import { LayoutGrid, LogOut, Mail, Package, ShoppingBag, type LucideIcon } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { Link, useRouter } from '@/i18n/navigation';
 import { meControllerGetMe } from '@/lib/api/generated/me/me';
-import { ordersControllerGetMyOrders } from '@/lib/api/generated/orders/orders';
+import { getMyOrders } from '@/features/checkout/api';
 import { getAccessToken, clearAccessToken } from '@/lib/auth/token';
 import { CustomerAuthForm } from './customer-auth-form';
 import { OrderHistory, type MyOrder } from './order-history';
 import { toAccountView, type AccountView } from './types';
-
-function EmptyState({ message }: { message: string }) {
-  return (
-    <div className="rounded-lg bg-background px-4 py-6 text-center text-sm text-muted-foreground">{message}</div>
-  );
-}
 
 export function AccountPageView() {
   const t = useTranslations('account');
@@ -54,10 +48,10 @@ export function AccountPageView() {
       });
 
     // Đơn hàng tải độc lập — lỗi ở đây không chặn hiển thị hồ sơ, chỉ hiện empty state.
-    ordersControllerGetMyOrders()
+    getMyOrders()
       .then((res) => {
         if (cancelled) return;
-        setOrders(Array.isArray(res) ? (res as MyOrder[]) : []);
+        setOrders(Array.isArray(res) ? res : []);
       })
       .catch(() => {
         if (!cancelled) setOrders([]);
@@ -103,6 +97,7 @@ export function AccountPageView() {
 
   const navItems: Array<{ key: string; label: string; icon: LucideIcon; href: string | null; current: boolean }> = [
     { key: 'overview', label: t('nav.overview'), icon: LayoutGrid, href: null, current: true },
+    { key: 'orders', label: t('nav.orders'), icon: Package, href: '/orders', current: false },
   ];
 
   return (
@@ -170,9 +165,8 @@ export function AccountPageView() {
             </div>
           </section>
 
-          <div className="grid gap-6 lg:grid-cols-2">
-            {/* Account details — dữ liệu thật từ /me */}
-            <section id="account-details" className="rounded-xl bg-card p-6 shadow-sm sm:p-8">
+          {/* Account details — dữ liệu thật từ /me */}
+          <section id="account-details" className="rounded-xl bg-card p-6 shadow-sm sm:p-8">
               <div className="flex items-start justify-between">
                 <div>
                   <h2 className="text-lg font-bold">{t('accountDetails')}</h2>
@@ -190,46 +184,10 @@ export function AccountPageView() {
                   </div>
                 ))}
               </dl>
-            </section>
+          </section>
 
-            {/* Points / rewards — chưa có backend điểm thưởng nên hiển thị empty state. */}
-            <section className="rounded-xl bg-card p-6 shadow-sm sm:p-8">
-              <div className="flex items-center gap-2">
-                <Star className="size-5 text-primary" aria-hidden="true" />
-                <h2 className="text-lg font-bold">{t('availablePoints')}</h2>
-              </div>
-              <div className="mt-4">
-                <EmptyState message={t('noData')} />
-              </div>
-            </section>
-          </div>
-
-          {/* Lịch sử đơn hàng — dữ liệu thật từ /orders/my-orders */}
+          {/* Lịch sử đơn hàng — dữ liệu thật từ /me/orders */}
           <OrderHistory orders={orders} />
-
-          <div className="grid gap-6 lg:grid-cols-2">
-            {/* Wallet — chưa có backend phương thức thanh toán lưu sẵn. */}
-            <section id="wallet" className="rounded-xl bg-card p-6 shadow-sm sm:p-8">
-              <div className="flex items-center gap-2">
-                <CreditCard className="size-5 text-primary" aria-hidden="true" />
-                <h2 className="text-lg font-bold">{t('myWallet')}</h2>
-              </div>
-              <div className="mt-4">
-                <EmptyState message={t('noData')} />
-              </div>
-            </section>
-
-            {/* Vouchers — chưa có backend voucher. */}
-            <section className="rounded-xl bg-card p-6 shadow-sm sm:p-8">
-              <div className="flex items-center gap-2">
-                <Receipt className="size-5 text-primary" aria-hidden="true" />
-                <h2 className="text-lg font-bold">{t('voucherWallet')}</h2>
-              </div>
-              <div className="mt-4">
-                <EmptyState message={t('noData')} />
-              </div>
-            </section>
-          </div>
         </main>
       </div>
     </div>

@@ -2,6 +2,7 @@ import type { CareerDto } from '@/lib/api/generated/ecomAPI.schemas';
 
 /** Tier-2 view model — components never touch CareerDto directly. */
 export interface CareerView {
+  id: string;
   slug: string;
   title: string;
   category: string;
@@ -16,6 +17,7 @@ export interface CareerView {
 
 export function toCareerView(api: CareerDto): CareerView {
   return {
+    id: api.id,
     slug: api.slug,
     title: api.title,
     category: api.category ?? '',

@@ -4,6 +4,7 @@ import createNextIntlPlugin from 'next-intl/plugin';
 const withNextIntl = createNextIntlPlugin();
 
 const nextConfig: NextConfig = {
+  outputFileTracingRoot: process.cwd(),
   images: {
     remotePatterns: [
       // Ảnh sản phẩm đang lưu trên Cloudinary (backend giữ nguyên URL tuyệt đối)

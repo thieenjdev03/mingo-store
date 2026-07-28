@@ -498,6 +498,7 @@ export function toMockupProductDto(mockup: MockupProduct, locale: Locale): Produ
     short_description: null,
     price: mockup.price,
     sale_price: null,
+    compare_at_price: null,
     cost_price: null,
     images: [mockupImage(mockup.slug)],
     stock_quantity: 12,
@@ -510,12 +511,16 @@ export function toMockupProductDto(mockup: MockupProduct, locale: Locale): Produ
     meta_title: null,
     meta_description: null,
     weight: MOCKUP_WEIGHT_KG[mockup.categorySlug] ?? null,
+    weight_grams: Math.round((MOCKUP_WEIGHT_KG[mockup.categorySlug] ?? 0) * 1000),
+    allergens: [],
+    nutrition: null,
     dimensions: null,
     created_at: new Date(0).toISOString(),
     updated_at: new Date(0).toISOString(),
     category: category
       ? { id: `mockup-cat-${category.slug}`, name: resolveLocalized(category.name, locale), slug: category.slug }
       : null,
+    collections: [],
     brand: null,
     variants: [
       {

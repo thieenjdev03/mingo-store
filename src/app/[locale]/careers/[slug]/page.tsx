@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation';
 import { Link } from '@/i18n/navigation';
 import { getCareerBySlug } from '@/features/careers/api';
 import { toCareerView } from '@/features/careers/types';
+import { CareerApplicationForm } from '@/features/careers/application-form';
 import { CareersHero } from '@/sections/careers/careers-hero';
 
 export default async function CareerDetailPage({ params }: { params: Promise<{ locale: string; slug: string }> }) {
@@ -16,7 +17,6 @@ export default async function CareerDetailPage({ params }: { params: Promise<{ l
   if (!job) notFound();
 
   const t = await getTranslations('careers');
-  const subject = encodeURIComponent(t('detail.emailSubject', { title: job.title }));
 
   return (
     <div className="bg-background">
@@ -40,7 +40,7 @@ export default async function CareerDetailPage({ params }: { params: Promise<{ l
                 <p className="text-sm font-bold uppercase tracking-[0.16em] text-primary">Mingo careers</p>
                 <h2 className="mt-3 font-display text-3xl font-bold text-foreground sm:text-4xl">{job.title}</h2>
               </div>
-              <a href={`mailto:careers@hongtanphat.com?subject=${subject}`} className="inline-flex h-10 shrink-0 items-center justify-center rounded-full bg-muted-foreground px-6 text-xs font-bold text-white transition-colors hover:bg-primary">
+              <a href="#apply-form" className="inline-flex h-10 shrink-0 items-center justify-center rounded-full bg-muted-foreground px-6 text-xs font-bold text-white transition-colors hover:bg-primary">
                 {t('apply')}
               </a>
             </header>
@@ -64,11 +64,8 @@ export default async function CareerDetailPage({ params }: { params: Promise<{ l
               </section>
             ) : null}
 
-            <div className="mt-10 rounded-xl bg-blush p-5 sm:flex sm:items-center sm:justify-between sm:gap-6">
-              <p className="text-sm font-semibold leading-6 text-foreground">{t('detail.applicationNote')}</p>
-              <a href={`mailto:careers@hongtanphat.com?subject=${subject}`} className="mt-4 inline-flex h-11 shrink-0 items-center justify-center rounded-full bg-primary px-6 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary-dark sm:mt-0">
-                {t('detail.sendApplication')}
-              </a>
+            <div className="mt-10">
+              <CareerApplicationForm careerId={job.id} jobTitle={job.title} />
             </div>
           </article>
         </div>

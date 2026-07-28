@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import useSWR from 'swr';
-import { Pencil, Plus, Star, Trash2 } from 'lucide-react';
+import { Pencil, Plus, Star, Trash2, Users } from 'lucide-react';
 import type { CareerDto, CareersControllerFindAllStatus } from '@/lib/api/generated/ecomAPI.schemas';
 import { PageHeader } from '@/components/admin/ui/page-header';
 import { DataTable, type Column } from '@/components/admin/ui/data-table';
@@ -13,6 +13,7 @@ import { Badge } from '@/components/admin/ui/badge';
 import { ConfirmDialog } from '@/components/admin/ui/confirm-dialog';
 import { useToast } from '@/components/admin/ui/toast';
 import { CareerForm } from '@/features/admin/careers/career-form';
+import { CareerApplicationsDialog } from '@/features/admin/careers/career-applications-dialog';
 import { careersKey, listCareers, deleteCareer } from '@/features/admin/careers/api';
 
 const STATUS_TONE = { published: 'success', draft: 'neutral', closed: 'danger' } as const;
@@ -31,6 +32,7 @@ export default function AdminCareersPage() {
   const [editing, setEditing] = useState<CareerDto | null>(null);
   const [deleting, setDeleting] = useState<CareerDto | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
+  const [viewingApplications, setViewingApplications] = useState<CareerDto | null>(null);
 
   const confirmDelete = async () => {
     if (!deleting) return;
@@ -73,6 +75,9 @@ export default function AdminCareersPage() {
       align: 'right',
       render: (c) => (
         <div className="flex justify-end gap-1">
+          <Button variant="ghost" size="icon" aria-label="Ứng viên" onClick={() => setViewingApplications(c)}>
+            <Users className="size-4" />
+          </Button>
           <Button variant="ghost" size="icon" aria-label="Sửa" onClick={() => { setEditing(c); setFormOpen(true); }}>
             <Pencil className="size-4" />
           </Button>
@@ -116,6 +121,7 @@ export default function AdminCareersPage() {
       />
 
       <CareerForm open={formOpen} onOpenChange={setFormOpen} career={editing} onSaved={() => mutate()} />
+      <CareerApplicationsDialog career={viewingApplications} onOpenChange={(open) => !open && setViewingApplications(null)} />
       <ConfirmDialog
         open={!!deleting}
         onOpenChange={(open) => !open && setDeleting(null)}
