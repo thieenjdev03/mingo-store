@@ -11,6 +11,7 @@ import {
   FileText,
   Images,
   Users,
+  UserRoundCheck,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -47,6 +48,7 @@ export const ADMIN_NAV: AdminNavGroup[] = [
       { label: 'Đơn hàng', href: '/admin/orders', icon: ShoppingCart },
       { label: 'Nhà phân phối', href: '/admin/distributors', icon: Store },
       { label: 'Tuyển dụng', href: '/admin/careers', icon: Briefcase },
+      { label: 'Đơn ứng tuyển', href: '/admin/career-applications', icon: UserRoundCheck },
     ],
   },
   {

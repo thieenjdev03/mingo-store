@@ -6,14 +6,7 @@ import { NativeSelect } from '@/components/admin/ui/native-select';
 import { useToast } from '@/components/admin/ui/toast';
 import type { CareerApplicationDto, CareerApplicationDtoStatus, CareerDto } from '@/lib/api/generated/ecomAPI.schemas';
 import { applicationsKey, listApplications, updateApplicationStatus } from './api';
-
-const STATUSES: CareerApplicationDtoStatus[] = ['new', 'reviewing', 'hired', 'rejected'];
-const STATUS_LABEL: Record<CareerApplicationDtoStatus, string> = {
-  new: 'Mới',
-  reviewing: 'Đang xem xét',
-  hired: 'Đã tuyển',
-  rejected: 'Từ chối',
-};
+import { APPLICATION_STATUSES, APPLICATION_STATUS_LABEL } from './status';
 
 interface CareerApplicationsDialogProps {
   career: CareerDto | null;
@@ -70,8 +63,8 @@ export function CareerApplicationsDialog({ career, onOpenChange }: CareerApplica
               onChange={(e) => onStatusChange(app, e.target.value as CareerApplicationDtoStatus)}
               className="w-full sm:w-40"
             >
-              {STATUSES.map((s) => (
-                <option key={s} value={s}>{STATUS_LABEL[s]}</option>
+              {APPLICATION_STATUSES.map((s) => (
+                <option key={s} value={s}>{APPLICATION_STATUS_LABEL[s]}</option>
               ))}
             </NativeSelect>
           </li>

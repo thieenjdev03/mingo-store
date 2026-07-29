@@ -1196,6 +1196,43 @@ export interface UpdateCareerDto {
   subCareerIds?: string[];
 }
 
+export type CareerApplicationListItemDtoStatus = typeof CareerApplicationListItemDtoStatus[keyof typeof CareerApplicationListItemDtoStatus];
+
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const CareerApplicationListItemDtoStatus = {
+  new: 'new',
+  reviewing: 'reviewing',
+  rejected: 'rejected',
+  hired: 'hired',
+} as const;
+
+export interface CareerApplicationListItemDto {
+  id: string;
+  career_id: string;
+  full_name: string;
+  email: string;
+  phone: string;
+  /** @nullable */
+  cover_letter?: string | null;
+  cv_url: string;
+  status: CareerApplicationListItemDtoStatus;
+  created_at: string;
+  /** Title of the job applied for */
+  career_title: string;
+  /** Slug of the job applied for */
+  career_slug: string;
+}
+
+export interface CareerApplicationListDto {
+  items: CareerApplicationListItemDto[];
+  /**
+   * Cursor token for the next page
+   * @nullable
+   */
+  nextCursor: string | null;
+}
+
 export type UpdateCareerApplicationDtoStatus = typeof UpdateCareerApplicationDtoStatus[keyof typeof UpdateCareerApplicationDtoStatus];
 
 
@@ -1834,6 +1871,34 @@ export type CareersControllerApplyBody = {
   /** .pdf/.doc/.docx, max 5MB */
   cv: Blob;
 };
+
+export type CareerApplicationsControllerFindAllParams = {
+status?: CareerApplicationsControllerFindAllStatus;
+/**
+ * Filter by job
+ */
+career_id?: string;
+/**
+ * Search in applicant name or email
+ */
+search?: string;
+limit?: number;
+/**
+ * Cursor token for pagination
+ */
+cursor?: string;
+};
+
+export type CareerApplicationsControllerFindAllStatus = typeof CareerApplicationsControllerFindAllStatus[keyof typeof CareerApplicationsControllerFindAllStatus];
+
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const CareerApplicationsControllerFindAllStatus = {
+  new: 'new',
+  reviewing: 'reviewing',
+  rejected: 'rejected',
+  hired: 'hired',
+} as const;
 
 export type BrandsControllerFindAllParams = {
 /**

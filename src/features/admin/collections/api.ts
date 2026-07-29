@@ -13,12 +13,19 @@ import {
 } from '@/lib/api/generated/collections/collections';
 import type { CreateCollectionDto, UpdateCollectionDto } from '@/lib/api/generated/ecomAPI.schemas';
 
+/** Vị trí hiển thị trên trang chủ. NORMAL = không lên trang chủ. */
+export type CollectionPlacement = 'NORMAL' | 'HERO' | 'HOME_SECTION';
+
 export interface CollectionItem {
   id: string;
   name: string;
   slug: string;
   description?: string;
   banner_image_url?: string;
+  mobile_banner_image_url?: string;
+  cta_label?: string;
+  placement?: CollectionPlacement;
+  sort_order?: number;
   seo_title?: string;
   seo_description?: string;
   is_active: boolean;

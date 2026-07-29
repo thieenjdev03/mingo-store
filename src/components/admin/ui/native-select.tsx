@@ -9,6 +9,8 @@ type NativeSelectProps = Omit<
 > & {
   value?: string;
   defaultValue?: string;
+  /** Co bề rộng vừa khít nhãn dài nhất (thanh filter), thay vì full width. */
+  fitContent?: boolean;
 };
 
 /**
@@ -22,6 +24,7 @@ export function NativeSelect({
   onChange,
   id,
   disabled,
+  fitContent,
   className,
   'aria-label': ariaLabel,
   'aria-describedby': ariaDescribedBy,
@@ -47,6 +50,7 @@ export function NativeSelect({
       options={options}
       disabled={disabled}
       size="sm"
+      fitContent={fitContent}
       className={className}
       aria-label={ariaLabel}
       aria-describedby={ariaDescribedBy}

@@ -23,10 +23,27 @@ export default function AdminCareersPage() {
   const { toast } = useToast();
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState<'' | CareersControllerFindAllStatus>('');
+  const [category, setCategory] = useState('');
+  const [location, setLocation] = useState('');
+  const [level, setLevel] = useState('');
 
-  const params = { search: search.trim() || undefined, status: status || undefined, limit: 100 };
+  const params = {
+    search: search.trim() || undefined,
+    status: status || undefined,
+    category: category || undefined,
+    location: location || undefined,
+    level: level || undefined,
+    limit: 100,
+  };
   const { data, isLoading, error, mutate } = useSWR(careersKey(params), () => listCareers(params));
   const rows = data?.items ?? [];
+
+  // Nguồn cho các dropdown lọc: danh sách chưa lọc, nếu không các lựa chọn sẽ
+  // biến mất dần khi người dùng chọn bộ lọc đầu tiên.
+  const allParams = { limit: 100 };
+  const { data: allData } = useSWR(careersKey(allParams), () => listCareers(allParams));
+  const distinct = (pick: (c: CareerDto) => string | null | undefined) =>
+    [...new Set((allData?.items ?? []).map(pick).filter((v): v is string => !!v))].sort();
 
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<CareerDto | null>(null);
@@ -109,6 +126,32 @@ export default function AdminCareersPage() {
           <option value="published">Đã đăng</option>
           <option value="closed">Đã đóng</option>
         </NativeSelect>
+        <NativeSelect value={category} onChange={(e) => setCategory(e.target.value)} className="max-w-[180px]">
+          <option value="">Tất cả bộ phận</option>
+          {distinct((c) => c.category).map((v) => (
+            <option key={v} value={v}>{v}</option>
+          ))}
+        </NativeSelect>
+        <NativeSelect value={location} onChange={(e) => setLocation(e.target.value)} className="max-w-[180px]">
+          <option value="">Tất cả địa điểm</option>
+          {distinct((c) => c.location).map((v) => (
+            <option key={v} value={v}>{v}</option>
+          ))}
+        </NativeSelect>
+        <NativeSelect value={level} onChange={(e) => setLevel(e.target.value)} className="max-w-[180px]">
+          <option value="">Tất cả cấp bậc</option>
+          {distinct((c) => c.level).map((v) => (
+            <option key={v} value={v}>{v}</option>
+          ))}
+        </NativeSelect>
+        {search || status || category || location || level ? (
+          <Button
+            variant="ghost"
+            onClick={() => { setSearch(''); setStatus(''); setCategory(''); setLocation(''); setLevel(''); }}
+          >
+            Xoá lọc
+          </Button>
+        ) : null}
       </div>
 
       <DataTable

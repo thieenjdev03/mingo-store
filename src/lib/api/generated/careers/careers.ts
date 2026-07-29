@@ -19,7 +19,9 @@ import type {
 
 import type {
   CareerApplicationDto,
+  CareerApplicationListDto,
   CareerApplicationReceiptDto,
+  CareerApplicationsControllerFindAllParams,
   CareerDto,
   CareerListDto,
   CareersControllerApplyBody,
@@ -370,6 +372,45 @@ export const useCareersControllerRemove = <TError = unknown>(
   const swrFn = getCareersControllerRemoveMutationFetcher(id);
 
   const query = useSWRMutation(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
+/**
+ * @summary List applications across all jobs (admin)
+ */
+export const careerApplicationsControllerFindAll = (
+    params?: CareerApplicationsControllerFindAllParams,
+ ) => {
+    return customFetch<CareerApplicationListDto>(
+    {url: `/career-applications`, method: 'GET',
+        params
+    },
+    );
+  }
+
+
+
+export const getCareerApplicationsControllerFindAllKey = (params?: CareerApplicationsControllerFindAllParams,) => [`/career-applications`, ...(params ? [params]: [])] as const;
+
+export type CareerApplicationsControllerFindAllQueryResult = NonNullable<Awaited<ReturnType<typeof careerApplicationsControllerFindAll>>>
+export type CareerApplicationsControllerFindAllQueryError = unknown
+
+/**
+ * @summary List applications across all jobs (admin)
+ */
+export const useCareerApplicationsControllerFindAll = <TError = unknown>(
+  params?: CareerApplicationsControllerFindAllParams, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof careerApplicationsControllerFindAll>>, TError> & { swrKey?: Key, enabled?: boolean },  }
+) => {
+  const {swr: swrOptions} = options ?? {}
+
+  const isEnabled = swrOptions?.enabled !== false
+  const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getCareerApplicationsControllerFindAllKey(params) : null);
+  const swrFn = () => careerApplicationsControllerFindAll(params)
+
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
 
   return {
     swrKey,

@@ -113,6 +113,11 @@ interface SelectFieldProps {
   placeholder?: string;
   disabled?: boolean;
   size?: 'sm' | 'default';
+  /**
+   * Co bề rộng vừa khít chữ thay vì `w-full`. Dùng cho thanh filter (nhiều select
+   * đứng cạnh nhau), KHÔNG dùng trong form — field trong form phải full width.
+   */
+  fitContent?: boolean;
   className?: string;
   'aria-label'?: string;
   'aria-describedby'?: string;
@@ -129,12 +134,24 @@ export function SelectField({
   placeholder,
   disabled,
   size,
+  fitContent,
   className,
   ...ariaProps
 }: SelectFieldProps) {
   const hasEmptyOption = options.some((option) => option.value === '');
   const toInternalValue = (nextValue: string | undefined) =>
     nextValue === '' && hasEmptyOption ? EMPTY_VALUE : nextValue;
+
+  const trigger = (
+    <SelectTrigger
+      id={id}
+      size={size}
+      className={cn(fitContent && 'col-start-1 row-start-1', className)}
+      {...ariaProps}
+    >
+      <SelectValue placeholder={placeholder} />
+    </SelectTrigger>
+  );
 
   return (
     <Select
@@ -143,9 +160,25 @@ export function SelectField({
       onValueChange={(nextValue) => onValueChange?.(nextValue === EMPTY_VALUE ? '' : nextValue)}
       disabled={disabled}
     >
-      <SelectTrigger id={id} size={size} className={className} {...ariaProps}>
-        <SelectValue placeholder={placeholder} />
-      </SelectTrigger>
+      {fitContent ? (
+        <span className="inline-grid">
+          {/* Sizer vô hình: mọi nhãn xếp chồng cùng một ô grid, nên track rộng bằng
+              nhãn DÀI NHẤT. Trigger (w-full) ăn theo track đó -> vừa khít chữ mà đổi
+              lựa chọn không làm select co giãn. pr-11 chừa chỗ cho gap-3 + chevron. */}
+          {options.map((option, index) => (
+            <span
+              key={option.value || `sizer-${index}`}
+              aria-hidden="true"
+              className="invisible col-start-1 row-start-1 h-0 overflow-hidden whitespace-nowrap pl-4 pr-11 text-base font-medium"
+            >
+              {option.label}
+            </span>
+          ))}
+          {trigger}
+        </span>
+      ) : (
+        trigger
+      )}
       <SelectContent>
         {options.map((option) => (
           <SelectItem

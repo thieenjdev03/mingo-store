@@ -18,6 +18,7 @@ import { fCurrencyVND } from '@/lib/format';
 import { resolveLocalized } from '@/types/localized';
 import { ProductForm } from '@/features/admin/products/product-form';
 import { productsKey, listProducts, deleteProduct } from '@/features/admin/products/api';
+import { categoriesKey, listCategories } from '@/features/admin/categories/api';
 
 const LIMIT = 12;
 const STATUS_LABEL: Record<string, string> = {
@@ -28,9 +29,20 @@ export default function AdminProductsPage() {
   const { toast } = useToast();
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState<'' | ProductsControllerFindAllStatus>('');
+  const [categoryId, setCategoryId] = useState('');
   const [page, setPage] = useState(1);
 
-  const params = { locale: 'vi' as const, search: search.trim() || undefined, status: status || undefined, page, limit: LIMIT };
+  // Danh mục để đổ vào filter — backend lọc bằng category_id nên gửi thẳng ID.
+  const { data: categories } = useSWR(categoriesKey, listCategories);
+
+  const params = {
+    locale: 'vi' as const,
+    search: search.trim() || undefined,
+    status: status || undefined,
+    category_id: categoryId || undefined,
+    page,
+    limit: LIMIT,
+  };
   const { data, isLoading, error, mutate } = useSWR(productsKey(params), () => listProducts(params));
   const rows = data?.data ?? [];
   const totalPages = data?.meta?.totalPages ?? 1;
@@ -107,7 +119,11 @@ export default function AdminProductsPage() {
 
       <div className="mb-4 flex flex-wrap gap-3">
         <Input placeholder="Tìm theo tên…" value={search} onChange={(e) => { setSearch(e.target.value); setPage(1); }} className="max-w-xs" />
-        <NativeSelect value={status} onChange={(e) => { setStatus(e.target.value as typeof status); setPage(1); }} className="max-w-[180px]">
+        <NativeSelect fitContent value={categoryId} onChange={(e) => { setCategoryId(e.target.value); setPage(1); }}>
+          <option value="">Tất cả danh mục</option>
+          {(categories ?? []).map((c) => (<option key={c.id} value={c.id}>{c.name}</option>))}
+        </NativeSelect>
+        <NativeSelect fitContent value={status} onChange={(e) => { setStatus(e.target.value as typeof status); setPage(1); }}>
           <option value="">Tất cả trạng thái</option>
           {Object.entries(STATUS_LABEL).map(([v, l]) => (<option key={v} value={v}>{l}</option>))}
         </NativeSelect>

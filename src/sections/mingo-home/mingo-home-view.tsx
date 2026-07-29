@@ -18,7 +18,13 @@ export async function MingoHomeView({ locale }: { locale: Locale }) {
 
   return (
     <>
-      <HeroCarousel banners={homeResult.home.heroes} useLocalFallback={homeResult.failed} />
+      {/* Fallback bật khi API lỗi HOẶC chưa có collection nào đặt placement=HERO —
+          cả hai trường hợp API không đóng góp banner nào, nên không có gì để "trộn"
+          với campaign local, và hiện banner thiết kế sẵn vẫn hơn một khung trống. */}
+      <HeroCarousel
+        banners={homeResult.home.heroes}
+        useLocalFallback={homeResult.failed || homeResult.home.heroes.length === 0}
+      />
       {homeResult.home.sections
         .filter((section) => section.homepageSection === 'must_try')
         .map((section) => (

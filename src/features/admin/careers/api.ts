@@ -5,10 +5,12 @@ import {
   careersControllerUpdate,
   careersControllerRemove,
   careersControllerFindApplications,
+  careerApplicationsControllerFindAll,
   careerApplicationsControllerUpdate,
 } from '@/lib/api/generated/careers/careers';
 import type {
   CareersControllerFindAllParams,
+  CareerApplicationsControllerFindAllParams,
   CreateCareerDto,
   UpdateCareerDto,
   UpdateCareerApplicationDto,
@@ -38,4 +40,12 @@ export function listApplications(careerId: string) {
 }
 export function updateApplicationStatus(id: string, dto: UpdateCareerApplicationDto) {
   return careerApplicationsControllerUpdate(id, dto);
+}
+
+/** Hộp thư ứng tuyển toàn hệ thống (mọi tin tuyển dụng). */
+export function allApplicationsKey(params: CareerApplicationsControllerFindAllParams) {
+  return ['/career-applications', params] as const;
+}
+export function listAllApplications(params: CareerApplicationsControllerFindAllParams) {
+  return careerApplicationsControllerFindAll(params);
 }
