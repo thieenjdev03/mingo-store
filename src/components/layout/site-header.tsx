@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import Image from "next/image";
-import { ChevronDown, Menu, X } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Link, useRouter } from "@/i18n/navigation";
 import { useCart } from "@/features/cart/cart-context";
@@ -72,7 +72,7 @@ export function SiteHeader() {
   };
 
   return (
-    <header className="sticky top-0 z-50 h-[64px] bg-white xl:h-[88px]">
+    <header className="sticky top-0 z-50 h-[64px] bg-white xl:h-[84px]">
       <div className="relative mx-auto flex h-full max-w-[1440px] items-center px-4 sm:px-8 xl:block xl:px-0">
         {/* Logo phải nằm gọn trong chiều cao header (căn giữa dọc, không lố xuống dưới)
             để KHÔNG đè lên ảnh banner homepage lúc tải trang. Trên xl header dùng layout
@@ -80,21 +80,21 @@ export function SiteHeader() {
         <Link
           href="/"
           aria-label="Mingo — trang chủ"
-          className="relative -ml-2 block size-[60px] shrink-0 xl:absolute xl:left-[7.4306%] xl:top-1/2 xl:ml-0 xl:size-[96px] xl:-translate-y-1/2"
+          className="relative -ml-2 block size-[60px] shrink-0 xl:absolute xl:left-[7.4306%] xl:top-1/2 xl:ml-0 xl:size-[154px] xl:-translate-y-1/2"
         >
           <Image
             src={HEADER_ASSETS.logo}
             alt="Mingo"
             fill
             priority
-            sizes="96px"
+            sizes="154px"
             className="object-contain"
           />
         </Link>
 
         <nav
           aria-label={t("mainNav")}
-          className="absolute left-[31.8056%] top-[28px] hidden h-8 items-center gap-[40px] min-[1400px]:gap-[54px] xl:flex"
+          className="absolute left-[31.8056%] top-[26px] hidden h-8 items-center gap-[60px] xl:flex"
         >
           {NAV.map((item) =>
             item.key === "products" && categories.length > 0 ? (
@@ -109,12 +109,11 @@ export function SiteHeader() {
                   aria-haspopup="true"
                   aria-expanded={catalogOpen}
                   onFocus={() => setCatalogOpen(true)}
-                  className={`flex h-8 items-center gap-1 whitespace-nowrap text-[14px] font-bold uppercase leading-6 transition-colors ${
+                  className={`flex h-8 items-center whitespace-nowrap text-[16px] font-bold uppercase leading-6 transition-colors ${
                     catalogOpen ? "text-primary" : "text-[#563e2b] group-hover:text-primary"
                   }`}
                 >
                   {t(item.key)}
-                  <ChevronDown className="size-4" aria-hidden="true" />
                 </Link>
                 <NavUnderline active={catalogOpen} />
                 {catalogOpen ? (
@@ -141,7 +140,7 @@ export function SiteHeader() {
               <div key={item.key} className="group relative flex h-8 items-center">
                 <Link
                   href={item.href}
-                  className="flex h-8 items-center whitespace-nowrap text-[14px] font-bold uppercase leading-6 text-[#563e2b] transition-colors group-hover:text-primary"
+                  className="flex h-8 items-center whitespace-nowrap text-[16px] font-bold uppercase leading-6 text-[#563e2b] transition-colors group-hover:text-primary"
                 >
                   {t(item.key)}
                 </Link>
@@ -151,12 +150,11 @@ export function SiteHeader() {
           )}
         </nav>
 
-        <div className="ml-auto flex items-center gap-4 xl:absolute xl:left-[76.7361%] xl:top-1/2 xl:ml-0 xl:-translate-y-1/2 xl:gap-[36px] min-[1400px]:gap-[48px]">
-          <LocaleSwitcher />
+        <div className="ml-auto flex items-center gap-4 xl:absolute xl:left-[76.7361%] xl:top-1/2 xl:ml-0 xl:-translate-y-1/2 xl:gap-[60px]">
           <Link
             href="/account"
             aria-label={t("account")}
-            className="relative hidden size-7 transition-opacity hover:opacity-60 xl:block"
+            className="relative hidden size-8 transition-opacity hover:opacity-60 xl:block"
           >
             <Image src={HEADER_ASSETS.account} alt="" fill sizes="32px" />
           </Link>
@@ -166,7 +164,7 @@ export function SiteHeader() {
             aria-label={t("cart")}
             aria-expanded={isDrawerOpen}
             onClick={openDrawer}
-            className="relative size-6 transition-opacity hover:opacity-60 xl:size-7"
+            className="relative size-6 transition-opacity hover:opacity-60 xl:size-8"
           >
             <Image src={HEADER_ASSETS.cart} alt="" fill sizes="32px" />
             {totalQuantity > 0 ? (
@@ -184,7 +182,7 @@ export function SiteHeader() {
               setSearchOpen((open) => !open);
               setMenuOpen(false);
             }}
-            className="relative size-6 transition-opacity hover:opacity-60 xl:size-7"
+            className="relative size-6 transition-opacity hover:opacity-60 xl:size-8"
           >
             <Image src={HEADER_ASSETS.search} alt="" fill sizes="32px" />
           </button>
@@ -274,6 +272,9 @@ export function SiteHeader() {
               </span>
               {t("account")}
             </Link>
+            <div className="pt-5">
+              <LocaleSwitcher />
+            </div>
           </div>
         </nav>
       ) : null}
@@ -284,14 +285,14 @@ export function SiteHeader() {
 }
 
 /**
- * Gạch chân cam dưới nav item, canh ở đáy header (nav item cách đáy header 28px).
+ * Gạch chân cam dưới nav item, canh ở đáy header (nav item cách đáy header 26px).
  * Hiện khi hover (group-hover) hoặc khi dropdown đang mở (active).
  */
 function NavUnderline({ active }: { active: boolean }) {
   return (
     <span
       aria-hidden="true"
-      className={`pointer-events-none absolute -bottom-[28px] left-0 right-0 h-[3px] origin-left rounded-full bg-primary transition-transform duration-200 ${
+      className={`pointer-events-none absolute -bottom-[26px] left-0 right-0 h-[3px] origin-left rounded-full bg-primary transition-transform duration-200 ${
         active ? "scale-x-100" : "scale-x-0 group-hover:scale-x-100"
       }`}
     />

@@ -1,6 +1,7 @@
 import {
   LayoutDashboard,
   Package,
+  Tags,
   ShoppingCart,
   FolderTree,
   Layers,
@@ -36,6 +37,7 @@ export const ADMIN_NAV: AdminNavGroup[] = [
     heading: 'Sản phẩm',
     items: [
       { label: 'Sản phẩm', href: '/admin/products', icon: Package },
+      { label: 'Thương hiệu', href: '/admin/brands', icon: Tags },
       { label: 'Danh mục', href: '/admin/categories', icon: FolderTree },
       { label: 'Bộ sưu tập', href: '/admin/collections', icon: Layers },
       { label: 'Màu sắc', href: '/admin/colors', icon: Palette },

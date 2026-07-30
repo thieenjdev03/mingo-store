@@ -5,6 +5,10 @@ import type {
   ProductsControllerFindAllParams,
 } from '@/lib/api/generated/ecomAPI.schemas';
 
+export type ProductDetailApiDto = ProductResponseDto & {
+  nutrition_information?: string | null;
+};
+
 /**
  * Server-side fetchers cho products. Generated SWR client (products/products.ts) import
  * `useSwr` ở top-level nên không dùng được trong server component (xem src/features/careers/api.ts
@@ -15,9 +19,9 @@ export function getProducts(params?: ProductsControllerFindAllParams): Promise<P
   return customFetch<ProductListDto>({ url: '/products', method: 'GET', params, cache: 'no-store' });
 }
 
-export async function getProductBySlug(slug: string, locale: string): Promise<ProductResponseDto | null> {
+export async function getProductBySlug(slug: string, locale: string): Promise<ProductDetailApiDto | null> {
   try {
-    return await customFetch<ProductResponseDto>({
+    return await customFetch<ProductDetailApiDto>({
       url: `/products/slug/${encodeURIComponent(slug)}`,
       method: 'GET',
       params: { locale },

@@ -19,6 +19,7 @@ import { resolveLocalized } from '@/types/localized';
 import { ProductForm } from '@/features/admin/products/product-form';
 import { productsKey, listProducts, deleteProduct } from '@/features/admin/products/api';
 import { categoriesKey, listCategories } from '@/features/admin/categories/api';
+import { brandsKey, listBrands } from '@/features/admin/brands/api';
 
 const LIMIT = 12;
 const STATUS_LABEL: Record<string, string> = {
@@ -30,16 +31,19 @@ export default function AdminProductsPage() {
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState<'' | ProductsControllerFindAllStatus>('');
   const [categoryId, setCategoryId] = useState('');
+  const [brandId, setBrandId] = useState('');
   const [page, setPage] = useState(1);
 
   // Danh mục để đổ vào filter — backend lọc bằng category_id nên gửi thẳng ID.
   const { data: categories } = useSWR(categoriesKey, listCategories);
+  const { data: brands } = useSWR(brandsKey, () => listBrands());
 
   const params = {
     locale: 'vi' as const,
     search: search.trim() || undefined,
     status: status || undefined,
     category_id: categoryId || undefined,
+    brand_id: brandId || undefined,
     page,
     limit: LIMIT,
   };
@@ -84,6 +88,7 @@ export default function AdminProductsPage() {
       ),
     },
     { key: 'category', header: 'Danh mục', render: (p) => p.category?.name || <span className="text-muted-foreground">—</span> },
+    { key: 'brand', header: 'Thương hiệu', render: (p) => p.brand?.name || <span className="text-muted-foreground">—</span> },
     { key: 'price', header: 'Giá', align: 'right', render: (p) => fCurrencyVND(Number(p.sale_price ?? p.price)) },
     { key: 'stock_quantity', header: 'Tồn', align: 'center', render: (p) => p.stock_quantity },
     {
@@ -122,6 +127,12 @@ export default function AdminProductsPage() {
         <NativeSelect fitContent value={categoryId} onChange={(e) => { setCategoryId(e.target.value); setPage(1); }}>
           <option value="">Tất cả danh mục</option>
           {(categories ?? []).map((c) => (<option key={c.id} value={c.id}>{c.name}</option>))}
+        </NativeSelect>
+        <NativeSelect fitContent value={brandId} onChange={(e) => { setBrandId(e.target.value); setPage(1); }}>
+          <option value="">Tất cả thương hiệu</option>
+          {(brands ?? []).map((brand) => (
+            <option key={brand.id} value={brand.id}>{brand.name}</option>
+          ))}
         </NativeSelect>
         <NativeSelect fitContent value={status} onChange={(e) => { setStatus(e.target.value as typeof status); setPage(1); }}>
           <option value="">Tất cả trạng thái</option>

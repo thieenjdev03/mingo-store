@@ -19,7 +19,7 @@ interface HeroCarouselProps {
  * Link đích của nút "See Products" theo từng banner local.
  * Nút được render 1 lần ở cấp section nên vị trí luôn cố định; chỉ href đổi theo slide.
  */
-const LOCAL_HERO_CTA_LINKS: readonly string[] = ['/products', '/products', '/products/creme-caramel'];
+const LOCAL_HERO_CTA_LINKS: readonly string[] = ['/products/creme-caramel', '/products', '/products'];
 
 function BannerOne() {
   const assets = MINGO_HOME_ASSETS.bannerOne;
@@ -133,21 +133,25 @@ export function HeroCarousel({ banners, useLocalFallback }: HeroCarouselProps) {
 
   return (
     <section
-      className="relative isolate h-[650px] overflow-hidden bg-secondary sm:h-[720px] lg:h-[800px]"
+      className="relative isolate h-[650px] overflow-hidden bg-secondary sm:h-[720px] lg:h-[816px]"
       role="region"
       aria-roledescription="carousel"
       aria-label="Sản phẩm nổi bật"
     >
-      {useLocalFallback && slide === 0 && <BannerOne />}
-      {useLocalFallback && slide === 1 && <BannerTwo />}
-      {useLocalFallback && slide === 2 && <BannerThree />}
+      {useLocalFallback && slide === 0 && <BannerThree />}
+      {useLocalFallback && slide === 1 && <BannerOne />}
+      {useLocalFallback && slide === 2 && <BannerTwo />}
       {backendBanner && <BackendBanner banner={backendBanner} />}
       {!backendBanner && !useLocalFallback ? <div className="absolute inset-0 bg-secondary" /> : null}
 
       {ctaHref && (
         <Link
           href={ctaHref}
-          className="absolute bottom-[12%] left-[9%] z-20 inline-flex h-11 items-center rounded-full border-2 border-white px-7 font-bold text-white transition-colors hover:bg-white hover:text-primary sm:left-[14%]"
+          className={
+            useLocalFallback && slide === 0
+              ? 'absolute bottom-[116px] left-[36.875%] z-20 inline-flex h-10 -translate-x-1/2 items-center rounded-full border-2 border-[#70381d] px-6 text-[14px] font-bold text-[#70381d] transition-colors hover:bg-[#70381d] hover:text-white'
+              : 'absolute bottom-[12%] left-[9%] z-20 inline-flex h-11 items-center rounded-full border-2 border-white px-7 font-bold text-white transition-colors hover:bg-white hover:text-primary sm:left-[14%]'
+          }
         >
           {ctaLabel}
         </Link>
@@ -157,7 +161,7 @@ export function HeroCarousel({ banners, useLocalFallback }: HeroCarouselProps) {
         type="button"
         aria-label="Sản phẩm trước"
         onClick={() => setSlide((current) => (current - 1 + slideCount) % slideCount)}
-        className="absolute left-4 top-1/2 z-30 grid size-11 -translate-y-1/2 place-items-center rounded-full bg-black/10 text-white transition-colors hover:bg-black/25 sm:left-8 lg:left-10"
+        className="absolute left-4 top-1/2 z-30 grid size-11 -translate-y-1/2 place-items-center rounded-full bg-black/10 text-white transition-colors hover:bg-black/25 sm:left-8 lg:left-10 lg:top-[431px]"
       >
         <ChevronLeft className="size-8" strokeWidth={1.25} />
       </button>
@@ -165,12 +169,12 @@ export function HeroCarousel({ banners, useLocalFallback }: HeroCarouselProps) {
         type="button"
         aria-label="Sản phẩm tiếp theo"
         onClick={() => setSlide((current) => (current + 1) % slideCount)}
-        className="absolute right-4 top-1/2 z-30 grid size-11 -translate-y-1/2 place-items-center rounded-full bg-black/10 text-white transition-colors hover:bg-black/25 sm:right-8 lg:right-10"
+        className="absolute right-4 top-1/2 z-30 grid size-11 -translate-y-1/2 place-items-center rounded-full bg-black/10 text-white transition-colors hover:bg-black/25 sm:right-8 lg:right-10 lg:top-[431px]"
       >
         <ChevronRight className="size-8" strokeWidth={1.25} />
       </button>
 
-      <div className="absolute bottom-5 left-1/2 z-30 flex -translate-x-1/2 gap-2" aria-label="Chọn banner">
+      <div className="absolute bottom-5 left-1/2 z-30 flex -translate-x-1/2 gap-2 lg:hidden" aria-label="Chọn banner">
         {Array.from({ length: slideCount }, (_, index) => (
           <button
             key={index}

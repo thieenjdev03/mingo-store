@@ -49,6 +49,26 @@
   --spacing-section: 80px;
 }
 
+/*
+ * Storefront bám theo palette của file Figma Mingo Ice Cream.
+ * Admin dùng root tokens ở trên và không bị thay đổi bởi override này.
+ */
+.storefront-theme {
+  --mingo-orange: #fe5000;
+  --mingo-orange-dark: #c63f00;
+  --mingo-brown: #563e2b;
+  --mingo-cream: #f5f5f5;
+  --mingo-gray: #f5f5f5;
+  --background: #f5f5f5;
+  --foreground: #563e2b;
+  --card-foreground: #563e2b;
+  --primary: #fe5000;
+  --muted: #ebe8e4;
+  --muted-foreground: #77695e;
+  --border: #d8cdc4;
+  --ring: #fe5000;
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);

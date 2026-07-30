@@ -14,6 +14,7 @@ import { useToast } from '@/components/admin/ui/toast';
 import { Plus, Trash2 } from 'lucide-react';
 import { slugify } from '@/lib/admin/slugify';
 import { getCategoryOptions } from '@/features/admin/shared/options';
+import { brandsKey, listBrands } from '@/features/admin/brands/api';
 import { listSizes } from '@/features/admin/sizes/api';
 import { packagingLabel } from '@/features/product/types';
 import type { CreateProductDtoStatus } from '@/lib/api/generated/ecomAPI.schemas';
@@ -44,6 +45,7 @@ const STATUSES: { value: CreateProductDtoStatus; label: string }[] = [
 export function ProductForm({ open, onOpenChange, productId, onSaved }: ProductFormProps) {
   const { toast } = useToast();
   const { data: categoryOptions = [] } = useSWR('admin-category-options', getCategoryOptions);
+  const { data: brandOptions = [] } = useSWR(brandsKey, () => listBrands());
   const { data: sizeOptions = [] } = useSWR('admin-size-options', () => listSizes());
   const { data: editData, isLoading: loadingEdit } = useSWR(
     open && productId ? ['product-edit', productId] : null,
@@ -53,12 +55,14 @@ export function ProductForm({ open, onOpenChange, productId, onSaved }: ProductF
   const [nameVi, setNameVi] = useState(''); const [nameEn, setNameEn] = useState('');
   const [slugVi, setSlugVi] = useState(''); const [slugEn, setSlugEn] = useState('');
   const [shortVi, setShortVi] = useState(''); const [shortEn, setShortEn] = useState('');
+  const [nutritionVi, setNutritionVi] = useState(''); const [nutritionEn, setNutritionEn] = useState('');
   const [descVi, setDescVi] = useState(''); const [descEn, setDescEn] = useState('');
   const [price, setPrice] = useState(0);
   const [salePrice, setSalePrice] = useState('');
   const [stock, setStock] = useState(0);
   const [sku, setSku] = useState('');
   const [categoryId, setCategoryId] = useState('');
+  const [brandId, setBrandId] = useState('');
   const [images, setImages] = useState<string[]>([]);
   const [status, setStatus] = useState<CreateProductDtoStatus>('active');
   const [isFeatured, setIsFeatured] = useState(false);
@@ -88,12 +92,14 @@ export function ProductForm({ open, onOpenChange, productId, onSaved }: ProductF
       setNameVi(editData.name.vi); setNameEn(editData.name.en);
       setSlugVi(editData.slug.vi); setSlugEn(editData.slug.en);
       setShortVi(editData.short_description.vi); setShortEn(editData.short_description.en);
+      setNutritionVi(editData.nutrition_information.vi); setNutritionEn(editData.nutrition_information.en);
       setDescVi(editData.description.vi); setDescEn(editData.description.en);
       setPrice(Number(editData.base.price) || 0);
       setSalePrice(editData.base.sale_price != null ? String(editData.base.sale_price) : '');
       setStock(editData.base.stock_quantity ?? 0);
       setSku(editData.base.sku ?? '');
       setCategoryId(editData.base.category?.id ?? '');
+      setBrandId(editData.base.brand?.id ?? '');
       setImages(editData.base.images ?? []);
       setStatus((editData.base.status as CreateProductDtoStatus) ?? 'active');
       setIsFeatured(editData.base.is_featured ?? false);
@@ -109,8 +115,8 @@ export function ProductForm({ open, onOpenChange, productId, onSaved }: ProductF
     } else if (!productId) {
       setNameEnEdited(false);
       setNameVi(''); setNameEn(''); setSlugVi(''); setSlugEn('');
-      setShortVi(''); setShortEn(''); setDescVi(''); setDescEn('');
-      setPrice(0); setSalePrice(''); setStock(0); setSku(''); setCategoryId('');
+      setShortVi(''); setShortEn(''); setNutritionVi(''); setNutritionEn(''); setDescVi(''); setDescEn('');
+      setPrice(0); setSalePrice(''); setStock(0); setSku(''); setCategoryId(''); setBrandId('');
       setImages([]); setStatus('active'); setIsFeatured(false); setEnableSaleTag(false);
       setVariants([]);
     }
@@ -140,7 +146,8 @@ export function ProductForm({ open, onOpenChange, productId, onSaved }: ProductF
       const payload = {
         name: nm,
         slug: loc(slugVi.trim() || slugify(nm.vi), slugEn.trim() || slugify(nm.en)),
-        short_description: shortVi || shortEn ? loc(shortVi.trim(), shortEn.trim()) : undefined,
+        short_description: loc(shortVi.trim(), shortEn.trim()),
+        nutrition_information: loc(nutritionVi.trim(), nutritionEn.trim()),
         description: descVi || descEn ? loc(descVi.trim(), descEn.trim()) : undefined,
         price: Number(price),
         sale_price: salePrice ? Number(salePrice) : undefined,
@@ -149,6 +156,7 @@ export function ProductForm({ open, onOpenChange, productId, onSaved }: ProductF
         stock_quantity: Number(stock) || 0,
         sku: sku.trim() || undefined,
         category_id: categoryId || undefined,
+        brand_id: brandId || null,
         status,
         is_featured: isFeatured,
         enable_sale_tag: enableSaleTag,
@@ -215,8 +223,16 @@ export function ProductForm({ open, onOpenChange, productId, onSaved }: ProductF
                 <Field id="slugVi" label="Slug" required={false} hint="Bỏ trống để tự sinh từ tên.">
                   <Input id="slugVi" value={slugVi} onChange={(e) => setSlugVi(e.target.value)} />
                 </Field>
-                <Field id="shortVi" label="Mô tả ngắn" required={false}>
-                  <Textarea id="shortVi" rows={2} value={shortVi} onChange={(e) => setShortVi(e.target.value)} />
+                <Field
+                  id="shortVi"
+                  label="Chất gây dị ứng (HTML)"
+                  required={false}
+                  hint="Ví dụ: <p>Có chứa <strong>sữa, đậu nành</strong>.</p>"
+                >
+                  <Textarea id="shortVi" rows={4} className="font-mono text-xs" value={shortVi} onChange={(e) => setShortVi(e.target.value)} />
+                </Field>
+                <Field id="nutritionVi" label="Thông tin dinh dưỡng (HTML)" required={false}>
+                  <Textarea id="nutritionVi" rows={6} className="font-mono text-xs" value={nutritionVi} onChange={(e) => setNutritionVi(e.target.value)} />
                 </Field>
                 <Field id="descVi" label="Mô tả" required={false}>
                   <Textarea id="descVi" rows={4} value={descVi} onChange={(e) => setDescVi(e.target.value)} />
@@ -230,8 +246,11 @@ export function ProductForm({ open, onOpenChange, productId, onSaved }: ProductF
                 <Field id="slugEn" label="Slug" required={false} hint="Bỏ trống để tự sinh.">
                   <Input id="slugEn" value={slugEn} onChange={(e) => setSlugEn(e.target.value)} />
                 </Field>
-                <Field id="shortEn" label="Short description" required={false}>
-                  <Textarea id="shortEn" rows={2} value={shortEn} onChange={(e) => setShortEn(e.target.value)} />
+                <Field id="shortEn" label="Allergen information (HTML)" required={false}>
+                  <Textarea id="shortEn" rows={4} className="font-mono text-xs" value={shortEn} onChange={(e) => setShortEn(e.target.value)} />
+                </Field>
+                <Field id="nutritionEn" label="Nutrition information (HTML)" required={false}>
+                  <Textarea id="nutritionEn" rows={6} className="font-mono text-xs" value={nutritionEn} onChange={(e) => setNutritionEn(e.target.value)} />
                 </Field>
                 <Field id="descEn" label="Description" required={false}>
                   <Textarea id="descEn" rows={4} value={descEn} onChange={(e) => setDescEn(e.target.value)} />
@@ -247,12 +266,22 @@ export function ProductForm({ open, onOpenChange, productId, onSaved }: ProductF
             <Field id="sale" label="Giá KM" required={false}><Input id="sale" type="number" min={0} value={salePrice} onChange={(e) => setSalePrice(e.target.value)} /></Field>
             <Field id="stock" label="Tồn kho" required={false}><Input id="stock" type="number" min={0} value={stock} onChange={(e) => setStock(Number(e.target.value))} /></Field>
           </div>
-          <div className="grid gap-4 sm:grid-cols-3">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <Field id="sku" label="SKU" required={false}><Input id="sku" value={sku} onChange={(e) => setSku(e.target.value)} /></Field>
             <Field id="category" label="Danh mục" required={false}>
               <NativeSelect id="category" value={categoryId} onChange={(e) => setCategoryId(e.target.value)}>
                 <option value="">— Không —</option>
                 {categoryOptions.map((c) => (<option key={c.id} value={c.id}>{c.name}</option>))}
+              </NativeSelect>
+            </Field>
+            <Field id="brand" label="Thương hiệu" required={false}>
+              <NativeSelect id="brand" value={brandId} onChange={(e) => setBrandId(e.target.value)}>
+                <option value="">— Không có thương hiệu —</option>
+                {brandOptions.map((brand) => (
+                  <option key={brand.id} value={brand.id}>
+                    {brand.name}{brand.is_active ? '' : ' (đang ẩn)'}
+                  </option>
+                ))}
               </NativeSelect>
             </Field>
             <Field id="status" label="Trạng thái" required={false} error={error ?? undefined}>

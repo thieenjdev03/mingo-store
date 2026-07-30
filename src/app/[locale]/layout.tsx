@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
-import { Montserrat, Be_Vietnam_Pro } from 'next/font/google';
+import localFont from 'next/font/local';
+import { Work_Sans } from 'next/font/google';
 import { NextIntlClientProvider, hasLocale } from 'next-intl';
 import { setRequestLocale } from 'next-intl/server';
 import { notFound } from 'next/navigation';
@@ -9,21 +10,29 @@ import { SiteHeader } from '@/components/layout/site-header';
 import { SiteFooter } from '@/components/layout/site-footer';
 import '@/styles/globals.css';
 
-// Font theo DESIGN.md: Montserrat cho display (chunky headline),
-// Be Vietnam Pro cho body/label (subset 'vietnamese' đầy đủ dấu tiếng Việt).
-const montserrat = Montserrat({
-  subsets: ['latin', 'vietnamese'],
-  weight: ['700', '800'],
+// Typography lấy trực tiếp từ Figma Mingo: Mikado cho headline và Work Sans
+// cho body/navigation. Giữ tên CSS variable cũ để toàn bộ component hiện tại
+// tự nhận font mới mà không ảnh hưởng root layout riêng của admin.
+const mikado = localFont({
+  src: [
+    {
+      path: '../../../public/Font/HVD Fonts - MikadoRegular.otf',
+      weight: '400',
+      style: 'normal',
+    },
+    {
+      path: '../../../public/Font/HVD Fonts - MikadoBold.otf',
+      weight: '700 900',
+      style: 'normal',
+    },
+  ],
   variable: '--font-montserrat',
   display: 'swap',
 });
 
-// Weights phải phủ hết các class font-* đang dùng (font-medium 500, font-bold 700).
-// Thiếu weight -> trình duyệt tổng hợp giả bold từ weight gần nhất, metrics khác
-// với font fallback lúc swap => chữ nhảy (rõ nhất ở footer).
-const beVietnamPro = Be_Vietnam_Pro({
+const workSans = Work_Sans({
   subsets: ['latin', 'vietnamese'],
-  weight: ['400', '500', '600', '700'],
+  weight: ['300', '400', '500', '600', '700'],
   variable: '--font-be-vietnam-pro',
   display: 'swap',
 });
@@ -49,7 +58,7 @@ export default async function LocaleLayout({
   setRequestLocale(locale);
 
   return (
-    <html lang={locale} className={`${montserrat.variable} ${beVietnamPro.variable}`}>
+    <html lang={locale} className={`storefront-theme ${mikado.variable} ${workSans.variable}`}>
       <body className="flex min-h-screen flex-col">
         <NextIntlClientProvider>
           <CartProvider>

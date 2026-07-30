@@ -1,17 +1,24 @@
 import Image from 'next/image';
 import { notFound } from 'next/navigation';
+import { ChevronRight } from 'lucide-react';
 import { setRequestLocale, getTranslations } from 'next-intl/server';
 import { hasLocale } from 'next-intl';
 import { Chip } from '@/components/ui/chip';
 import { fWeight } from '@/lib/format';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { PurchasePanel } from '@/features/product/purchase-panel';
-import { getProductBySlug } from '@/features/product/api';
-import { toProductDetailView } from '@/features/product/types';
+import { RelatedProducts } from '@/features/product/related-products';
+import { getProductBySlug, getProducts } from '@/features/product/api';
+import { toProductCardView, toProductDetailView } from '@/features/product/types';
 import { routing } from '@/i18n/routing';
+import { Link } from '@/i18n/navigation';
+
+const richHtmlClass =
+  'space-y-2 [&_a]:text-primary [&_a]:underline [&_li]:ml-5 [&_ol]:list-decimal [&_table]:w-full [&_table]:border-collapse [&_td]:border [&_td]:border-border [&_td]:p-2 [&_th]:border [&_th]:border-border [&_th]:p-2 [&_ul]:list-disc';
 
 /**
- * PDP lấy dữ liệu trực tiếp từ GET /products/slug/:slug?locale=.
+ * PDP responsive theo hai frame Figma:
+ * desktop PRODUCT DETAILS (102:106), mobile Product Details (398:2688).
  */
 export default async function ProductDetailPage({
   params,
@@ -26,72 +33,106 @@ export default async function ProductDetailPage({
   const apiProduct = await getProductBySlug(slug, safeLocale).catch(() => null);
   if (!apiProduct) notFound();
   const product = toProductDetailView(apiProduct, safeLocale);
-  const nutritionEntries = Object.entries(product.nutrition ?? {});
+
+  const suggestionsResponse = await getProducts({
+    locale: safeLocale,
+    status: 'active',
+    page: 1,
+    limit: 5,
+  }).catch(() => null);
+  const suggestions = (suggestionsResponse?.data ?? [])
+    .filter((item) => item.id !== product.id)
+    .slice(0, 4)
+    .map((item) => toProductCardView(item, safeLocale));
+
+  const breadcrumbCollection = product.collectionName ?? product.categoryName;
 
   return (
-    <div className="mx-auto max-w-7xl px-5 py-8 sm:px-8 sm:py-12">
-      {/* minmax(0,…): plain 1fr floors at min-content, which the nowrap CTA blew past on tablet */}
-      <div className="grid gap-8 md:grid-cols-[45%_minmax(0,1fr)] md:gap-10 lg:gap-12">
-        {/* Gallery */}
-        <div className="relative mx-auto aspect-[3/4] w-full max-w-[320px] md:max-w-none">
+    <div className="bg-[#f5f5f5] text-[#563e2b]">
+      <nav className="no-scrollbar flex h-[48px] items-center gap-2 overflow-x-auto px-4 text-[12px] font-bold text-primary lg:h-[100px] lg:px-[max(2rem,calc((100vw-1200px)/2))] lg:text-[18px]">
+        <Link href="/products" className="shrink-0">Products</Link>
+        <ChevronRight className="size-4 shrink-0" strokeWidth={1.5} />
+        {breadcrumbCollection ? (
+          <>
+            <span className="shrink-0">{breadcrumbCollection}</span>
+            <ChevronRight className="size-4 shrink-0" strokeWidth={1.5} />
+          </>
+        ) : null}
+        <span className="shrink-0">{product.name}</span>
+      </nav>
+
+      <main className="mx-auto w-full max-w-[1200px] lg:grid lg:grid-cols-[588px_588px] lg:gap-6 lg:pt-[39px]">
+        <div className="relative flex h-[450px] w-full items-center justify-center overflow-hidden bg-[radial-gradient(circle_at_center,#fff1e8_0%,rgba(255,241,232,0)_70%)] lg:aspect-[3/4] lg:h-auto lg:bg-none">
           {product.image ? (
-            <Image src={product.image} alt={product.name} fill className="object-contain" priority />
+            <div className="relative h-[376px] w-[282px] lg:size-full">
+              <Image src={product.image} alt={product.name} fill className="object-contain" priority />
+            </div>
           ) : (
             <div className="flex h-full items-center justify-center rounded-xl bg-muted text-6xl">🍦</div>
           )}
         </div>
 
-        {/* Summary */}
-        <div className="space-y-5">
-          {product.collectionName && (
-            <p className="font-display text-xl font-bold text-primary underline underline-offset-4">
-              {product.collectionName}
+        <div className="px-4 pb-4 pt-8 lg:px-0 lg:pb-0 lg:pt-[102px]">
+          {breadcrumbCollection ? (
+            <p className="inline-block border-b-2 border-primary pb-0.5 text-[14px] font-bold leading-[17px] text-primary lg:border-b-[3px] lg:text-[28px] lg:leading-8">
+              {breadcrumbCollection}
             </p>
-          )}
-          <h1 className="font-display text-3xl sm:text-4xl lg:text-5xl">{product.name}</h1>
-          <div className="flex flex-wrap gap-2">
-            {product.categoryName && <Chip>{product.categoryName}</Chip>}
-            {product.weightGrams != null ? <Chip>{product.weightGrams} g</Chip> : null}
-            {product.weightGrams == null && product.weightKg != null ? <Chip>{fWeight(product.weightKg)}</Chip> : null}
-            {product.collectionName && <Chip>{product.collectionName}</Chip>}
+          ) : null}
+          <h1 className="mt-4 text-[28px] font-bold leading-[34px] text-[#653819] lg:mt-[30px] lg:text-[60px] lg:leading-[60px]">
+            {product.name}
+          </h1>
+          <div className="mt-4 flex flex-wrap gap-2 lg:mt-[30px] lg:gap-[25px]">
+            {product.brandName && <Chip className="rounded-l-none text-primary">{product.brandName}</Chip>}
+            {product.collectionName && <Chip className="rounded-l-none text-primary">{product.collectionName}</Chip>}
+            {product.categoryName && <Chip className="rounded-l-none text-primary">{product.categoryName}</Chip>}
+            {product.weightGrams != null ? <Chip className="rounded-l-none text-primary">{product.weightGrams} g</Chip> : null}
+            {product.weightGrams == null && product.weightKg != null ? (
+              <Chip className="rounded-l-none text-primary">{fWeight(product.weightKg)}</Chip>
+            ) : null}
           </div>
 
-          <PurchasePanel product={product} />
+          <div className="mt-4 lg:mt-[34px]">
+            <PurchasePanel product={product} />
+          </div>
 
-          {/* 4 accordion — nội dung parse từ description markdown (convention 4 heading, xem plan §0.2) */}
-          <Accordion type="single" collapsible defaultValue="description">
-            <AccordionItem value="description">
-              <AccordionTrigger>{t('description')}</AccordionTrigger>
-              <AccordionContent>{product.descriptionMarkdown}</AccordionContent>
+          <Accordion type="single" collapsible className="mt-4 lg:mt-[30px]">
+            <AccordionItem value="description" className="border-b border-[#563e2b]">
+              <AccordionTrigger className="py-4 text-[16px] leading-6 lg:py-[15px] lg:text-[24px]">
+                {t('description')}
+              </AccordionTrigger>
+              <AccordionContent>{product.descriptionMarkdown || t('notProvided')}</AccordionContent>
             </AccordionItem>
-            <AccordionItem value="ingredients">
-              <AccordionTrigger>{t('allergens')}</AccordionTrigger>
+            <AccordionItem value="ingredients" className="border-b border-[#563e2b]">
+              <AccordionTrigger className="py-4 text-[16px] leading-6 lg:py-[15px] lg:text-[24px]">
+                {t('ingredients')}
+              </AccordionTrigger>
               <AccordionContent>
-                {product.allergens.length > 0 ? product.allergens.join(', ') : t('notProvided')}
+                {product.allergensHtml ? (
+                  <div className={richHtmlClass} dangerouslySetInnerHTML={{ __html: product.allergensHtml }} />
+                ) : null}
+                {product.nutritionHtml ? (
+                  <div className={`${richHtmlClass} mt-4`} dangerouslySetInnerHTML={{ __html: product.nutritionHtml }} />
+                ) : null}
+                {!product.allergensHtml && !product.nutritionHtml ? t('notProvided') : null}
               </AccordionContent>
             </AccordionItem>
-            <AccordionItem value="usage">
-              <AccordionTrigger>{t('nutrition')}</AccordionTrigger>
-              <AccordionContent>
-                {nutritionEntries.length > 0 ? (
-                  <dl className="grid gap-2 sm:grid-cols-2">
-                    {nutritionEntries.map(([key, value]) => (
-                      <div key={key} className="flex justify-between gap-4">
-                        <dt className="font-semibold">{key}</dt>
-                        <dd>{String(value)}</dd>
-                      </div>
-                    ))}
-                  </dl>
-                ) : t('notProvided')}
-              </AccordionContent>
+            <AccordionItem value="usage" className="border-b border-[#563e2b]">
+              <AccordionTrigger className="py-4 text-[16px] leading-6 lg:py-[15px] lg:text-[24px]">
+                {t('usage')}
+              </AccordionTrigger>
+              <AccordionContent>{t('notProvided')}</AccordionContent>
             </AccordionItem>
-            <AccordionItem value="notes">
-              <AccordionTrigger>{t('barcode')}</AccordionTrigger>
+            <AccordionItem value="notes" className="border-b border-[#563e2b]">
+              <AccordionTrigger className="py-4 text-[16px] leading-6 lg:py-[15px] lg:text-[24px]">
+                {t('notes')}
+              </AccordionTrigger>
               <AccordionContent>{product.barcode ?? t('notProvided')}</AccordionContent>
             </AccordionItem>
           </Accordion>
         </div>
-      </div>
+      </main>
+
+      <RelatedProducts title={t('suggestions')} products={suggestions} />
     </div>
   );
 }

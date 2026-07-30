@@ -5,6 +5,7 @@
  */
 import type { ProductResponseDto, ProductVariantResponseDto } from '@/lib/api/generated/ecomAPI.schemas';
 import { resolveLocalized, type Locale } from '@/types/localized';
+import type { ProductDetailApiDto } from './api';
 
 export interface ProductVariantView {
   sku: string;
@@ -24,6 +25,8 @@ export interface ProductCardView {
   compareAtPrice: number | null;
   stock: number;
   available: boolean;
+  /** Nhãn quy cách đại diện dùng ở product card, ưu tiên size của variant đầu tiên. */
+  spec: string | null;
 }
 
 export interface ProductDetailView extends ProductCardView {
@@ -33,8 +36,10 @@ export interface ProductDetailView extends ProductCardView {
   /** Khối lượng theo kg (backend), null nếu chưa nhập. */
   weightKg: number | null;
   weightGrams: number | null;
-  allergens: string[];
-  nutrition: Record<string, unknown> | null;
+  allergensHtml: string | null;
+  nutritionHtml: string | null;
+  brandName: string | null;
+  brandSlug: string | null;
   barcode: string | null;
   collectionName: string | null;
   collectionSlug: string | null;
@@ -75,6 +80,7 @@ export function getEffectivePrice(product: Pick<ProductResponseDto, 'price' | 's
 
 export function toProductCardView(p: ProductResponseDto, locale: Locale): ProductCardView {
   const price = getEffectivePrice(p);
+  const firstVariant = p.variants?.[0];
   return {
     id: p.id,
     slug: resolveLocalized(p.slug, locale),
@@ -87,6 +93,11 @@ export function toProductCardView(p: ProductResponseDto, locale: Locale): Produc
         : null,
     stock: Number(p.stock_quantity),
     available: p.status === 'active' && Number(p.stock_quantity) > 0,
+    spec: firstVariant?.size
+      ? packagingLabel(firstVariant.size)
+      : firstVariant
+        ? resolveLocalized(firstVariant.name, locale)
+        : null,
   };
 }
 
@@ -109,11 +120,11 @@ export function toProductDetailView(p: ProductResponseDto, locale: Locale): Prod
     categoryName: p.category?.name ?? null,
     weightKg: p.weight ?? null,
     weightGrams: p.weight_grams ?? null,
-    allergens: p.allergens ?? [],
-    nutrition:
-      p.nutrition && typeof p.nutrition === 'object'
-        ? (p.nutrition as Record<string, unknown>)
-        : null,
+    allergensHtml: resolveLocalized(p.short_description, locale) || null,
+    nutritionHtml:
+      resolveLocalized((p as ProductDetailApiDto).nutrition_information, locale) || null,
+    brandName: p.brand?.name ?? null,
+    brandSlug: p.brand?.slug ?? null,
     barcode: p.barcode ?? null,
     collectionName: p.collections?.[0]?.name ?? null,
     collectionSlug: p.collections?.[0]?.slug ?? null,
