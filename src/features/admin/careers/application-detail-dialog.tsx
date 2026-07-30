@@ -2,7 +2,7 @@
 
 import { Dialog } from '@/components/admin/ui/dialog';
 import { Badge } from '@/components/admin/ui/badge';
-import type { CareerApplicationListItemDto } from '@/lib/api/generated/ecomAPI.schemas';
+import type { AdminApplication } from './api';
 import { APPLICATION_STATUS_LABEL } from './status';
 
 const STATUS_TONE = {
@@ -13,7 +13,7 @@ const STATUS_TONE = {
 } as const;
 
 interface ApplicationDetailDialogProps {
-  application: CareerApplicationListItemDto | null;
+  application: AdminApplication | null;
   onClose: () => void;
 }
 

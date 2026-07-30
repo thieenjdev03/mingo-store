@@ -25,7 +25,7 @@ export function SelectTrigger({
       data-slot="select-trigger"
       data-size={size}
       className={cn(
-        'group flex w-full items-center justify-between gap-3 rounded-xl border border-border bg-card px-4 text-left text-base font-medium text-foreground shadow-[0_1px_2px_rgba(51,65,85,0.04)] outline-none transition-[border-color,box-shadow,background-color] data-[placeholder]:font-normal data-[placeholder]:text-muted-foreground/70 hover:border-primary/55 focus:border-primary focus:ring-4 focus:ring-primary/10 aria-invalid:border-destructive aria-invalid:ring-destructive/10 disabled:cursor-not-allowed disabled:bg-muted/45 disabled:opacity-60 data-[size=default]:h-12 data-[size=sm]:h-10 data-[state=open]:border-primary data-[state=open]:ring-4 data-[state=open]:ring-primary/10 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*=size-])]:size-4 [&_svg:not([class*=text-])]:text-muted-foreground',
+        'group flex w-full items-center justify-between gap-3 rounded-xl border border-border bg-card px-4 text-left text-base font-medium text-foreground shadow-[0_1px_2px_rgba(51,65,85,0.04)] outline-none transition-[border-color,box-shadow,background-color] whitespace-nowrap data-[placeholder]:font-normal data-[placeholder]:text-muted-foreground/70 hover:border-primary/55 focus:border-primary focus:ring-4 focus:ring-primary/10 aria-invalid:border-destructive aria-invalid:ring-destructive/10 disabled:cursor-not-allowed disabled:bg-muted/45 disabled:opacity-60 data-[size=default]:h-12 data-[size=sm]:h-10 data-[state=open]:border-primary data-[state=open]:ring-4 data-[state=open]:ring-primary/10 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*=size-])]:size-4 [&_svg:not([class*=text-])]:text-muted-foreground',
         className,
       )}
       {...props}
@@ -149,7 +149,7 @@ export function SelectField({
       className={cn(fitContent && 'col-start-1 row-start-1', className)}
       {...ariaProps}
     >
-      <SelectValue placeholder={placeholder} />
+      <SelectValue className="min-w-0 truncate" placeholder={placeholder} />
     </SelectTrigger>
   );
 
