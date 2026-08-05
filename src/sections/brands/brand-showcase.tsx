@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import Image from 'next/image';
 import { Link } from '@/i18n/navigation';
 import { Button } from '@/components/ui/button';
@@ -9,7 +10,8 @@ interface BrandShowcaseProps {
   title: string;
   joyTitle: string;
   joyParagraphOne: string;
-  joyParagraphTwo: string;
+  /** Có tên brand in đậm nên nhận ReactNode (render qua t.rich với thẻ <b>). */
+  joyParagraphTwo: ReactNode;
   exploreCta: string;
   aboutCta: string;
 }
@@ -54,14 +56,18 @@ export function BrandShowcase({
         </div>
       </section>
 
-      <section className="border-t border-primary/15 bg-butter">
-        <div className="mx-auto max-w-3xl px-5 py-16 text-center sm:px-8 lg:py-20">
-          <h2 className="font-display text-3xl font-bold uppercase text-foreground sm:text-4xl">{joyTitle}</h2>
-          <p className="mt-6 text-sm leading-7 text-foreground/85 sm:text-base">{joyParagraphOne}</p>
+      <section className="border-t border-primary/15">
+        <div className="mx-auto max-w-3xl px-5 py-16 sm:px-8 lg:py-20">
+          <h2 className="font-display text-4xl font-extrabold uppercase leading-tight text-foreground sm:text-5xl">{joyTitle}</h2>
+          <p className="mt-8 text-sm leading-7 text-foreground/85 sm:text-base">{joyParagraphOne}</p>
           <p className="mt-6 text-sm leading-7 text-foreground/85 sm:text-base">{joyParagraphTwo}</p>
-          <div className="mt-9 flex flex-wrap items-center justify-center gap-4">
-            <Button asChild size="lg"><Link href="/products">{exploreCta}</Link></Button>
-            <Button asChild variant="outline" size="lg"><Link href="/about">{aboutCta}</Link></Button>
+          <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
+            <Button asChild className="bg-foreground text-white hover:bg-foreground/90">
+              <Link href="/products">{exploreCta}</Link>
+            </Button>
+            <Button asChild variant="outline">
+              <Link href="/about">{aboutCta}</Link>
+            </Button>
           </div>
         </div>
       </section>

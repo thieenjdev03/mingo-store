@@ -41,7 +41,6 @@ export function SizeForm({ open, onOpenChange, size, onSaved }: SizeFormProps) {
   const [unit, setUnit] = useState('');
   const [packQty, setPackQty] = useState('');
   const [volumeMl, setVolumeMl] = useState('');
-  const [sortOrder, setSortOrder] = useState('0');
   const [categoryIds, setCategoryIds] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -54,7 +53,6 @@ export function SizeForm({ open, onOpenChange, size, onSaved }: SizeFormProps) {
     setUnit(size?.unit ?? '');
     setPackQty(size?.packQty != null ? String(size.packQty) : '');
     setVolumeMl(size?.volumeMl != null ? String(size.volumeMl) : '');
-    setSortOrder(size ? String(size.sortOrder) : '0');
     setCategoryIds(size?.categories.map((category) => category.id) ?? []);
   }, [open, size]);
 
@@ -75,7 +73,6 @@ export function SizeForm({ open, onOpenChange, size, onSaved }: SizeFormProps) {
         unit: unit.trim() || undefined,
         packQty: packQty.trim() ? Number(packQty) : undefined,
         volumeMl: volumeMl.trim() ? Number(volumeMl) : undefined,
-        sortOrder: Number(sortOrder) || 0,
         categoryIds,
       };
       if (size) {
@@ -130,14 +127,9 @@ export function SizeForm({ open, onOpenChange, size, onSaved }: SizeFormProps) {
             <Input id="volumeMl" type="number" min={0} value={volumeMl} onChange={(e) => setVolumeMl(e.target.value)} placeholder="250" />
           </Field>
         </div>
-        <div className="grid gap-4 sm:grid-cols-2">
-          <Field id="sortOrder" label="Thứ tự" required={false}>
-            <Input id="sortOrder" type="number" min={0} value={sortOrder} onChange={(e) => setSortOrder(e.target.value)} />
-          </Field>
-          <Field id="categories" label="Phạm vi danh mục" required={false} hint="Có thể chọn nhiều; bỏ trống = dùng chung toàn hệ thống.">
-            <MultiSelect options={categoryOptions} value={categoryIds} onChange={setCategoryIds} />
-          </Field>
-        </div>
+        <Field id="categories" label="Phạm vi danh mục" required={false} hint="Có thể chọn nhiều; bỏ trống = dùng chung toàn hệ thống.">
+          <MultiSelect options={categoryOptions} value={categoryIds} onChange={setCategoryIds} />
+        </Field>
       </div>
     </Dialog>
   );

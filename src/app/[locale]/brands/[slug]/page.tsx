@@ -85,7 +85,7 @@ export default async function BrandPage({ params }: { params: Promise<{ locale: 
         {loadFailed || products.length === 0 ? (
           <p className="mx-auto max-w-xl px-5 text-center text-muted-foreground">{loadFailed ? t('loadError') : t('empty')}</p>
         ) : (
-          <ProductShowcaseGrid products={products} outOfStockLabel={t('outOfStock')} />
+          <ProductShowcaseGrid products={products} outOfStockLabel={t('outOfStock')} contactLabel={t('priceOnRequest')} />
         )}
       </section>
     </div>

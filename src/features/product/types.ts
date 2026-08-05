@@ -27,6 +27,11 @@ export interface ProductCardView {
   available: boolean;
   /** Nhãn quy cách đại diện dùng ở product card, ưu tiên size của variant đầu tiên. */
   spec: string | null;
+  /**
+   * Giá theo yêu cầu: khi bật cờ "Nổi bật" (is_featured) ở admin, storefront KHÔNG
+   * công khai giá mà hiển thị "liên hệ để nhận báo giá" thay cho giá bán.
+   */
+  priceOnRequest: boolean;
 }
 
 export interface ProductDetailView extends ProductCardView {
@@ -103,6 +108,7 @@ export function toProductCardView(p: ProductResponseDto, locale: Locale): Produc
       : firstVariant
         ? resolveLocalized(firstVariant.name, locale)
         : null,
+    priceOnRequest: p.is_featured === true,
   };
 }
 

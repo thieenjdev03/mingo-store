@@ -284,7 +284,8 @@ export function ProductForm({ open, onOpenChange, productId, onSaved }: ProductF
         variants: variantPayload.length > 0 ? variantPayload : undefined,
         // Có biến thể => tồn kho sản phẩm là tổng tồn các quy cách; không thì lấy tồn nhập tay.
         stock_quantity: hasVariants ? variantStockTotal : Number(stock) || 0,
-        sku: sku.trim() || undefined,
+        // Có biến thể => SKU quản lý theo từng biến thể, không gửi SKU sản phẩm gốc.
+        sku: hasVariants ? undefined : sku.trim() || undefined,
         category_id: categoryId || undefined,
         brand_id: brandId || null,
         status,
@@ -441,7 +442,14 @@ export function ProductForm({ open, onOpenChange, productId, onSaved }: ProductF
             </Field>
           </div>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <Field id="sku" label="SKU" required={false}><Input id="sku" value={sku} onChange={(e) => setSku(e.target.value)} /></Field>
+            <Field
+              id="sku"
+              label="SKU"
+              required={false}
+              hint={hasVariants ? 'Có biến thể — SKU quản lý theo từng biến thể bên dưới.' : undefined}
+            >
+              <Input id="sku" value={sku} onChange={(e) => setSku(e.target.value)} disabled={hasVariants} />
+            </Field>
             <Field id="category" label="Danh mục" required={false}>
               <NativeSelect id="category" value={categoryId} onChange={(e) => setCategoryId(e.target.value)}>
                 <option value="">— Không —</option>
@@ -464,15 +472,20 @@ export function ProductForm({ open, onOpenChange, productId, onSaved }: ProductF
               </NativeSelect>
             </Field>
           </div>
-          <div className="flex flex-wrap gap-6">
+          <div className="flex flex-wrap gap-x-6 gap-y-2">
             <div className="flex items-center gap-3">
               <Switch id="featured" checked={isFeatured} onCheckedChange={setIsFeatured} />
-              <label htmlFor="featured" className="text-sm font-semibold text-foreground">Nổi bật</label>
+              <label htmlFor="featured" className="text-sm font-semibold text-foreground">LH Báo Giá</label>
             </div>
             <div className="flex items-center gap-3">
               <Switch id="saletag" checked={enableSaleTag} onCheckedChange={setEnableSaleTag} />
               <label htmlFor="saletag" className="text-sm font-semibold text-foreground">Hiện nhãn giảm giá</label>
             </div>
+            {isFeatured ? (
+              <p className="w-full text-xs text-muted-foreground">
+                Bật <strong>LH Báo Giá</strong>: storefront sẽ ẩn giá và hiển thị “Liên hệ để nhận báo giá” thay cho giá bán.
+              </p>
+            ) : null}
           </div>
           {/* Biến thể theo quy cách (size). Mỗi variant = 1 quy cách + giá + tồn riêng. */}
           <div className="rounded-md border border-border p-3">

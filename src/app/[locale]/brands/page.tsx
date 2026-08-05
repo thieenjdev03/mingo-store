@@ -6,5 +6,5 @@ export default async function BrandsPage({ params }: { params: Promise<{ locale:
   setRequestLocale(locale);
   const t = await getTranslations('pages.brands');
 
-  return <BrandShowcase eyebrow={t('eyebrow')} title={t('title')} joyTitle={t('joy.title')} joyParagraphOne={t('joy.paragraphOne')} joyParagraphTwo={t('joy.paragraphTwo')} exploreCta={t('joy.exploreCta')} aboutCta={t('joy.aboutCta')} />;
+  return <BrandShowcase eyebrow={t('eyebrow')} title={t('title')} joyTitle={t('joy.title')} joyParagraphOne={t('joy.paragraphOne')} joyParagraphTwo={t.rich('joy.paragraphTwo', { b: (chunks) => <strong className="font-bold">{chunks}</strong> })} exploreCta={t('joy.exploreCta')} aboutCta={t('joy.aboutCta')} />;
 }

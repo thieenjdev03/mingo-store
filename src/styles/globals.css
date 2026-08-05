@@ -105,9 +105,9 @@
 
   /*
    * Typography — font brand load qua next/font/google trong app/[locale]/layout.tsx.
-   * Montserrat = display (headline), Be Vietnam Pro = body/label (glyph tiếng Việt đầy đủ).
+   * Work Sans (subset vietnamese) dùng chung cho cả display (headline) và body/label.
    */
-  --font-display: var(--font-montserrat), 'Segoe UI', system-ui, sans-serif;
+  --font-display: var(--font-be-vietnam-pro), 'Segoe UI', system-ui, sans-serif;
   --font-sans: var(--font-be-vietnam-pro), 'Segoe UI', system-ui, sans-serif;
 
   /* --- Type scale (DESIGN.md `typography`) --- */

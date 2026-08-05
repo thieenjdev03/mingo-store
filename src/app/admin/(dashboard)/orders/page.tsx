@@ -32,9 +32,43 @@ function formatDateTime(value: string): { date: string; time: string } {
   };
 }
 
+type Period = 'all' | 'day' | 'week' | 'month' | 'year';
+
+const PERIOD_OPTIONS: { value: Period; label: string }[] = [
+  { value: 'all', label: 'Tất cả thời gian' },
+  { value: 'day', label: 'Hôm nay' },
+  { value: 'week', label: 'Tuần này' },
+  { value: 'month', label: 'Tháng này' },
+  { value: 'year', label: 'Năm nay' },
+];
+
+/**
+ * Mốc bắt đầu (timestamp) của kỳ được chọn theo giờ địa phương; null = không giới hạn.
+ * Tuần bắt đầu từ Thứ Hai theo thói quen VN.
+ */
+function periodStartMs(period: Period): number | null {
+  if (period === 'all') return null;
+  const now = new Date();
+  const midnight = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  switch (period) {
+    case 'day':
+      return midnight.getTime();
+    case 'week': {
+      const mondayOffset = (now.getDay() + 6) % 7; // CN=0 -> 6, T2=1 -> 0
+      midnight.setDate(midnight.getDate() - mondayOffset);
+      return midnight.getTime();
+    }
+    case 'month':
+      return new Date(now.getFullYear(), now.getMonth(), 1).getTime();
+    case 'year':
+      return new Date(now.getFullYear(), 0, 1).getTime();
+  }
+}
+
 export default function AdminOrdersPage() {
   const [status, setStatus] = useState('');
   const [paymentStatus, setPaymentStatus] = useState('');
+  const [period, setPeriod] = useState<Period>('all');
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
 
@@ -50,8 +84,10 @@ export default function AdminOrdersPage() {
   // orders.controller findAll rồi chuyển cả cụm này xuống API cùng lúc.
   const rows = useMemo(() => {
     const q = search.trim().toLowerCase();
+    const startMs = periodStartMs(period);
     return (data ?? []).filter((o) => {
       if (paymentStatus && (o.paymentStatus ?? '') !== paymentStatus) return false;
+      if (startMs !== null && new Date(o.createdAt).getTime() < startMs) return false;
       if (!q) return true;
       return [
         o.orderNumber,
@@ -62,7 +98,7 @@ export default function AdminOrdersPage() {
         .filter(Boolean)
         .some((field) => String(field).toLowerCase().includes(q));
     });
-  }, [data, paymentStatus, search]);
+  }, [data, paymentStatus, search, period]);
 
   // Kẹp trang: dữ liệu refetch/lọc lại có thể làm tổng số trang co xuống dưới `page`
   // đang giữ -> nếu không kẹp thì slice ra mảng rỗng và bảng trắng dù vẫn có kết quả.
@@ -178,6 +214,8 @@ export default function AdminOrdersPage() {
     return { count: rows.length, awaitingPayment, revenue };
   }, [rows]);
 
+  const periodLabel = PERIOD_OPTIONS.find((p) => p.value === period)?.label ?? '';
+
   return (
     <div>
       <PageHeader title="Đơn hàng" description="Xem đơn, cập nhật trạng thái và thông tin vận chuyển." />
@@ -185,7 +223,7 @@ export default function AdminOrdersPage() {
       <div className="mb-4 grid gap-3 sm:grid-cols-3">
         <StatCard label="Đơn khớp bộ lọc" value={String(stats.count)} />
         <StatCard label="Chờ thanh toán" value={String(stats.awaitingPayment)} tone="warning" />
-        <StatCard label="Doanh thu đã thu" value={fCurrencyVND(stats.revenue)} tone="success" icon />
+        <StatCard label={`Doanh thu đã thu · ${periodLabel}`} value={fCurrencyVND(stats.revenue)} tone="success" icon />
       </div>
 
       <div className="mb-4 flex flex-wrap gap-3">
@@ -204,6 +242,11 @@ export default function AdminOrdersPage() {
         <NativeSelect fitContent value={paymentStatus} onChange={(e) => { setPaymentStatus(e.target.value); setPage(1); }}>
           <option value="">Tất cả thanh toán</option>
           {Object.entries(PAYMENT_STATUS_LABEL).map(([value, label]) => (
+            <option key={value} value={value}>{label}</option>
+          ))}
+        </NativeSelect>
+        <NativeSelect fitContent value={period} onChange={(e) => { setPeriod(e.target.value as Period); setPage(1); }}>
+          {PERIOD_OPTIONS.map(({ value, label }) => (
             <option key={value} value={value}>{label}</option>
           ))}
         </NativeSelect>

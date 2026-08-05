@@ -35,7 +35,9 @@
     "otherCategory": "Sản phẩm khác",
     "loadError": "Chưa thể tải sản phẩm. Vui lòng thử lại sau.",
     "empty": "Hiện chưa có sản phẩm đang bán.",
-    "outOfStock": "Tạm hết hàng"
+    "outOfStock": "Tạm hết hàng",
+    "priceOnRequest": "Liên hệ nhận giá",
+    "contactForPrice": "Liên hệ để nhận báo giá"
   },
   "contact": {
     "title": "Mingo luôn ở đây để lắng nghe chia sẻ của bạn!",
@@ -217,7 +219,18 @@
     "backToLogin": "Quay lại đăng nhập",
     "successNote": "Chúng tôi đã gửi hướng dẫn khôi phục đến email của bạn (nếu tài khoản tồn tại).",
     "genericError": "Có lỗi xảy ra, vui lòng thử lại.",
-    "passwordMismatch": "Mật khẩu xác nhận không khớp."
+    "passwordMismatch": "Mật khẩu xác nhận không khớp.",
+    "otpTitle": "Xác thực email",
+    "otpDescription": "Chúng tôi đã gửi mã xác thực gồm 6 chữ số đến {email}. Nhập mã để hoàn tất đăng ký.",
+    "otpLabel": "Mã xác thực",
+    "otpPlaceholder": "Nhập 6 chữ số",
+    "otpSubmit": "Xác nhận & tạo tài khoản",
+    "otpVerifying": "Đang xác thực...",
+    "otpResend": "Gửi lại mã",
+    "otpResendIn": "Gửi lại mã sau {seconds}s",
+    "otpResent": "Đã gửi lại mã xác thực đến email của bạn.",
+    "otpInvalid": "Mã xác thực không đúng hoặc đã hết hạn.",
+    "otpChangeEmail": "Đổi email"
   },
   "account": {
     "title": "Tài khoản của tôi",
@@ -384,7 +397,7 @@
       "joy": {
         "title": "Joy in every bite!",
         "paragraphOne": "Chào bạn đến với thế giới của Mingo Ice Cream — nơi sáng tạo không giới hạn để mang đến cho bạn những trải nghiệm thưởng thức trọn vẹn nhất!",
-        "paragraphTwo": "Từ những hương vị trái cây tự nhiên tươi mát của Fruitesia và Fruttega, nét quyến rũ nhiệt đới cùng Verano và Oasis, nét hiện đại đầy phong cách từ Vivi, cho đến lớp vỏ giòn rụm bùng nổ đỉnh cao từ Impact, chúng tôi tự hào mang đến bộ sưu tập kem phong phú cho mọi gu thưởng thức. Đừng quên khám phá sự kết hợp độc đáo từ Rokka và Sandwich, nơi lớp vỏ dai dẻo, xốp mịn đặc trưng ôm trọn lấy chất kem thơm ngon, tạo nên từng nụ cắn thăng hoa và trọn vẹn sảng khoái!",
+        "paragraphTwo": "Từ những hương vị trái cây tự nhiên tươi mát của <b>Fruitesia</b> và <b>Fruttega</b>, nét quyến rũ nhiệt đới cùng <b>Verano</b> và <b>Oasis</b>, nét hiện đại đầy phong cách từ <b>Vivi</b>, cho đến lớp vỏ giòn rụm bùng nổ đỉnh cao từ <b>Impact</b>, chúng tôi tự hào mang đến bộ sưu tập kem phong phú cho mọi gu thưởng thức. Đừng quên khám phá sự kết hợp độc đáo từ <b>Rokka</b> và <b>Sandwich</b>, nơi lớp vỏ dai dẻo, xốp mịn đặc trưng ôm trọn lấy chất kem thơm ngon, tạo nên từng nụ cắn thăng hoa và trọn vẹn sảng khoái!",
         "exploreCta": "Khám phá thêm",
         "aboutCta": "Về Mingo"
       }
@@ -445,6 +458,8 @@
   "product": {
     "addToCart": "Thêm vào giỏ hàng",
     "outOfStock": "Hết hàng",
+    "contactForPrice": "Liên hệ để nhận báo giá",
+    "priceOnRequest": "Giá liên hệ",
     "description": "Mô tả",
     "ingredients": "Thành phần & dinh dưỡng",
     "usage": "Hướng dẫn sử dụng",

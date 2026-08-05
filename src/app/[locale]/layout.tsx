@@ -1,5 +1,4 @@
 import type { Metadata } from 'next';
-import localFont from 'next/font/local';
 import { Work_Sans } from 'next/font/google';
 import { NextIntlClientProvider, hasLocale } from 'next-intl';
 import { setRequestLocale } from 'next-intl/server';
@@ -10,29 +9,14 @@ import { SiteHeader } from '@/components/layout/site-header';
 import { SiteFooter } from '@/components/layout/site-footer';
 import '@/styles/globals.css';
 
-// Typography lấy trực tiếp từ Figma Mingo: Mikado cho headline và Work Sans
-// cho body/navigation. Giữ tên CSS variable cũ để toàn bộ component hiện tại
-// tự nhận font mới mà không ảnh hưởng root layout riêng của admin.
-const mikado = localFont({
-  src: [
-    {
-      path: '../../../public/Font/HVD Fonts - MikadoRegular.otf',
-      weight: '400',
-      style: 'normal',
-    },
-    {
-      path: '../../../public/Font/HVD Fonts - MikadoBold.otf',
-      weight: '700 900',
-      style: 'normal',
-    },
-  ],
-  variable: '--font-montserrat',
-  display: 'swap',
-});
-
+// Typography: Work Sans (có subset vietnamese) dùng chung cho cả headline và
+// body/navigation, thay cho Mikado vốn không việt hoá. Giữ nguyên hai tên CSS
+// variable cũ để toàn bộ component hiện tại tự nhận font mới; cả hai đều trỏ về
+// cùng một instance Work Sans nên chỉ tải font một lần.
+// Weight phủ mọi utility font-* đang dùng: 300/400/500/600/700/800.
 const workSans = Work_Sans({
   subsets: ['latin', 'vietnamese'],
-  weight: ['300', '400', '500', '600', '700'],
+  weight: ['300', '400', '500', '600', '700', '800'],
   variable: '--font-be-vietnam-pro',
   display: 'swap',
 });
@@ -58,7 +42,7 @@ export default async function LocaleLayout({
   setRequestLocale(locale);
 
   return (
-    <html lang={locale} className={`storefront-theme ${mikado.variable} ${workSans.variable}`}>
+    <html lang={locale} className={`storefront-theme ${workSans.variable}`}>
       <body className="flex min-h-screen flex-col font-display">
         <NextIntlClientProvider>
           <CartProvider>

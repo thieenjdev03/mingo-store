@@ -18,7 +18,6 @@ export interface CollectionItem {
   name: string;
   slug: string;
   description?: string;
-  banner_image_url?: string;
   seo_title?: string;
   seo_description?: string;
   is_active: boolean;

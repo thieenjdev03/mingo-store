@@ -1,7 +1,6 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import Image from 'next/image';
 import useSWR from 'swr';
 import { Boxes, Pencil, Plus, Trash2 } from 'lucide-react';
 import { PageHeader } from '@/components/admin/ui/page-header';
@@ -52,14 +51,9 @@ export default function AdminCollectionsPage() {
       key: 'name',
       header: 'Tên',
       render: (c) => (
-        <div className="flex items-center gap-3">
-          <div className="relative h-9 w-14 shrink-0 overflow-hidden rounded border border-border bg-muted">
-            {c.banner_image_url ? <Image src={c.banner_image_url} alt="" fill className="object-cover" sizes="56px" /> : null}
-          </div>
-          <div>
-            <p className="font-semibold">{c.name}</p>
-            {c.description ? <p className="line-clamp-1 text-xs text-muted-foreground">{c.description}</p> : null}
-          </div>
+        <div>
+          <p className="font-semibold">{c.name}</p>
+          {c.description ? <p className="line-clamp-1 text-xs text-muted-foreground">{c.description}</p> : null}
         </div>
       ),
     },

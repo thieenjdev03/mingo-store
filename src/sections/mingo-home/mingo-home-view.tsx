@@ -41,7 +41,7 @@ export async function MingoHomeView({ locale }: { locale: Locale }) {
         title={tBrands('title')}
         joyTitle={tBrands('joy.title')}
         joyParagraphOne={tBrands('joy.paragraphOne')}
-        joyParagraphTwo={tBrands('joy.paragraphTwo')}
+        joyParagraphTwo={tBrands.rich('joy.paragraphTwo', { b: (chunks) => <strong className="font-bold">{chunks}</strong> })}
         exploreCta={tBrands('joy.exploreCta')}
         aboutCta={tBrands('joy.aboutCta')}
       />

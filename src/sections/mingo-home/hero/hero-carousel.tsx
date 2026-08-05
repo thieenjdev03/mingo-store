@@ -40,7 +40,9 @@ export function HeroCarousel({ banners }: HeroCarouselProps) {
 
   return (
     <section
-      className="relative isolate h-[650px] overflow-hidden bg-secondary sm:h-[720px] lg:h-[816px]"
+      // Banner chiếm trọn 100vh và kéo lên (-mt) đúng chiều cao header để nằm SAU
+      // header trong suốt (header chỉ dùng ở homepage nên margin âm an toàn).
+      className="relative isolate -mt-[64px] h-[100dvh] overflow-hidden bg-secondary xl:-mt-[84px]"
       role="region"
       aria-roledescription="carousel"
       aria-label="Sản phẩm nổi bật"
@@ -62,7 +64,7 @@ export function HeroCarousel({ banners }: HeroCarouselProps) {
             type="button"
             aria-label="Sản phẩm trước"
             onClick={() => setSlide((current) => (current - 1 + slideCount) % slideCount)}
-            className="absolute left-4 top-1/2 z-30 grid size-11 -translate-y-1/2 place-items-center rounded-full bg-black/10 text-white transition-colors hover:bg-black/25 sm:left-8 lg:left-10 lg:top-[431px]"
+            className="absolute left-4 top-1/2 z-30 grid size-11 -translate-y-1/2 place-items-center rounded-full bg-black/10 text-white transition-colors hover:bg-black/25 sm:left-8 lg:left-10"
           >
             <ChevronLeft className="size-8" strokeWidth={1.25} />
           </button>
@@ -70,7 +72,7 @@ export function HeroCarousel({ banners }: HeroCarouselProps) {
             type="button"
             aria-label="Sản phẩm tiếp theo"
             onClick={() => setSlide((current) => (current + 1) % slideCount)}
-            className="absolute right-4 top-1/2 z-30 grid size-11 -translate-y-1/2 place-items-center rounded-full bg-black/10 text-white transition-colors hover:bg-black/25 sm:right-8 lg:right-10 lg:top-[431px]"
+            className="absolute right-4 top-1/2 z-30 grid size-11 -translate-y-1/2 place-items-center rounded-full bg-black/10 text-white transition-colors hover:bg-black/25 sm:right-8 lg:right-10"
           >
             <ChevronRight className="size-8" strokeWidth={1.25} />
           </button>

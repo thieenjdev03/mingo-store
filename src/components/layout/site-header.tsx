@@ -4,7 +4,7 @@ import { useEffect, useRef, useState, type FormEvent } from "react";
 import Image from "next/image";
 import { Menu, X } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { Link, useRouter } from "@/i18n/navigation";
+import { Link, useRouter, usePathname } from "@/i18n/navigation";
 import { useCart } from "@/features/cart/cart-context";
 import { CartDrawer } from "@/features/cart/cart-drawer";
 import { LocaleSwitcher } from "@/components/layout/locale-switcher";
@@ -28,11 +28,20 @@ const HEADER_ASSETS = {
 export function SiteHeader() {
   const t = useTranslations("nav");
   const router = useRouter();
+  const pathname = usePathname();
   const { totalQuantity, isDrawerOpen, openDrawer } = useCart();
   const categories = useNavCategories();
   const brands = useNavBrands();
   const [menuOpen, setMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+
+  // Chỉ trang chủ có banner 100vh nên header đè lên (trong suốt) khi ở đỉnh trang;
+  // cuộn xuống thì fill nền trắng. Các trang khác luôn nền trắng như cũ.
+  const isHome = pathname === "/";
+  // Header trong suốt + chữ trắng khi: đang ở homepage, chưa cuộn, và không mở
+  // panel nào (search/menu mở => cần nền trắng để đọc được).
+  const overlay = isHome && !scrolled && !searchOpen && !menuOpen;
   // Nav key của dropdown đang mở ("products" | "brands"), hoặc null. Chỉ một dropdown mở cùng lúc.
   const [openNav, setOpenNav] = useState<string | null>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
@@ -54,6 +63,18 @@ export function SiteHeader() {
   useEffect(() => {
     if (searchOpen) searchInputRef.current?.focus();
   }, [searchOpen]);
+
+  // Trên homepage: theo dõi scroll để đổi header trong suốt <-> nền trắng.
+  useEffect(() => {
+    if (!isHome) {
+      setScrolled(false);
+      return;
+    }
+    const onScroll = () => setScrolled(window.scrollY > 20);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, [isHome]);
 
   useEffect(() => {
     if (!menuOpen && !searchOpen && !openNav) return;
@@ -88,8 +109,16 @@ export function SiteHeader() {
     setSearchOpen(false);
   };
 
+  // Màu chữ/icon phụ thuộc chế độ overlay (đè lên banner => trắng cho dễ đọc).
+  const navTextClass = overlay ? "text-white" : "text-[#563e2b]";
+  const iconInvertClass = overlay ? "[filter:brightness(0)_invert(1)]" : "";
+
   return (
-    <header className="sticky top-0 z-50 h-[64px] bg-white xl:h-[84px]">
+    <header
+      className={`sticky top-0 z-50 h-[64px] transition-colors duration-300 xl:h-[84px] ${
+        overlay ? "bg-transparent text-white" : "bg-white text-[#563e2b]"
+      }`}
+    >
       <div className="relative mx-auto flex h-full max-w-[1440px] items-center px-4 sm:px-8 xl:block xl:px-0">
         {/* Logo phải nằm gọn trong chiều cao header (căn giữa dọc, không lố xuống dưới)
             để KHÔNG đè lên ảnh banner homepage lúc tải trang. Trên xl header dùng layout
@@ -129,7 +158,7 @@ export function SiteHeader() {
                   aria-expanded={isOpen}
                   onFocus={() => setOpenNav(item.key)}
                   className={`flex h-8 items-center whitespace-nowrap text-[16px] font-bold uppercase leading-6 transition-colors ${
-                    isOpen ? "text-primary" : "text-[#563e2b] group-hover:text-primary"
+                    isOpen ? "text-primary" : `${navTextClass} group-hover:text-primary`
                   }`}
                 >
                   {t(item.key)}
@@ -159,7 +188,7 @@ export function SiteHeader() {
               <div key={item.key} className="group relative flex h-8 items-center">
                 <Link
                   href={item.href}
-                  className="flex h-8 items-center whitespace-nowrap text-[16px] font-bold uppercase leading-6 text-[#563e2b] transition-colors group-hover:text-primary"
+                  className={`flex h-8 items-center whitespace-nowrap text-[16px] font-bold uppercase leading-6 transition-colors group-hover:text-primary ${navTextClass}`}
                 >
                   {t(item.key)}
                 </Link>
@@ -175,7 +204,7 @@ export function SiteHeader() {
             aria-label={t("account")}
             className="relative hidden size-8 transition-opacity hover:opacity-60 xl:block"
           >
-            <Image src={HEADER_ASSETS.account} alt="" fill sizes="32px" />
+            <Image src={HEADER_ASSETS.account} alt="" fill sizes="32px" className={iconInvertClass} />
           </Link>
 
           <button
@@ -185,7 +214,7 @@ export function SiteHeader() {
             onClick={openDrawer}
             className="relative size-6 transition-opacity hover:opacity-60 xl:size-8"
           >
-            <Image src={HEADER_ASSETS.cart} alt="" fill sizes="32px" />
+            <Image src={HEADER_ASSETS.cart} alt="" fill sizes="32px" className={iconInvertClass} />
             {totalQuantity > 0 ? (
               <span className="absolute -right-2 -top-2 flex size-5 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-white">
                 {totalQuantity}
@@ -203,7 +232,7 @@ export function SiteHeader() {
             }}
             className="relative size-6 transition-opacity hover:opacity-60 xl:size-8"
           >
-            <Image src={HEADER_ASSETS.search} alt="" fill sizes="32px" />
+            <Image src={HEADER_ASSETS.search} alt="" fill sizes="32px" className={iconInvertClass} />
           </button>
 
           <button

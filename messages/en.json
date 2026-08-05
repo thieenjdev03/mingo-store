@@ -35,7 +35,9 @@
     "otherCategory": "Other products",
     "loadError": "Products are unavailable right now. Please try again later.",
     "empty": "There are no active products yet.",
-    "outOfStock": "Out of stock"
+    "outOfStock": "Out of stock",
+    "priceOnRequest": "Contact for price",
+    "contactForPrice": "Contact us for a quote"
   },
   "contact": {
     "title": "Mingo is always here to listen!",
@@ -217,7 +219,18 @@
     "backToLogin": "Back to sign in",
     "successNote": "If an account exists for that email, recovery instructions are on the way.",
     "genericError": "Something went wrong, please try again.",
-    "passwordMismatch": "Passwords do not match."
+    "passwordMismatch": "Passwords do not match.",
+    "otpTitle": "Verify your email",
+    "otpDescription": "We sent a 6-digit verification code to {email}. Enter it to finish creating your account.",
+    "otpLabel": "Verification code",
+    "otpPlaceholder": "Enter 6 digits",
+    "otpSubmit": "Confirm & create account",
+    "otpVerifying": "Verifying...",
+    "otpResend": "Resend code",
+    "otpResendIn": "Resend code in {seconds}s",
+    "otpResent": "A new verification code has been sent to your email.",
+    "otpInvalid": "The verification code is incorrect or has expired.",
+    "otpChangeEmail": "Change email"
   },
   "account": {
     "title": "My account",
@@ -384,7 +397,7 @@
       "joy": {
         "title": "Joy in every bite!",
         "paragraphOne": "Welcome to the world of Mingo Ice Cream — where boundless creativity brings you the most complete tasting experience!",
-        "paragraphTwo": "From the fresh, natural fruit flavours of Fruitesia and Fruttega, the tropical charm of Verano and Oasis, the bold modern style of Vivi, to the crunchy, top-tier shell of Impact, we proudly bring you a rich collection of ice cream for every taste. Don't miss the unique combination of Rokka and Sandwich, where the chewy, soft-crisp shell wraps around delicious creamy filling, creating a bite that's both uplifting and completely refreshing!",
+        "paragraphTwo": "From the fresh, natural fruit flavours of <b>Fruitesia</b> and <b>Fruttega</b>, the tropical charm of <b>Verano</b> and <b>Oasis</b>, the bold modern style of <b>Vivi</b>, to the crunchy, top-tier shell of <b>Impact</b>, we proudly bring you a rich collection of ice cream for every taste. Don't miss the unique combination of <b>Rokka</b> and <b>Sandwich</b>, where the chewy, soft-crisp shell wraps around delicious creamy filling, creating a bite that's both uplifting and completely refreshing!",
         "exploreCta": "Explore more",
         "aboutCta": "About Mingo"
       }
@@ -445,6 +458,8 @@
   "product": {
     "addToCart": "Add to cart",
     "outOfStock": "Out of stock",
+    "contactForPrice": "Contact us for a quote",
+    "priceOnRequest": "Price on request",
     "description": "Description",
     "ingredients": "Ingredients & nutrition",
     "usage": "How to enjoy",

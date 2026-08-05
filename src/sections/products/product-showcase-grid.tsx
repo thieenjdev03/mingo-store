@@ -1,7 +1,6 @@
 import Image from 'next/image';
 import { Link } from '@/i18n/navigation';
 import { fCurrencyVND } from '@/lib/format';
-import { discountPercent } from '@/features/product/types';
 
 export interface ProductListCard {
   id: string;
@@ -14,25 +13,36 @@ export interface ProductListCard {
   stock?: number;
   available?: boolean;
   categoryName?: string | null;
+  /** Nhãn quy cách đại diện (vd "100ml | 24 cây | thùng"). */
+  spec?: string | null;
+  /** Cờ "Nổi bật" (is_featured) => ẩn giá, hiển thị nhãn liên hệ thay giá. */
+  priceOnRequest?: boolean;
   isMockup?: boolean;
 }
 
+interface ProductShowcaseGridProps {
+  products: ProductListCard[];
+  outOfStockLabel: string;
+  /** Nhãn hiển thị thay cho giá khi sản phẩm ở chế độ liên hệ nhận giá. */
+  contactLabel: string;
+}
+
 /**
- * Lưới sản phẩm: packshot trên nền kem bo tròn, tên + danh mục + giá bên dưới.
- * Sản phẩm mockup gắn nhãn góc "Mockup" để phân biệt với dữ liệu thật (backend chưa seed).
+ * Lưới sản phẩm theo design: packshot đặt thẳng trên nền trang (không khung/viền),
+ * tên bên dưới, và hàng "quy cách | giá" nhỏ màu xám. Mockup gắn nhãn góc để phân biệt.
  */
-export function ProductShowcaseGrid({ products, outOfStockLabel }: { products: ProductListCard[]; outOfStockLabel: string }) {
+export function ProductShowcaseGrid({ products, outOfStockLabel, contactLabel }: ProductShowcaseGridProps) {
   return (
-    <div className="mx-auto grid max-w-[1200px] grid-cols-2 gap-x-5 gap-y-8 px-5 sm:gap-x-6 sm:gap-y-10 sm:px-8 lg:grid-cols-4 min-[1264px]:px-0">
+    <div className="mx-auto grid max-w-[1200px] grid-cols-2 gap-x-6 gap-y-12 px-5 sm:gap-x-8 sm:gap-y-16 sm:px-8 lg:grid-cols-4 min-[1264px]:px-0">
       {products.map((product) => (
         <Link
           key={product.id}
           href={`/products/${product.slug}`}
-          className="group flex flex-col overflow-hidden rounded-2xl bg-card shadow-sm ring-1 ring-border/60 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+          className="group block text-center focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
         >
-          <div className="relative aspect-square w-full overflow-hidden bg-ivory">
+          <div className="relative mx-auto aspect-[3/5] w-full max-w-[220px] transition-transform duration-300 motion-reduce:transition-none group-hover:scale-105">
             {product.isMockup ? (
-              <span className="absolute left-3 top-3 z-10 rounded-full bg-foreground/85 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-white">
+              <span className="absolute left-1 top-1 z-10 rounded-full bg-foreground/85 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-white">
                 Mockup
               </span>
             ) : null}
@@ -41,35 +51,37 @@ export function ProductShowcaseGrid({ products, outOfStockLabel }: { products: P
                 src={product.image}
                 alt={product.name}
                 fill
-                sizes="(max-width: 640px) 45vw, (max-width: 1024px) 45vw, 260px"
-                className="object-contain p-5 transition-transform duration-300 motion-reduce:transition-none group-hover:scale-105"
+                sizes="(max-width: 640px) 45vw, (max-width: 1024px) 45vw, 220px"
+                className="object-contain"
               />
             ) : (
               <div className="flex h-full items-center justify-center text-5xl">🍦</div>
             )}
           </div>
 
-          <div className="flex flex-1 flex-col gap-1 px-4 py-4 sm:px-5">
-            {product.categoryName ? (
-              <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-muted-foreground">
-                {product.categoryName}
-              </span>
-            ) : null}
-            <h2 className="font-sans text-lg font-bold leading-6 text-foreground transition-colors group-hover:text-primary sm:text-xl">
-              {product.name}
-            </h2>
-            {product.price ? (
-              <div className="mt-auto flex flex-wrap items-baseline gap-2 pt-2">
-                <p className="text-lg font-bold text-primary">{fCurrencyVND(product.price)}</p>
-                {product.compareAtPrice ? <p className="text-sm text-muted-foreground line-through">{fCurrencyVND(product.compareAtPrice)}</p> : null}
-                {(() => {
-                  const pct = discountPercent(product.price ?? 0, product.compareAtPrice ?? null);
-                  return pct != null ? <span className="rounded bg-red-100 px-1.5 py-0.5 text-xs font-bold text-red-600">-{pct}%</span> : null;
-                })()}
-              </div>
-            ) : null}
-            {product.available === false ? <p className="mt-1 text-xs font-bold uppercase tracking-wide text-destructive">{outOfStockLabel}</p> : null}
-          </div>
+          {/* min-h = 3 dòng (leading-tight 1.25 => 3.75em, co theo cỡ chữ mỗi breakpoint)
+              + line-clamp-3: tên luôn chiếm đúng khối 3 dòng nên hàng giá bên dưới KHÔNG nhảy. */}
+          <h2 className="mt-5 line-clamp-3 min-h-[3.75em] font-display text-xl font-bold leading-tight text-foreground transition-colors group-hover:text-primary sm:text-2xl">
+            {product.name}
+          </h2>
+
+          {product.spec || product.price || product.priceOnRequest ? (
+            <div className="mt-2 flex items-baseline justify-between gap-3 text-xs text-muted-foreground sm:text-sm">
+              <span className="truncate">{product.spec ?? ''}</span>
+              {product.priceOnRequest ? (
+                <span className="shrink-0 font-semibold text-primary">{contactLabel}</span>
+              ) : product.price ? (
+                <span className="flex shrink-0 items-baseline gap-2">
+                  {product.compareAtPrice ? <span className="line-through opacity-70">{fCurrencyVND(product.compareAtPrice)}</span> : null}
+                  <span>{fCurrencyVND(product.price)}</span>
+                </span>
+              ) : null}
+            </div>
+          ) : null}
+
+          {product.available === false ? (
+            <p className="mt-1 text-xs font-bold uppercase tracking-wide text-destructive">{outOfStockLabel}</p>
+          ) : null}
         </Link>
       ))}
     </div>
