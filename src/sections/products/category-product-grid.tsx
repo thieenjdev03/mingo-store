@@ -38,7 +38,7 @@ export function CategoryProductGrid({ products }: { products: CategoryProductCar
             )}
           </div>
 
-          <h2 className="mt-6 font-display text-[26px] font-bold leading-tight text-foreground transition-colors group-hover:text-primary sm:text-3xl">
+          <h2 className="mt-6 font-sans text-[26px] font-bold leading-tight text-foreground transition-colors group-hover:text-primary sm:text-3xl">
             {product.name}
           </h2>
           <div className="mt-3 flex items-center justify-between gap-3 text-sm text-muted-foreground">

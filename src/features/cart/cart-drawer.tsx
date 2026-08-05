@@ -7,6 +7,7 @@ import { useTranslations } from 'next-intl';
 import { Link } from '@/i18n/navigation';
 import { fCurrencyVND } from '@/lib/format';
 import { useCart } from './cart-context';
+import { MeltingIceCreamLoader } from '@/components/ui/melting-ice-cream-loader';
 
 export function CartDrawer() {
   const t = useTranslations('cart');
@@ -52,7 +53,7 @@ export function CartDrawer() {
         ) : null}
 
         {cart.isLoading ? (
-          <div className="flex flex-1 items-center justify-center text-sm text-muted-foreground">{t('loading')}</div>
+          <div className="flex flex-1 items-center justify-center"><MeltingIceCreamLoader label={t('loading')} size="sm" /></div>
         ) : cart.items.length === 0 ? (
           <div className="flex flex-1 flex-col items-center justify-center px-8 text-center">
             <ShoppingBag className="mb-5 size-12 text-muted-foreground" strokeWidth={1.25} aria-hidden="true" />
@@ -73,7 +74,7 @@ export function CartDrawer() {
                   <div className="min-w-0 flex-1">
                     <div className="flex items-start justify-between gap-2">
                       <div>
-                        <h3 className="font-semibold leading-5">{item.product.name}</h3>
+                        <h3 className="font-sans font-semibold leading-5">{item.product.name}</h3>
                         {!item.product.available ? <p className="mt-1 text-xs font-semibold text-destructive">{t('unavailable')}</p> : null}
                       </div>
                       <button type="button" disabled={cart.isMutating} onClick={() => void cart.removeItem(item.id)} aria-label={`${t('remove')} ${item.product.name}`} className="rounded p-1 text-muted-foreground hover:text-destructive disabled:opacity-50">

@@ -1,6 +1,7 @@
 import Image from 'next/image';
 import { Link } from '@/i18n/navigation';
 import { fCurrencyVND } from '@/lib/format';
+import { discountPercent } from '@/features/product/types';
 
 export interface ProductListCard {
   id: string;
@@ -54,13 +55,17 @@ export function ProductShowcaseGrid({ products, outOfStockLabel }: { products: P
                 {product.categoryName}
               </span>
             ) : null}
-            <h2 className="text-lg font-bold leading-6 text-foreground transition-colors group-hover:text-primary sm:text-xl">
+            <h2 className="font-sans text-lg font-bold leading-6 text-foreground transition-colors group-hover:text-primary sm:text-xl">
               {product.name}
             </h2>
             {product.price ? (
               <div className="mt-auto flex flex-wrap items-baseline gap-2 pt-2">
                 <p className="text-lg font-bold text-primary">{fCurrencyVND(product.price)}</p>
                 {product.compareAtPrice ? <p className="text-sm text-muted-foreground line-through">{fCurrencyVND(product.compareAtPrice)}</p> : null}
+                {(() => {
+                  const pct = discountPercent(product.price ?? 0, product.compareAtPrice ?? null);
+                  return pct != null ? <span className="rounded bg-red-100 px-1.5 py-0.5 text-xs font-bold text-red-600">-{pct}%</span> : null;
+                })()}
               </div>
             ) : null}
             {product.available === false ? <p className="mt-1 text-xs font-bold uppercase tracking-wide text-destructive">{outOfStockLabel}</p> : null}

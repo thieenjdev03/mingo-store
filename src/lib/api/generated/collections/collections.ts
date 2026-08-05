@@ -20,8 +20,10 @@ import type {
 import type {
   AssignProductsDto,
   CollectionsControllerFindAllParams,
+  CollectionsControllerGetHomepageSectionsParams,
   CollectionsControllerGetProductsParams,
   CreateCollectionDto,
+  HomepageSectionDto,
   UpdateCollectionDto
 } from '../ecomAPI.schemas';
 
@@ -107,6 +109,45 @@ export const useCollectionsControllerFindAll = <TError = unknown>(
   const isEnabled = swrOptions?.enabled !== false
   const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getCollectionsControllerFindAllKey(params) : null);
   const swrFn = () => collectionsControllerFindAll(params)
+
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
+/**
+ * @summary Get homepage sections (active collections with a homepage_section) each with product tiles
+ */
+export const collectionsControllerGetHomepageSections = (
+    params?: CollectionsControllerGetHomepageSectionsParams,
+ ) => {
+    return customFetch<HomepageSectionDto[]>(
+    {url: `/collections/homepage`, method: 'GET',
+        params
+    },
+    );
+  }
+
+
+
+export const getCollectionsControllerGetHomepageSectionsKey = (params?: CollectionsControllerGetHomepageSectionsParams,) => [`/collections/homepage`, ...(params ? [params]: [])] as const;
+
+export type CollectionsControllerGetHomepageSectionsQueryResult = NonNullable<Awaited<ReturnType<typeof collectionsControllerGetHomepageSections>>>
+export type CollectionsControllerGetHomepageSectionsQueryError = unknown
+
+/**
+ * @summary Get homepage sections (active collections with a homepage_section) each with product tiles
+ */
+export const useCollectionsControllerGetHomepageSections = <TError = unknown>(
+  params?: CollectionsControllerGetHomepageSectionsParams, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof collectionsControllerGetHomepageSections>>, TError> & { swrKey?: Key, enabled?: boolean },  }
+) => {
+  const {swr: swrOptions} = options ?? {}
+
+  const isEnabled = swrOptions?.enabled !== false
+  const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getCollectionsControllerGetHomepageSectionsKey(params) : null);
+  const swrFn = () => collectionsControllerGetHomepageSections(params)
 
   const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
 

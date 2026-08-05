@@ -1,16 +1,14 @@
-import type {
-  CheckoutQuoteDto,
-  CreateCheckoutOrderDto,
-  ShippingQuoteDto,
-} from '@/lib/api/generated/ecomAPI.schemas';
 import { customFetch } from '@/lib/api/fetcher';
 import { getOrCreateCartToken } from '@/features/cart/cart-token';
 import type {
+  CheckoutQuoteDto,
   CheckoutQuoteView,
+  CreateCheckoutOrderDto,
   CreateOrderResult,
   OrderView,
   ShippingAddressInput,
   ShippingAddressView,
+  ShippingQuoteDto,
   ShippingQuoteView,
   VnpayReturnState,
 } from './types';
@@ -75,7 +73,7 @@ export function getVnpayReturnState(
 }
 
 export function getMyOrders(): Promise<OrderView[]> {
-  return customFetch<OrderView[]>({ url: '/me/orders', method: 'GET' });
+  return customFetch<OrderView[]>({ url: '/orders/my-orders', method: 'GET' });
 }
 
 export function getMyOrder(orderNumber: string): Promise<OrderView> {

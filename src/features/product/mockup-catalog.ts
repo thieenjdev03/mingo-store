@@ -1,5 +1,6 @@
 import type { ProductResponseDto } from '@/lib/api/generated/ecomAPI.schemas';
 import { resolveLocalized, type Locale, type LocalizedString } from '@/types/localized';
+import type { ProductDetailApiDto } from './api';
 
 /**
  * Catalog mockup DÙNG CHUNG cho trang listing (/products), trang chi tiết (/products/[slug])
@@ -486,19 +487,56 @@ const MOCKUP_WEIGHT_KG: Record<string, number> = {
   sandwich: 0.09,
 };
 
-/** Dựng ProductResponseDto từ 1 mockup để trang chi tiết chạy qua đúng pipeline tier-2 như dữ liệu thật. */
-export function toMockupProductDto(mockup: MockupProduct, locale: Locale): ProductResponseDto {
+/**
+ * Nội dung HTML mô tả cho mockup (mô tả / dị ứng / hướng dẫn / lưu ý) — sinh từ tên & nhóm
+ * để mỗi sản phẩm có nội dung riêng. Mục đích: xác nhận PDP render đúng rich HTML
+ * (đoạn văn, danh sách, in đậm, bảng, link). Locale đã resolve sẵn chuỗi truyền vào.
+ */
+function mockupDetailHtml(
+  locale: Locale,
+  name: string,
+  categoryName: string | null,
+  description: string,
+  packLabel: string,
+): { description: string; allergens: string; usage: string; notes: string } {
+  const vi = locale === 'vi';
+  const cat = categoryName ?? (vi ? 'kem' : 'ice cream');
+  return {
+    description: vi
+      ? `<p>${description}</p>\n<p><strong>${name}</strong> thuộc dòng ${cat}, làm từ nguyên liệu chọn lọc, không phẩm màu nhân tạo.</p>\n<ul><li>Vị béo mịn, tan ngay trong miệng</li><li>Quy cách đóng gói: ${packLabel}</li><li>Phù hợp dùng ngay hoặc làm quà tặng</li></ul>`
+      : `<p>${description}</p>\n<p><strong>${name}</strong> is part of our ${cat} line, crafted from selected ingredients with no artificial colours.</p>\n<ul><li>Silky, melt-in-your-mouth texture</li><li>Packaging: ${packLabel}</li><li>Great to enjoy now or give as a gift</li></ul>`,
+    allergens: vi
+      ? `<p>Thành phần có thể chứa: <strong>sữa, đậu nành</strong>.</p>\n<ul><li>Sản xuất trên dây chuyền có sử dụng <strong>các loại hạt</strong></li><li>Không phù hợp với người dị ứng đạm sữa</li></ul>`
+      : `<p>May contain: <strong>milk, soy</strong>.</p>\n<ul><li>Produced on a line that also handles <strong>tree nuts</strong></li><li>Not suitable for those with a milk-protein allergy</li></ul>`,
+    usage: vi
+      ? `<p>Bảo quản ở <strong>-18°C</strong>. Ngon nhất khi dùng trong vòng 5 phút sau khi lấy khỏi tủ đông.</p>\n<table><thead><tr><th>Thông tin</th><th>Giá trị</th></tr></thead><tbody><tr><td>Năng lượng</td><td>180 kcal</td></tr><tr><td>Đường</td><td>20 g</td></tr><tr><td>Khẩu phần</td><td>${packLabel}</td></tr></tbody></table>`
+      : `<p>Keep frozen at <strong>-18°C</strong>. Best enjoyed within 5 minutes of leaving the freezer.</p>\n<table><thead><tr><th>Info</th><th>Value</th></tr></thead><tbody><tr><td>Energy</td><td>180 kcal</td></tr><tr><td>Sugar</td><td>20 g</td></tr><tr><td>Serving</td><td>${packLabel}</td></tr></tbody></table>`,
+    notes: vi
+      ? `<p><em>Sản phẩm mockup</em> dùng để kiểm thử giao diện. <a href="/products">Xem thêm sản phẩm</a>.</p>`
+      : `<p><em>Mockup product</em> for UI testing. <a href="/products">See more products</a>.</p>`,
+  };
+}
+
+/** Dựng ProductDetailApiDto từ 1 mockup để trang chi tiết chạy qua đúng pipeline tier-2 như dữ liệu thật. */
+export function toMockupProductDto(mockup: MockupProduct, locale: Locale): ProductDetailApiDto {
   const category = getMockupCategory(mockup.categorySlug);
   const packLabel = resolveLocalized(mockup.pack ?? category?.pack, locale);
+  const categoryName = category ? resolveLocalized(category.name, locale) : null;
+  const html = mockupDetailHtml(
+    locale,
+    resolveLocalized(mockup.name, locale),
+    categoryName,
+    resolveLocalized(mockup.description, locale),
+    packLabel,
+  );
   return {
     id: `mockup-${mockup.slug}`,
     name: resolveLocalized(mockup.name, locale),
     slug: mockup.slug,
-    description: resolveLocalized(mockup.description, locale),
-    short_description: null,
+    description: html.description,
+    short_description: html.allergens,
     price: mockup.price,
     sale_price: null,
-    compare_at_price: null,
     cost_price: null,
     images: [mockupImage(mockup.slug)],
     stock_quantity: 12,
@@ -511,16 +549,15 @@ export function toMockupProductDto(mockup: MockupProduct, locale: Locale): Produ
     meta_title: null,
     meta_description: null,
     weight: MOCKUP_WEIGHT_KG[mockup.categorySlug] ?? null,
-    weight_grams: Math.round((MOCKUP_WEIGHT_KG[mockup.categorySlug] ?? 0) * 1000),
-    allergens: [],
-    nutrition: null,
+    nutrition_information: null,
+    usage_instructions: html.usage,
+    notes: html.notes,
     dimensions: null,
     created_at: new Date(0).toISOString(),
     updated_at: new Date(0).toISOString(),
     category: category
       ? { id: `mockup-cat-${category.slug}`, name: resolveLocalized(category.name, locale), slug: category.slug }
       : null,
-    collections: [],
     brand: null,
     variants: [
       {

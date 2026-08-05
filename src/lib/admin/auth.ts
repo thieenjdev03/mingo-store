@@ -16,15 +16,19 @@ export interface AdminUser {
 export function saveAdminSession(token: string, user: AdminUser): void {
   setAccessToken(token);
   if (typeof window !== 'undefined') {
-    window.localStorage.setItem(ADMIN_USER_KEY, JSON.stringify(user));
+    try {
+      window.localStorage.setItem(ADMIN_USER_KEY, JSON.stringify(user));
+    } catch {
+      // AdminGuard sẽ báo phiên chưa hợp lệ thay vì bị treo ở trạng thái checking.
+    }
   }
 }
 
 export function getAdminUser(): AdminUser | null {
   if (typeof window === 'undefined') return null;
-  const raw = window.localStorage.getItem(ADMIN_USER_KEY);
-  if (!raw) return null;
   try {
+    const raw = window.localStorage.getItem(ADMIN_USER_KEY);
+    if (!raw) return null;
     return JSON.parse(raw) as AdminUser;
   } catch {
     return null;
@@ -34,7 +38,11 @@ export function getAdminUser(): AdminUser | null {
 export function clearAdminSession(): void {
   clearAccessToken();
   if (typeof window !== 'undefined') {
-    window.localStorage.removeItem(ADMIN_USER_KEY);
+    try {
+      window.localStorage.removeItem(ADMIN_USER_KEY);
+    } catch {
+      // Không chặn logout nếu storage không khả dụng.
+    }
   }
 }
 

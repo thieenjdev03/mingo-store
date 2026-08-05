@@ -9,6 +9,7 @@ import { useCart } from "@/features/cart/cart-context";
 import { CartDrawer } from "@/features/cart/cart-drawer";
 import { LocaleSwitcher } from "@/components/layout/locale-switcher";
 import { useNavCategories } from "@/features/catalog/use-nav-categories";
+import { useNavBrands } from "@/features/catalog/use-nav-brands";
 
 const NAV = [
   { key: "products", href: "/products" },
@@ -29,27 +30,43 @@ export function SiteHeader() {
   const router = useRouter();
   const { totalQuantity, isDrawerOpen, openDrawer } = useCart();
   const categories = useNavCategories();
+  const brands = useNavBrands();
   const [menuOpen, setMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
-  const [catalogOpen, setCatalogOpen] = useState(false);
+  // Nav key của dropdown đang mở ("products" | "brands"), hoặc null. Chỉ một dropdown mở cùng lúc.
+  const [openNav, setOpenNav] = useState<string | null>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
+
+  // Danh sách item cho dropdown của một nav key (categories cho "products", brands cho "brands").
+  // Trả null khi nav key không có dropdown hoặc chưa có dữ liệu -> render link thường.
+  const navDropdown = (
+    key: string,
+  ): { name: string; slug: string; href: string }[] | null => {
+    if (key === "products" && categories.length > 0) {
+      return categories.map((c) => ({ name: c.name, slug: c.slug, href: `/categories/${c.slug}` }));
+    }
+    if (key === "brands" && brands.length > 0) {
+      return brands.map((b) => ({ name: b.name, slug: b.slug, href: `/brands/${b.slug}` }));
+    }
+    return null;
+  };
 
   useEffect(() => {
     if (searchOpen) searchInputRef.current?.focus();
   }, [searchOpen]);
 
   useEffect(() => {
-    if (!menuOpen && !searchOpen && !catalogOpen) return;
+    if (!menuOpen && !searchOpen && !openNav) return;
     const closeOnEscape = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         setMenuOpen(false);
         setSearchOpen(false);
-        setCatalogOpen(false);
+        setOpenNav(null);
       }
     };
     window.addEventListener("keydown", closeOnEscape);
     return () => window.removeEventListener("keydown", closeOnEscape);
-  }, [menuOpen, searchOpen, catalogOpen]);
+  }, [menuOpen, searchOpen, openNav]);
 
   // Mobile menu overlays the page — stop the body scrolling underneath it.
   useEffect(() => {
@@ -96,39 +113,41 @@ export function SiteHeader() {
           aria-label={t("mainNav")}
           className="absolute left-[31.8056%] top-[26px] hidden h-8 items-center gap-[60px] xl:flex"
         >
-          {NAV.map((item) =>
-            item.key === "products" && categories.length > 0 ? (
+          {NAV.map((item) => {
+            const dropdown = navDropdown(item.key);
+            const isOpen = openNav === item.key;
+            return dropdown ? (
               <div
                 key={item.key}
                 className="group relative flex h-8 items-center"
-                onMouseEnter={() => setCatalogOpen(true)}
-                onMouseLeave={() => setCatalogOpen(false)}
+                onMouseEnter={() => setOpenNav(item.key)}
+                onMouseLeave={() => setOpenNav(null)}
               >
                 <Link
                   href={item.href}
                   aria-haspopup="true"
-                  aria-expanded={catalogOpen}
-                  onFocus={() => setCatalogOpen(true)}
+                  aria-expanded={isOpen}
+                  onFocus={() => setOpenNav(item.key)}
                   className={`flex h-8 items-center whitespace-nowrap text-[16px] font-bold uppercase leading-6 transition-colors ${
-                    catalogOpen ? "text-primary" : "text-[#563e2b] group-hover:text-primary"
+                    isOpen ? "text-primary" : "text-[#563e2b] group-hover:text-primary"
                   }`}
                 >
                   {t(item.key)}
                 </Link>
-                <NavUnderline active={catalogOpen} />
-                {catalogOpen ? (
+                <NavUnderline active={isOpen} />
+                {isOpen ? (
                   // pt-[28px] = khoảng cách từ đáy nav item xuống đáy header, vừa làm cầu hover
                   // vừa cho dropdown mở ngay dưới header (khớp ảnh mockup).
                   <div className="absolute left-0 top-full z-40 pt-[28px]">
-                    <ul className="min-w-[240px] rounded-b-lg border-x border-b border-border bg-white py-2 shadow-xl">
-                      {categories.map((category) => (
-                        <li key={category.slug}>
+                    <ul className="max-h-[70vh] min-w-[240px] overflow-y-auto rounded-b-lg border-x border-b border-border bg-white py-2 shadow-xl">
+                      {dropdown.map((entry) => (
+                        <li key={entry.slug}>
                           <Link
-                            href={`/categories/${category.slug}`}
-                            onClick={() => setCatalogOpen(false)}
+                            href={entry.href}
+                            onClick={() => setOpenNav(null)}
                             className="block px-6 py-3 text-[15px] font-bold uppercase tracking-wide text-[#563e2b] transition-colors hover:bg-blush hover:text-primary"
                           >
-                            {category.name}
+                            {entry.name}
                           </Link>
                         </li>
                       ))}
@@ -146,8 +165,8 @@ export function SiteHeader() {
                 </Link>
                 <NavUnderline active={false} />
               </div>
-            ),
-          )}
+            );
+          })}
         </nav>
 
         <div className="ml-auto flex items-center gap-4 xl:absolute xl:left-[76.7361%] xl:top-1/2 xl:ml-0 xl:-translate-y-1/2 xl:gap-[60px]">
@@ -236,32 +255,35 @@ export function SiteHeader() {
           className="absolute inset-x-0 top-full max-h-[calc(100dvh-64px)] overflow-y-auto border-t border-border bg-white px-5 py-6 shadow-lg xl:hidden"
         >
           <div className="mx-auto flex max-w-xl flex-col">
-            {NAV.map((item) => (
-              <div key={item.key} className="border-b border-border last:border-0">
-                <Link
-                  href={item.href}
-                  onClick={() => setMenuOpen(false)}
-                  className="block py-4 text-base font-bold uppercase text-[#563e2b] hover:text-primary"
-                >
-                  {t(item.key)}
-                </Link>
-                {item.key === "products" && categories.length > 0 ? (
-                  <ul className="-mt-1 flex flex-col gap-1 pb-4 pl-4">
-                    {categories.map((category) => (
-                      <li key={category.slug}>
-                        <Link
-                          href={`/categories/${category.slug}`}
-                          onClick={() => setMenuOpen(false)}
-                          className="block py-1.5 text-sm font-semibold uppercase tracking-wide text-muted-foreground hover:text-primary"
-                        >
-                          {category.name}
-                        </Link>
-                      </li>
-                    ))}
-                  </ul>
-                ) : null}
-              </div>
-            ))}
+            {NAV.map((item) => {
+              const dropdown = navDropdown(item.key);
+              return (
+                <div key={item.key} className="border-b border-border last:border-0">
+                  <Link
+                    href={item.href}
+                    onClick={() => setMenuOpen(false)}
+                    className="block py-4 text-base font-bold uppercase text-[#563e2b] hover:text-primary"
+                  >
+                    {t(item.key)}
+                  </Link>
+                  {dropdown ? (
+                    <ul className="-mt-1 flex flex-col gap-1 pb-4 pl-4">
+                      {dropdown.map((entry) => (
+                        <li key={entry.slug}>
+                          <Link
+                            href={entry.href}
+                            onClick={() => setMenuOpen(false)}
+                            className="block py-1.5 text-sm font-semibold uppercase tracking-wide text-muted-foreground hover:text-primary"
+                          >
+                            {entry.name}
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : null}
+                </div>
+              );
+            })}
             <Link
               href="/account"
               onClick={() => setMenuOpen(false)}

@@ -17,18 +17,24 @@ import type {
   LocalizedStringDto,
 } from '@/lib/api/generated/ecomAPI.schemas';
 
-export type ProductWithNutrition = ProductResponseDto & {
+export type ProductWithUsage = ProductResponseDto & {
   nutrition_information?: string | null;
+  usage_instructions?: string | null;
+  notes?: string | null;
 };
 
 export type ProductCreatePayload = CreateProductDto & {
   brand_id?: string | null;
   nutrition_information?: LocalizedStringDto;
+  usage_instructions?: LocalizedStringDto;
+  notes?: LocalizedStringDto;
 };
 
 export type ProductUpdatePayload = UpdateProductDto & {
   brand_id?: string | null;
   nutrition_information?: LocalizedStringDto;
+  usage_instructions?: LocalizedStringDto;
+  notes?: LocalizedStringDto;
 };
 
 export function productsKey(params: ProductsControllerFindAllParams) {
@@ -40,12 +46,13 @@ export function listProducts(params: ProductsControllerFindAllParams) {
 
 /** Bản edit song ngữ: gộp giá trị resolved của 2 locale thành {vi,en}. */
 export interface ProductEditData {
-  base: ProductWithNutrition;
+  base: ProductWithUsage;
   name: { vi: string; en: string };
   slug: { vi: string; en: string };
   description: { vi: string; en: string };
   short_description: { vi: string; en: string };
-  nutrition_information: { vi: string; en: string };
+  usage_instructions: { vi: string; en: string };
+  notes: { vi: string; en: string };
 }
 
 export async function getProductForEdit(id: string): Promise<ProductEditData> {
@@ -54,18 +61,19 @@ export async function getProductForEdit(id: string): Promise<ProductEditData> {
     productsControllerFindOne(id, { locale: 'en' }),
   ]);
   const s = (v: unknown) => (typeof v === 'string' ? v : '');
-  const viProduct = vi as ProductWithNutrition;
-  const enProduct = en as ProductWithNutrition;
+  const viProduct = vi as ProductWithUsage;
+  const enProduct = en as ProductWithUsage;
   return {
     base: viProduct,
     name: { vi: s(vi.name), en: s(en.name) },
     slug: { vi: s(vi.slug), en: s(en.slug) },
     description: { vi: s(vi.description), en: s(en.description) },
     short_description: { vi: s(vi.short_description), en: s(en.short_description) },
-    nutrition_information: {
-      vi: s(viProduct.nutrition_information),
-      en: s(enProduct.nutrition_information),
+    usage_instructions: {
+      vi: s(viProduct.usage_instructions ?? viProduct.nutrition_information),
+      en: s(enProduct.usage_instructions ?? enProduct.nutrition_information),
     },
+    notes: { vi: s(viProduct.notes), en: s(enProduct.notes) },
   };
 }
 

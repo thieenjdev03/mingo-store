@@ -2,6 +2,7 @@
 
 import useSWR from 'swr';
 import { Dialog } from '@/components/admin/ui/dialog';
+import { MeltingIceCreamLoader } from '@/components/ui/melting-ice-cream-loader';
 import { NativeSelect } from '@/components/admin/ui/native-select';
 import { useToast } from '@/components/admin/ui/toast';
 import type { CareerApplicationDto, CareerApplicationDtoStatus, CareerDto } from '@/lib/api/generated/ecomAPI.schemas';
@@ -40,7 +41,7 @@ export function CareerApplicationsDialog({ career, onOpenChange }: CareerApplica
       description={career ? `Đơn ứng tuyển cho "${career.title}"` : undefined}
       className="max-w-3xl"
     >
-      {isLoading ? <p className="text-sm text-muted-foreground">Đang tải…</p> : null}
+      {isLoading ? <MeltingIceCreamLoader size="sm" /> : null}
       {error ? <p className="text-sm text-destructive">Không tải được danh sách.</p> : null}
       {!isLoading && !error && rows.length === 0 ? (
         <p className="text-sm text-muted-foreground">Chưa có ứng viên nào.</p>

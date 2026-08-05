@@ -3,6 +3,7 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import Link from 'next/link';
 import { isAdminAuthenticated } from '@/lib/admin/auth';
+import { MeltingIceCreamLoader } from '@/components/ui/melting-ice-cream-loader';
 
 /**
  * Guard client-side cho `/admin/**`: chưa đăng nhập admin -> đẩy sang /admin/login.
@@ -16,12 +17,35 @@ export function AdminGuard({ children }: { children: ReactNode }) {
   const [status, setStatus] = useState<'checking' | 'ok' | 'unauth'>('checking');
 
   useEffect(() => {
-    if (isAdminAuthenticated()) {
-      setStatus('ok');
-      return;
+    let settled = false;
+    const goToLogin = () => {
+      if (settled) return;
+      settled = true;
+      setStatus('unauth');
+      window.location.replace('/admin/login');
+    };
+
+    // Không để lỗi storage hoặc browser/webview khiến guard treo vô thời hạn.
+    const fallbackTimer = window.setTimeout(goToLogin, 3000);
+
+    try {
+      if (isAdminAuthenticated()) {
+        settled = true;
+        window.clearTimeout(fallbackTimer);
+        setStatus('ok');
+      } else {
+        window.clearTimeout(fallbackTimer);
+        goToLogin();
+      }
+    } catch {
+      window.clearTimeout(fallbackTimer);
+      goToLogin();
     }
-    setStatus('unauth');
-    window.location.replace('/admin/login');
+
+    return () => {
+      settled = true;
+      window.clearTimeout(fallbackTimer);
+    };
   }, []);
 
   if (status === 'ok') return <>{children}</>;
@@ -29,7 +53,7 @@ export function AdminGuard({ children }: { children: ReactNode }) {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center gap-3 bg-muted/30 px-4 text-center text-sm text-muted-foreground">
       {status === 'checking' ? (
-        <span>Đang kiểm tra phiên đăng nhập…</span>
+        <MeltingIceCreamLoader label="Đang kiểm tra phiên đăng nhập…" />
       ) : (
         <>
           <span>Bạn cần đăng nhập quản trị để tiếp tục.</span>

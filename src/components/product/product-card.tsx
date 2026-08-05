@@ -17,7 +17,7 @@ export function ProductCard({ product }: ProductCardProps) {
           <div className="flex h-full items-center justify-center rounded-lg bg-muted text-muted-foreground">🍦</div>
         )}
       </div>
-      <h3 className="mt-4 font-display text-xl font-bold">{product.name}</h3>
+      <h3 className="mt-4 font-sans text-xl font-bold">{product.name}</h3>
     </Link>
   );
 }

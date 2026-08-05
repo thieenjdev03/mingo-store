@@ -20,7 +20,7 @@ export async function SiteFooter() {
 
   return (
     <footer className="bg-white text-[#563e2b]">
-      <div className="mx-auto grid max-w-[1200px] gap-10 px-5 py-10 sm:grid-cols-2 sm:px-8 lg:h-[335px] lg:grid-cols-[120px_120px_155px_1fr] lg:gap-[31px] lg:py-6 xl:px-0">
+      <div className="mx-auto grid h-auto max-w-[1200px] items-start gap-10 px-5 py-10 sm:grid-cols-2 sm:px-8 lg:grid-cols-[120px_120px_155px_1fr] lg:gap-[31px] lg:py-6 xl:px-0">
         <div>
           <h3 className="mb-3 text-[14px] font-bold uppercase leading-8 lg:text-[16px]">{t('aboutTitle')}</h3>
           <ul>

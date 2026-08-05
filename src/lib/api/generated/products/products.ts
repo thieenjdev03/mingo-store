@@ -22,10 +22,8 @@ import type {
   ProductListDto,
   ProductResponseDto,
   ProductsControllerCreateParams,
-  ProductsControllerFindAllAdminParams,
   ProductsControllerFindAllParams,
   ProductsControllerFindBySlugParams,
-  ProductsControllerFindOneAdminParams,
   ProductsControllerFindOneParams,
   ProductsControllerSearchParams,
   ProductsControllerUpdateParams,
@@ -198,87 +196,6 @@ export const useProductsControllerFindBySlug = <TError = void>(
   const isEnabled = swrOptions?.enabled !== false && !!(slug)
   const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getProductsControllerFindBySlugKey(slug,params) : null);
   const swrFn = () => productsControllerFindBySlug(slug,params)
-
-  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
-
-  return {
-    swrKey,
-    ...query
-  }
-}
-/**
- * @summary Get products with any status for administration
- */
-export const productsControllerFindAllAdmin = (
-    params?: ProductsControllerFindAllAdminParams,
- ) => {
-    return customFetch<ProductListDto>(
-    {url: `/products/admin`, method: 'GET',
-        params
-    },
-    );
-  }
-
-
-
-export const getProductsControllerFindAllAdminKey = (params?: ProductsControllerFindAllAdminParams,) => [`/products/admin`, ...(params ? [params]: [])] as const;
-
-export type ProductsControllerFindAllAdminQueryResult = NonNullable<Awaited<ReturnType<typeof productsControllerFindAllAdmin>>>
-export type ProductsControllerFindAllAdminQueryError = unknown
-
-/**
- * @summary Get products with any status for administration
- */
-export const useProductsControllerFindAllAdmin = <TError = unknown>(
-  params?: ProductsControllerFindAllAdminParams, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof productsControllerFindAllAdmin>>, TError> & { swrKey?: Key, enabled?: boolean },  }
-) => {
-  const {swr: swrOptions} = options ?? {}
-
-  const isEnabled = swrOptions?.enabled !== false
-  const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getProductsControllerFindAllAdminKey(params) : null);
-  const swrFn = () => productsControllerFindAllAdmin(params)
-
-  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
-
-  return {
-    swrKey,
-    ...query
-  }
-}
-/**
- * @summary Get any product by ID for administration
- */
-export const productsControllerFindOneAdmin = (
-    id: string,
-    params: ProductsControllerFindOneAdminParams,
- ) => {
-    return customFetch<ProductResponseDto>(
-    {url: `/products/admin/${id}`, method: 'GET',
-        params
-    },
-    );
-  }
-
-
-
-export const getProductsControllerFindOneAdminKey = (id: string,
-    params: ProductsControllerFindOneAdminParams,) => [`/products/admin/${id}`, ...(params ? [params]: [])] as const;
-
-export type ProductsControllerFindOneAdminQueryResult = NonNullable<Awaited<ReturnType<typeof productsControllerFindOneAdmin>>>
-export type ProductsControllerFindOneAdminQueryError = unknown
-
-/**
- * @summary Get any product by ID for administration
- */
-export const useProductsControllerFindOneAdmin = <TError = unknown>(
-  id: string,
-    params: ProductsControllerFindOneAdminParams, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof productsControllerFindOneAdmin>>, TError> & { swrKey?: Key, enabled?: boolean },  }
-) => {
-  const {swr: swrOptions} = options ?? {}
-
-  const isEnabled = swrOptions?.enabled !== false && !!(id)
-  const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getProductsControllerFindOneAdminKey(id,params) : null);
-  const swrFn = () => productsControllerFindOneAdmin(id,params)
 
   const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
 

@@ -7,6 +7,8 @@ import type {
 
 export type ProductDetailApiDto = ProductResponseDto & {
   nutrition_information?: string | null;
+  usage_instructions?: string | null;
+  notes?: string | null;
 };
 
 /**
@@ -17,6 +19,23 @@ export type ProductDetailApiDto = ProductResponseDto & {
 
 export function getProducts(params?: ProductsControllerFindAllParams): Promise<ProductListDto> {
   return customFetch<ProductListDto>({ url: '/products', method: 'GET', params, cache: 'no-store' });
+}
+
+/** Fetch the complete product list for catalog pages that do not expose pagination controls. */
+export async function getAllProducts(
+  params: Omit<ProductsControllerFindAllParams, 'page' | 'limit'> = {},
+): Promise<ProductResponseDto[]> {
+  const limit = 100;
+  const first = await getProducts({ ...params, page: 1, limit });
+  const totalPages = Math.max(1, first.meta?.totalPages ?? 1);
+  if (totalPages === 1) return first.data;
+
+  const rest = await Promise.all(
+    Array.from({ length: totalPages - 1 }, (_, index) =>
+      getProducts({ ...params, page: index + 2, limit }),
+    ),
+  );
+  return [first, ...rest].flatMap((page) => page.data);
 }
 
 export async function getProductBySlug(slug: string, locale: string): Promise<ProductDetailApiDto | null> {
@@ -69,18 +88,24 @@ export async function getCollectionCatalog(
   );
   if (!collection) return null;
 
-  const products = await customFetch<CursorPage<ProductResponseDto>>({
-    url: `/collections/${encodeURIComponent(collection.id)}/products`,
-    method: 'GET',
-    params: { limit: 100, locale },
-    cache: 'no-store',
-  });
+  const products: ProductResponseDto[] = [];
+  let cursor: string | undefined;
+  do {
+    const page = await customFetch<CursorPage<ProductResponseDto>>({
+      url: `/collections/${encodeURIComponent(collection.id)}/products`,
+      method: 'GET',
+      params: { limit: 100, locale, ...(cursor ? { cursor } : {}) },
+      cache: 'no-store',
+    });
+    products.push(...page.items);
+    cursor = page.nextCursor ?? undefined;
+  } while (cursor);
 
   return {
     id: collection.id,
     name: collection.name,
     slug: collection.slug,
     description: collection.description ?? null,
-    products: products.items,
+    products,
   };
 }

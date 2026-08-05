@@ -69,7 +69,7 @@ export function OrderHistory({ orders }: { orders: OrderView[] | null }) {
                       ) : <ShoppingBag className="size-5 text-muted-foreground" aria-hidden="true" />}
                     </span>
                     <div className="min-w-0 flex-1">
-                      <p className="truncate font-semibold text-foreground">{item.productName}</p>
+                      <p className="truncate font-sans font-semibold text-foreground">{item.productName}</p>
                       <p className="text-sm text-muted-foreground">{t('quantityShort', { count: item.quantity })}</p>
                     </div>
                     <span className="shrink-0 text-sm font-semibold text-foreground">{fCurrencyVND(Number(item.totalPrice))}</span>

@@ -1,15 +1,17 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
 import { LayoutGrid, LogOut, Mail, Package, ShoppingBag, type LucideIcon } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { Link, useRouter } from '@/i18n/navigation';
 import { meControllerGetMe } from '@/lib/api/generated/me/me';
 import { getMyOrders } from '@/features/checkout/api';
+import { updateMyProfile, type UpdateMyProfilePayload } from './api';
 import { getAccessToken, clearAccessToken } from '@/lib/auth/token';
 import { CustomerAuthForm } from './customer-auth-form';
 import { OrderHistory, type MyOrder } from './order-history';
 import { toAccountView, type AccountView } from './types';
+import { MeltingIceCreamLoader } from '@/components/ui/melting-ice-cream-loader';
 
 export function AccountPageView() {
   const t = useTranslations('account');
@@ -20,6 +22,17 @@ export function AccountPageView() {
   const [orders, setOrders] = useState<MyOrder[] | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
+  const [editingProfile, setEditingProfile] = useState(false);
+  const [savingProfile, setSavingProfile] = useState(false);
+  const [profileError, setProfileError] = useState(false);
+  const [profileSaved, setProfileSaved] = useState(false);
+  const [profileDraft, setProfileDraft] = useState<UpdateMyProfilePayload>({
+    email: '',
+    firstName: '',
+    lastName: '',
+    phoneNumber: '',
+    country: '',
+  });
 
   useEffect(() => {
     setToken(getAccessToken() ?? '');
@@ -62,15 +75,64 @@ export function AccountPageView() {
     };
   }, [token]);
 
+  useEffect(() => {
+    if (!account) return;
+    setProfileDraft({
+      email: account.email,
+      firstName: account.firstName,
+      lastName: account.lastName,
+      phoneNumber: account.phoneNumber,
+      country: account.country,
+    });
+  }, [account]);
+
   function handleLogout() {
     clearAccessToken();
     setToken('');
     setAccount(null);
+    setEditingProfile(false);
     router.push('/login');
   }
 
+  function startEditingProfile() {
+    if (!account) return;
+    setProfileDraft({
+      email: account.email,
+      firstName: account.firstName,
+      lastName: account.lastName,
+      phoneNumber: account.phoneNumber,
+      country: account.country,
+    });
+    setProfileError(false);
+    setProfileSaved(false);
+    setEditingProfile(true);
+  }
+
+  async function handleProfileSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setSavingProfile(true);
+    setProfileError(false);
+    setProfileSaved(false);
+    try {
+      const updated = await updateMyProfile({
+        email: profileDraft.email.trim(),
+        firstName: profileDraft.firstName.trim(),
+        lastName: profileDraft.lastName.trim(),
+        phoneNumber: profileDraft.phoneNumber.trim(),
+        country: profileDraft.country.trim(),
+      });
+      setAccount(toAccountView(updated));
+      setEditingProfile(false);
+      setProfileSaved(true);
+    } catch {
+      setProfileError(true);
+    } finally {
+      setSavingProfile(false);
+    }
+  }
+
   if (token === null || loading) {
-    return <div className="bg-cream py-20 text-center text-muted-foreground">{t('title')}…</div>;
+    return <div className="bg-cream py-20"><MeltingIceCreamLoader label={`${t('title')}…`} /></div>;
   }
 
   if (!token || !account) {
@@ -92,6 +154,7 @@ export function AccountPageView() {
     { label: t('email'), value: account.email },
     { label: t('phone'), value: account.phoneNumber || t('notProvided') },
     { label: t('birthDate'), value: t('notProvided') },
+    { label: t('country'), value: account.country || t('notProvided') },
     { label: t('address'), value: account.addressSummary ?? t('notProvided') },
   ];
 
@@ -172,21 +235,84 @@ export function AccountPageView() {
                   <h2 className="text-lg font-bold">{t('accountDetails')}</h2>
                   <p className="mt-1 text-xs font-bold uppercase tracking-wide text-muted-foreground">{t('accountDetailsSubtitle')}</p>
                 </div>
-                <button type="button" className="text-sm font-bold text-primary hover:text-primary-dark">
-                  {t('edit')}
-                </button>
+                {!editingProfile ? (
+                  <button type="button" onClick={startEditingProfile} className="text-sm font-bold text-primary hover:text-primary-dark">
+                    {t('edit')}
+                  </button>
+                ) : null}
               </div>
-              <dl className="mt-5 grid gap-x-6 gap-y-5 sm:grid-cols-2">
-                {accountDetails.map((item) => (
-                  <div key={item.label}>
-                    <dt className="text-xs font-bold uppercase tracking-wide text-muted-foreground">{item.label}</dt>
-                    <dd className="mt-1.5 font-semibold text-foreground">{item.value}</dd>
+              {editingProfile ? (
+                <form className="mt-5 space-y-5" onSubmit={handleProfileSubmit}>
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <label className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
+                      {t('firstName')}
+                      <input
+                        value={profileDraft.firstName}
+                        onChange={(event) => setProfileDraft((current) => ({ ...current, firstName: event.target.value }))}
+                        className="mt-2 h-11 w-full rounded-lg border border-border bg-background px-3 text-sm font-medium normal-case tracking-normal text-foreground outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
+                      />
+                    </label>
+                    <label className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
+                      {t('lastName')}
+                      <input
+                        value={profileDraft.lastName}
+                        onChange={(event) => setProfileDraft((current) => ({ ...current, lastName: event.target.value }))}
+                        className="mt-2 h-11 w-full rounded-lg border border-border bg-background px-3 text-sm font-medium normal-case tracking-normal text-foreground outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
+                      />
+                    </label>
                   </div>
-                ))}
-              </dl>
+                  <label className="block text-xs font-bold uppercase tracking-wide text-muted-foreground">
+                    {t('email')}
+                    <input
+                      type="email"
+                      required
+                      value={profileDraft.email}
+                      onChange={(event) => setProfileDraft((current) => ({ ...current, email: event.target.value }))}
+                      className="mt-2 h-11 w-full rounded-lg border border-border bg-background px-3 text-sm font-medium normal-case tracking-normal text-foreground outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
+                    />
+                  </label>
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <label className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
+                      {t('phone')}
+                      <input
+                        value={profileDraft.phoneNumber}
+                        onChange={(event) => setProfileDraft((current) => ({ ...current, phoneNumber: event.target.value }))}
+                        className="mt-2 h-11 w-full rounded-lg border border-border bg-background px-3 text-sm font-medium normal-case tracking-normal text-foreground outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
+                      />
+                    </label>
+                    <label className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
+                      {t('country')}
+                      <input
+                        value={profileDraft.country}
+                        onChange={(event) => setProfileDraft((current) => ({ ...current, country: event.target.value }))}
+                        className="mt-2 h-11 w-full rounded-lg border border-border bg-background px-3 text-sm font-medium normal-case tracking-normal text-foreground outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
+                      />
+                    </label>
+                  </div>
+                  {profileError ? <p className="text-sm font-semibold text-destructive">{t('updateError')}</p> : null}
+                  <div className="flex flex-wrap justify-end gap-3">
+                    <button type="button" onClick={() => setEditingProfile(false)} disabled={savingProfile} className="rounded-full border border-border px-5 py-2.5 text-sm font-bold text-foreground transition hover:bg-background disabled:opacity-50">
+                      {t('cancel')}
+                    </button>
+                    <button type="submit" disabled={savingProfile} className="rounded-full bg-primary px-5 py-2.5 text-sm font-bold text-primary-foreground transition hover:bg-primary-dark disabled:opacity-50">
+                      {savingProfile ? '…' : t('save')}
+                    </button>
+                  </div>
+                </form>
+              ) : (
+                <dl className="mt-5 grid gap-x-6 gap-y-5 sm:grid-cols-2">
+                  {accountDetails.map((item) => (
+                    <div key={item.label}>
+                      <dt className="text-xs font-bold uppercase tracking-wide text-muted-foreground">{item.label}</dt>
+                      <dd className="mt-1.5 font-semibold text-foreground">{item.value}</dd>
+                    </div>
+                  ))}
+                </dl>
+              )}
+              {profileSaved && !editingProfile ? <p className="mt-4 text-sm font-semibold text-emerald-700">{t('updateSuccess')}</p> : null}
           </section>
 
-          {/* Lịch sử đơn hàng — dữ liệu thật từ /me/orders */}
+          {/* Lịch sử đơn hàng — dữ liệu thật từ /orders/my-orders */}
           <OrderHistory orders={orders} />
         </main>
       </div>

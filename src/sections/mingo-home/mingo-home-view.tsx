@@ -5,44 +5,46 @@ import { getMockupBySlug, toMockupProductDto } from '@/features/product/mockup-c
 import { toProductCardView, type ProductCardView } from '@/features/product/types';
 import { HeroCarousel } from './hero/hero-carousel';
 import { MustTrySection } from './must-try/must-try-section';
+import { BrandShowcase } from '@/sections/brands/brand-showcase';
 
 export async function MingoHomeView({ locale }: { locale: Locale }) {
-  const [homeResult, tHome] = await Promise.all([
-    getStorefrontHome(locale).then(
-      (home) => ({ home, failed: false as const }),
-      () => ({
-        home: { heroes: [], sections: [] },
-        failed: true as const,
-      }),
-    ),
+  const [home, tHome, tProducts, tBrands] = await Promise.all([
+    getStorefrontHome(locale).catch(() => ({ heroes: [], sections: [] })),
     getTranslations('home'),
+    getTranslations('products'),
+    getTranslations('pages.brands'),
   ]);
 
-  const mustTrySections = homeResult.home.sections.filter(
-    (section) => section.homepageSection === 'must_try',
-  );
+  const { heroes, sections } = home;
+  const viewAllLabel = tProducts('viewAll');
   const fallbackProducts = makeFallbackProducts(locale);
 
   return (
     <>
-      {/* Fallback bật khi API lỗi HOẶC chưa có collection nào đặt placement=HERO —
-          cả hai trường hợp API không đóng góp banner nào, nên không có gì để "trộn"
-          với campaign local, và hiện banner thiết kế sẵn vẫn hơn một khung trống. */}
-      <HeroCarousel
-        banners={homeResult.home.heroes}
-        useLocalFallback={homeResult.failed || homeResult.home.heroes.length === 0}
-      />
-      {mustTrySections.length > 0 ? (
-        mustTrySections.map((section) => (
+      {/* Banner cứng có sẵn luôn hiển thị; banner do admin tạo (nếu có) nối tiếp phía sau. */}
+      <HeroCarousel banners={heroes} />
+      {sections.length > 0 ? (
+        sections.map((section) => (
           <MustTrySection
             key={section.id}
             title={section.title}
             products={section.products}
+            href={`/collections/${section.slug}`}
+            viewAllLabel={viewAllLabel}
           />
         ))
       ) : (
         <MustTrySection title={tHome('mustTry')} products={fallbackProducts} />
       )}
+      <BrandShowcase
+        eyebrow={tBrands('eyebrow')}
+        title={tBrands('title')}
+        joyTitle={tBrands('joy.title')}
+        joyParagraphOne={tBrands('joy.paragraphOne')}
+        joyParagraphTwo={tBrands('joy.paragraphTwo')}
+        exploreCta={tBrands('joy.exploreCta')}
+        aboutCta={tBrands('joy.aboutCta')}
+      />
     </>
   );
 }

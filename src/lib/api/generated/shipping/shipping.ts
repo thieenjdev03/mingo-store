@@ -17,55 +17,12 @@ import type {
   SWRMutationConfiguration
 } from 'swr/mutation';
 
-import type {
-  ShippingQuoteDto
-} from '../ecomAPI.schemas';
-
 import { customFetch } from '../../fetcher';
 
 
   
   
   
-export const shippingControllerQuote = (
-    shippingQuoteDto: ShippingQuoteDto,
- ) => {
-    return customFetch<void>(
-    {url: `/shipping/quote`, method: 'POST',
-      headers: {'Content-Type': 'application/json', },
-      data: shippingQuoteDto
-    },
-    );
-  }
-
-
-
-export const getShippingControllerQuoteMutationFetcher = ( ) => {
-  return (_: Key, { arg }: { arg: ShippingQuoteDto }) => {
-    return shippingControllerQuote(arg);
-  }
-}
-export const getShippingControllerQuoteMutationKey = () => [`/shipping/quote`] as const;
-
-export type ShippingControllerQuoteMutationResult = NonNullable<Awaited<ReturnType<typeof shippingControllerQuote>>>
-export type ShippingControllerQuoteMutationError = unknown
-
-export const useShippingControllerQuote = <TError = unknown>(
-   options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof shippingControllerQuote>>, TError, Key, ShippingQuoteDto, Awaited<ReturnType<typeof shippingControllerQuote>>> & { swrKey?: string }, }
-) => {
-
-  const {swr: swrOptions} = options ?? {}
-
-  const swrKey = swrOptions?.swrKey ?? getShippingControllerQuoteMutationKey();
-  const swrFn = getShippingControllerQuoteMutationFetcher();
-
-  const query = useSWRMutation(swrKey, swrFn, swrOptions)
-
-  return {
-    swrKey,
-    ...query
-  }
-}
 export const shippingControllerGetPrice = (
     
  ) => {

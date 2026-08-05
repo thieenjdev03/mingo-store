@@ -6,15 +6,28 @@ const TOKEN_KEY = 'mingo-access-token';
 
 export function getAccessToken(): string | null {
   if (typeof window === 'undefined') return null;
-  return window.localStorage.getItem(TOKEN_KEY);
+  try {
+    return window.localStorage.getItem(TOKEN_KEY);
+  } catch {
+    // Một số môi trường trình duyệt có thể chặn localStorage (privacy mode/webview).
+    return null;
+  }
 }
 
 export function setAccessToken(token: string): void {
   if (typeof window === 'undefined') return;
-  window.localStorage.setItem(TOKEN_KEY, token);
+  try {
+    window.localStorage.setItem(TOKEN_KEY, token);
+  } catch {
+    // Guard sẽ đưa người dùng về login nếu phiên không thể được lưu.
+  }
 }
 
 export function clearAccessToken(): void {
   if (typeof window === 'undefined') return;
-  window.localStorage.removeItem(TOKEN_KEY);
+  try {
+    window.localStorage.removeItem(TOKEN_KEY);
+  } catch {
+    // Không chặn luồng logout nếu storage không khả dụng.
+  }
 }

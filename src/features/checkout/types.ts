@@ -1,3 +1,25 @@
+/**
+ * TẦNG 1 (khai báo tay) — backend chưa có module /checkout, /shipping/quote nên các DTO
+ * đầu vào này chưa có trong `@/lib/api/generated`. Frontend chạy trước backend.
+ */
+export interface ShippingQuoteDto {
+  province_code: string;
+  district_code: string;
+}
+
+export interface CheckoutQuoteDto {
+  shipping_address_id: string;
+  province_code: string;
+  district_code: string;
+}
+
+export interface CreateCheckoutOrderDto {
+  shipping_address_id: string;
+  province_code: string;
+  district_code: string;
+  notes?: string;
+}
+
 export type ShippingZone = 'INNER_CITY' | 'OUTER_CITY';
 export type FulfillmentType = 'DIRECT' | 'DEALER';
 export type PaymentStatus = 'PENDING' | 'PAID' | 'FAILED';

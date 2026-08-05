@@ -4,7 +4,7 @@ import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { getCollectionCatalog } from '@/features/product/api';
 import { toProductCardView } from '@/features/product/types';
 import { routing } from '@/i18n/routing';
-import { ProductShowcaseGrid } from '@/sections/products/product-showcase-grid';
+import { MustTrySection } from '@/sections/mingo-home/must-try/must-try-section';
 
 export default async function CollectionPage({
   params,
@@ -19,14 +19,16 @@ export default async function CollectionPage({
   const t = await getTranslations('products');
 
   return (
-    <div className="bg-fog">
-      <section className="flex min-h-[360px] flex-col items-center justify-center bg-butter px-5 py-16 text-center sm:min-h-[420px]">
-        <h1 className="font-display text-[40px] font-bold leading-none text-foreground sm:text-[48px] lg:text-[56px]">{collection.name}</h1>
-        {collection.description ? <p className="mt-5 max-w-2xl text-foreground/70">{collection.description}</p> : null}
-      </section>
-      <section className="min-h-[560px] bg-fog py-16 sm:py-20 lg:py-24">
-        <ProductShowcaseGrid products={collection.products.map((product) => toProductCardView(product, safeLocale))} outOfStockLabel={t('outOfStock')} />
-      </section>
+    <div className="bg-background">
+      {collection.products.length > 0 ? (
+        <MustTrySection
+          title={collection.name}
+          description={collection.description}
+          products={collection.products.map((product) => toProductCardView(product, safeLocale))}
+        />
+      ) : (
+        <p className="mx-auto max-w-xl px-5 py-24 text-center text-muted-foreground">{t('empty')}</p>
+      )}
     </div>
   );
 }

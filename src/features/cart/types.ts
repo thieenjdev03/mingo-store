@@ -1,4 +1,36 @@
-import type { CartResponseDto } from '@/lib/api/generated/ecomAPI.schemas';
+/**
+ * TẦNG 1 (khai báo tay) — backend chưa có module /cart nên các DTO này chưa có trong
+ * `@/lib/api/generated`. Frontend chạy trước; khi backend build xong sẽ chuyển sang type generated.
+ */
+export interface CartResponseDto {
+  id: string;
+  items: {
+    id: string;
+    quantity: number;
+    unitPrice: number | string;
+    lineTotal: number | string;
+    product: {
+      id: string;
+      name: string;
+      slug: string;
+      image: string | null;
+      stock: number | string;
+      available: boolean;
+    };
+  }[];
+  subtotal: number | string;
+  totalQuantity: number | string;
+  valid: boolean;
+}
+
+export interface AddCartItemDto {
+  productId: string;
+  quantity: number;
+}
+
+export interface UpdateCartItemDto {
+  quantity: number;
+}
 
 export interface CartProductView {
   id: string;

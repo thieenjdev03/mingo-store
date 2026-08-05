@@ -8,7 +8,8 @@ import { fWeight } from '@/lib/format';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { PurchasePanel } from '@/features/product/purchase-panel';
 import { RelatedProducts } from '@/features/product/related-products';
-import { getProductBySlug, getProducts } from '@/features/product/api';
+import { getCollectionCatalog, getProductBySlug } from '@/features/product/api';
+import { getMockupBySlug, toMockupProductDto } from '@/features/product/mockup-catalog';
 import { toProductCardView, toProductDetailView } from '@/features/product/types';
 import { routing } from '@/i18n/routing';
 import { Link } from '@/i18n/navigation';
@@ -30,18 +31,19 @@ export default async function ProductDetailPage({
   const safeLocale = hasLocale(routing.locales, locale) ? locale : routing.defaultLocale;
   const t = await getTranslations('product');
 
-  const apiProduct = await getProductBySlug(slug, safeLocale).catch(() => null);
+  // Backend chưa seed sản phẩm -> fallback sang mockup catalog để PDP (kèm mô tả HTML) vẫn hiển thị.
+  const mockup = getMockupBySlug(slug);
+  const apiProduct =
+    (await getProductBySlug(slug, safeLocale).catch(() => null)) ??
+    (mockup ? toMockupProductDto(mockup, safeLocale) : null);
   if (!apiProduct) notFound();
   const product = toProductDetailView(apiProduct, safeLocale);
 
-  const suggestionsResponse = await getProducts({
-    locale: safeLocale,
-    status: 'active',
-    page: 1,
-    limit: 5,
-  }).catch(() => null);
-  const suggestions = (suggestionsResponse?.data ?? [])
-    .filter((item) => item.id !== product.id)
+  const collectionCatalog = product.collectionSlug
+    ? await getCollectionCatalog(product.collectionSlug, safeLocale).catch(() => null)
+    : null;
+  const suggestions = (collectionCatalog?.products ?? [])
+    .filter((item) => item.id !== product.id && item.status === 'active')
     .slice(0, 4)
     .map((item) => toProductCardView(item, safeLocale));
 
@@ -78,7 +80,7 @@ export default async function ProductDetailPage({
               {breadcrumbCollection}
             </p>
           ) : null}
-          <h1 className="mt-4 text-[28px] font-bold leading-[34px] text-[#653819] lg:mt-[30px] lg:text-[60px] lg:leading-[60px]">
+          <h1 className="mt-4 font-sans text-[28px] font-bold leading-[34px] text-[#653819] lg:mt-[30px] lg:text-[60px] lg:leading-[60px]">
             {product.name}
           </h1>
           <div className="mt-4 flex flex-wrap gap-2 lg:mt-[30px] lg:gap-[25px]">
@@ -100,7 +102,13 @@ export default async function ProductDetailPage({
               <AccordionTrigger className="py-4 text-[16px] leading-6 lg:py-[15px] lg:text-[24px]">
                 {t('description')}
               </AccordionTrigger>
-              <AccordionContent>{product.descriptionMarkdown || t('notProvided')}</AccordionContent>
+              <AccordionContent>
+                {product.descriptionHtml ? (
+                  <div className={richHtmlClass} dangerouslySetInnerHTML={{ __html: product.descriptionHtml }} />
+                ) : (
+                  t('notProvided')
+                )}
+              </AccordionContent>
             </AccordionItem>
             <AccordionItem value="ingredients" className="border-b border-[#563e2b]">
               <AccordionTrigger className="py-4 text-[16px] leading-6 lg:py-[15px] lg:text-[24px]">
@@ -110,23 +118,34 @@ export default async function ProductDetailPage({
                 {product.allergensHtml ? (
                   <div className={richHtmlClass} dangerouslySetInnerHTML={{ __html: product.allergensHtml }} />
                 ) : null}
-                {product.nutritionHtml ? (
-                  <div className={`${richHtmlClass} mt-4`} dangerouslySetInnerHTML={{ __html: product.nutritionHtml }} />
-                ) : null}
-                {!product.allergensHtml && !product.nutritionHtml ? t('notProvided') : null}
+                {!product.allergensHtml ? t('notProvided') : null}
               </AccordionContent>
             </AccordionItem>
             <AccordionItem value="usage" className="border-b border-[#563e2b]">
               <AccordionTrigger className="py-4 text-[16px] leading-6 lg:py-[15px] lg:text-[24px]">
                 {t('usage')}
               </AccordionTrigger>
-              <AccordionContent>{t('notProvided')}</AccordionContent>
+              <AccordionContent>
+                {product.usageHtml ? (
+                  <div className={richHtmlClass} dangerouslySetInnerHTML={{ __html: product.usageHtml }} />
+                ) : (
+                  t('notProvided')
+                )}
+              </AccordionContent>
             </AccordionItem>
             <AccordionItem value="notes" className="border-b border-[#563e2b]">
               <AccordionTrigger className="py-4 text-[16px] leading-6 lg:py-[15px] lg:text-[24px]">
                 {t('notes')}
               </AccordionTrigger>
-              <AccordionContent>{product.barcode ?? t('notProvided')}</AccordionContent>
+              <AccordionContent>
+                {product.notesHtml ? (
+                  <div className={richHtmlClass} dangerouslySetInnerHTML={{ __html: product.notesHtml }} />
+                ) : product.barcode ? (
+                  product.barcode
+                ) : (
+                  t('notProvided')
+                )}
+              </AccordionContent>
             </AccordionItem>
           </Accordion>
         </div>

@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import useSWR from 'swr';
 import { Dialog } from '@/components/admin/ui/dialog';
+import { MeltingIceCreamLoader } from '@/components/ui/melting-ice-cream-loader';
 import { Field } from '@/components/admin/ui/field';
 import { Input } from '@/components/admin/ui/input';
 import { Textarea } from '@/components/admin/ui/textarea';
@@ -20,7 +21,7 @@ import {
   PAYMENT_STATUS_LABEL,
   paymentStatusTone,
 } from './api';
-import { ORDER_STATUS_LABEL, orderStatusTone, nextOrderStatuses, type OrderStatus } from './status';
+import { ORDER_STATUS_LABEL, orderStatusTone, selectableOrderStatuses, type OrderStatus } from './status';
 
 const money = (value: string | number | undefined) => fCurrencyVND(Number(value ?? 0));
 
@@ -94,7 +95,7 @@ export function OrderDetailDialog({ open, onOpenChange, orderId, onChanged }: Pr
       className="max-w-3xl"
     >
       {isLoading || !order ? (
-        <p className="py-8 text-center text-sm text-muted-foreground">Đang tải…</p>
+        <div className="py-5"><MeltingIceCreamLoader size="sm" /></div>
       ) : (
         <div className="flex flex-col gap-6">
           {/* Hai trạng thái tách bạch: đơn và thanh toán. Gộp chung là nguồn nhầm lẫn lớn nhất. */}
@@ -245,7 +246,7 @@ export function OrderDetailDialog({ open, onOpenChange, orderId, onChanged }: Pr
             <div className="flex flex-wrap items-end gap-2">
               <NativeSelect fitContent value={toStatus} onChange={(e) => setToStatus(e.target.value)}>
                 <option value="">— Chọn trạng thái —</option>
-                {nextOrderStatuses(order.status).map((s) => (
+                {selectableOrderStatuses(order.status).map((s) => (
                   <option key={s} value={s}>{ORDER_STATUS_LABEL[s]}</option>
                 ))}
               </NativeSelect>

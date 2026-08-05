@@ -253,10 +253,11 @@ Có thể tìm theo tên, lọc theo danh mục, trạng thái và chuyển tran
 
 | Trạng thái | Ý nghĩa vận hành |
 |---|---|
-| Đang bán (`active`) | Có thể xuất hiện và mua nếu tồn kho lớn hơn 0 |
+| Đăng bán (`active`) | Có thể xuất hiện và mua nếu tồn kho lớn hơn 0 |
 | Nháp (`draft`) | Chưa sẵn sàng công bố |
 | Ẩn (`inactive`) | Tạm ngừng hiển thị/bán |
-| Hết hàng (`out_of_stock`) | Không thể mua |
+
+Hai trạng thái cũ `out_of_stock` và `discontinued` chỉ còn để đọc dữ liệu lịch sử, không xuất hiện khi tạo/lọc sản phẩm mới.
 
 Để sản phẩm có thể mua trên storefront, cần đồng thời:
 
@@ -274,7 +275,8 @@ Có thể tìm theo tên, lọc theo danh mục, trạng thái và chuyển tran
 6. Chọn trạng thái.
 7. Bật/tắt các cờ **Nổi bật** và **Hiện nhãn giảm giá**.
 8. Thêm biến thể theo quy cách nếu sản phẩm có nhiều kiểu đóng gói.
-9. Chọn **Lưu**.
+9. Chọn **Xem trước** để kiểm tra nội dung trước khi upload sản phẩm chính thức.
+10. Chọn **Lưu** khi thông tin đã chính xác.
 
 ### 9.3 Nội dung song ngữ
 
@@ -282,8 +284,12 @@ Có thể tìm theo tên, lọc theo danh mục, trạng thái và chuyển tran
 |---|---|
 | Tên sản phẩm | Product name |
 | Slug | Slug |
-| Mô tả ngắn | Short description |
-| Mô tả | Description |
+| Thành phần & chất gây dị ứng (HTML) | Ingredients & allergen information (HTML) |
+| Hướng dẫn sử dụng (HTML) | Usage instructions (HTML) |
+| Mô tả (HTML) | Description (HTML) |
+| Chú ý (HTML) | Notes (HTML) |
+
+Các field nội dung cho phép HTML trình bày như `<p>`, `<strong>`, `<ul>`, `<ol>` và `<li>`. Backend sẽ lọc thẻ nguy hiểm trước khi lưu. API mới dùng `usage_instructions`; key cũ `nutrition_information` vẫn được nhận và trả về để giữ tương thích dữ liệu cũ.
 
 Tên tiếng Anh ban đầu được điền theo tên tiếng Việt cho tới khi người dùng sửa tab English. Nên thay bằng bản dịch thật trước khi công bố.
 
@@ -820,8 +826,9 @@ Nếu dữ liệu hero từ API không có hoặc API lỗi, hệ thống dùng 
    - ảnh;
    - giá;
    - mô tả;
-   - thành phần và dinh dưỡng nếu có;
+   - thành phần và chất gây dị ứng nếu có;
    - hướng dẫn sử dụng;
+   - chú ý và bảo quản nếu có;
    - cảnh báo/chất gây dị ứng nếu có;
    - sản phẩm gợi ý.
 

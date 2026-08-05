@@ -1,15 +1,14 @@
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { hasLocale } from 'next-intl';
-import { Link } from '@/i18n/navigation';
 import { getProducts } from '@/features/product/api';
-import { toProductCardView } from '@/features/product/types';
+import { toProductCardView, type ProductCardView } from '@/features/product/types';
 import { routing } from '@/i18n/routing';
-import { ProductShowcaseGrid, type ProductListCard } from '@/sections/products/product-showcase-grid';
+import { MustTrySection } from '@/sections/mingo-home/must-try/must-try-section';
 
 interface CategorySection {
   slug: string;
   name: string;
-  products: ProductListCard[];
+  products: ProductCardView[];
 }
 
 export const dynamic = 'force-dynamic';
@@ -34,7 +33,6 @@ export default async function ProductListPage({ params }: { params: Promise<{ lo
       };
       section.products.push({
         ...view,
-        categoryName: product.category?.name ?? null,
       });
       apiByCategory.set(slug, section);
     }
@@ -58,15 +56,13 @@ export default async function ProductListPage({ params }: { params: Promise<{ lo
           <p className="mx-auto max-w-xl px-5 text-center text-muted-foreground">{loadFailed ? t('loadError') : t('empty')}</p>
         ) : null}
         {sections.map((section) => (
-          <section key={section.slug}>
-            <div className="mx-auto mb-6 flex max-w-[1200px] items-baseline justify-between gap-4 px-5 sm:mb-8 sm:px-8 min-[1264px]:px-0">
-              <h2 className="font-display text-2xl font-bold text-foreground sm:text-3xl">{section.name}</h2>
-              {section.slug !== 'other' ? (
-                <Link href={`/categories/${section.slug}`} className="shrink-0 text-sm font-bold uppercase tracking-[0.12em] text-primary transition-colors hover:text-primary/70">{t('viewAll')}</Link>
-              ) : null}
-            </div>
-            <ProductShowcaseGrid products={section.products} outOfStockLabel={t('outOfStock')} />
-          </section>
+          <MustTrySection
+            key={section.slug}
+            title={section.name}
+            products={section.products}
+            href={section.slug !== 'other' ? `/categories/${section.slug}` : undefined}
+            viewAllLabel={t('viewAll')}
+          />
         ))}
       </div>
     </div>

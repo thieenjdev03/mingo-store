@@ -1,11 +1,12 @@
-import type {
-  AddCartItemDto,
-  CartResponseDto,
-  UpdateCartItemDto,
-} from '@/lib/api/generated/ecomAPI.schemas';
 import { customFetch } from '@/lib/api/fetcher';
 import { getOrCreateCartToken } from './cart-token';
-import { toCartView, type CartView } from './types';
+import {
+  toCartView,
+  type AddCartItemDto,
+  type CartResponseDto,
+  type CartView,
+  type UpdateCartItemDto,
+} from './types';
 
 function cartHeaders(): Record<string, string> {
   return { 'X-Cart-Token': getOrCreateCartToken() };

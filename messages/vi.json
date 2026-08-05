@@ -230,11 +230,18 @@
     "signIn": "Đăng nhập",
     "profile": "Thông tin cá nhân",
     "name": "Họ và tên",
+    "firstName": "Tên",
+    "lastName": "Họ",
     "email": "Email",
     "phone": "Số điện thoại",
+    "country": "Quốc gia",
     "birthDate": "Ngày sinh",
     "address": "Địa chỉ giao hàng",
     "edit": "Chỉnh sửa",
+    "save": "Lưu thay đổi",
+    "cancel": "Hủy",
+    "updateSuccess": "Đã cập nhật thông tin cá nhân.",
+    "updateError": "Không thể cập nhật thông tin. Vui lòng thử lại.",
     "remove": "Xóa",
     "orders": "Đơn hàng gần đây",
     "ordersEmpty": "Bạn chưa có đơn hàng nào.",
@@ -369,6 +376,7 @@
       "cta": "Đặt câu hỏi"
     },
     "brands": {
+      "eyebrow": "our heritage",
       "title": "Thương hiệu",
       "intro": "Khám phá các thương hiệu đồng hành cùng Mingo.",
       "body": "Từ những hương vị quen thuộc đến ý tưởng mới, mỗi thương hiệu đều có một câu chuyện riêng.",
@@ -447,6 +455,9 @@
     "barcode": "Mã vạch",
     "notProvided": "Chưa cập nhật",
     "decreaseQuantity": "Giảm số lượng",
-    "increaseQuantity": "Tăng số lượng"
+    "increaseQuantity": "Tăng số lượng",
+    "variants": "Danh sách biến thể",
+    "skuLabel": "SKU: {sku}",
+    "availableCount": "{count} sản phẩm"
   }
 }

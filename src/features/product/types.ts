@@ -31,13 +31,15 @@ export interface ProductCardView {
 
 export interface ProductDetailView extends ProductCardView {
   images: string[];
-  descriptionMarkdown: string;
+  /** Mô tả HTML đã được backend sanitize. */
+  descriptionHtml: string | null;
   categoryName: string | null;
   /** Khối lượng theo kg (backend), null nếu chưa nhập. */
   weightKg: number | null;
   weightGrams: number | null;
   allergensHtml: string | null;
-  nutritionHtml: string | null;
+  usageHtml: string | null;
+  notesHtml: string | null;
   brandName: string | null;
   brandSlug: string | null;
   barcode: string | null;
@@ -45,15 +47,6 @@ export interface ProductDetailView extends ProductCardView {
   collectionSlug: string | null;
   variants: ProductVariantView[];
   purchasable: boolean;
-}
-
-/** Bỏ tag HTML + gộp khoảng trắng -> text thuần (mô tả sản phẩm import có thể chứa <p>, <br>...). */
-function stripHtml(html: string): string {
-  return html
-    .replace(/<[^>]*>/g, ' ')
-    .replace(/&nbsp;/g, ' ')
-    .replace(/\s+/g, ' ')
-    .trim();
 }
 
 /**
@@ -78,6 +71,17 @@ export function getEffectivePrice(product: Pick<ProductResponseDto, 'price' | 's
   return Number(product.sale_price ?? product.price);
 }
 
+/** Backend chỉ còn `weight` (kg); UI cần gram cho nhãn quy cách. */
+export function weightKgToGrams(weight: number | null | undefined): number | null {
+  return weight != null ? Math.round(Number(weight) * 1000) : null;
+}
+
+/** % giảm giá so với giá gốc (làm tròn). Null khi không có khuyến mãi hợp lệ. */
+export function discountPercent(price: number, compareAtPrice: number | null): number | null {
+  if (compareAtPrice == null || compareAtPrice <= price) return null;
+  return Math.round(((compareAtPrice - price) / compareAtPrice) * 100);
+}
+
 export function toProductCardView(p: ProductResponseDto, locale: Locale): ProductCardView {
   const price = getEffectivePrice(p);
   const firstVariant = p.variants?.[0];
@@ -87,9 +91,10 @@ export function toProductCardView(p: ProductResponseDto, locale: Locale): Produc
     name: resolveLocalized(p.name, locale),
     image: p.images[0] ?? null,
     price,
+    // Giá gạch = giá gốc, chỉ hiện khi đang có giá KM thấp hơn và bật nhãn giảm giá.
     compareAtPrice:
-      p.compare_at_price != null && Number(p.compare_at_price) > price
-        ? Number(p.compare_at_price)
+      p.enable_sale_tag && p.sale_price != null && Number(p.price) > Number(p.sale_price)
+        ? Number(p.price)
         : null,
     stock: Number(p.stock_quantity),
     available: p.status === 'active' && Number(p.stock_quantity) > 0,
@@ -115,14 +120,18 @@ export function toProductDetailView(p: ProductResponseDto, locale: Locale): Prod
     ...toProductCardView(p, locale),
     images: p.images,
     variants,
-    // Mô tả từ backend có thể là HTML (sản phẩm import) — bỏ tag để hiển thị text sạch trong accordion.
-    descriptionMarkdown: stripHtml(resolveLocalized(p.description, locale)),
+    // Backend đã sanitize HTML; giữ markup để hiển thị đúng nội dung quản trị nhập.
+    descriptionHtml: resolveLocalized(p.description, locale) || null,
     categoryName: p.category?.name ?? null,
     weightKg: p.weight ?? null,
-    weightGrams: p.weight_grams ?? null,
+    weightGrams: weightKgToGrams(p.weight),
     allergensHtml: resolveLocalized(p.short_description, locale) || null,
-    nutritionHtml:
-      resolveLocalized((p as ProductDetailApiDto).nutrition_information, locale) || null,
+    usageHtml:
+      resolveLocalized(
+        (p as ProductDetailApiDto).usage_instructions ?? (p as ProductDetailApiDto).nutrition_information,
+        locale,
+      ) || null,
+    notesHtml: resolveLocalized((p as ProductDetailApiDto).notes, locale) || null,
     brandName: p.brand?.name ?? null,
     brandSlug: p.brand?.slug ?? null,
     barcode: p.barcode ?? null,

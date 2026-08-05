@@ -24,7 +24,7 @@ import {
 import { ApplicationDetailDialog } from '@/features/admin/careers/application-detail-dialog';
 import { APPLICATION_STATUSES, APPLICATION_STATUS_LABEL } from '@/features/admin/careers/status';
 
-const PAGE_SIZE = 20;
+const PAGE_SIZE = 10;
 
 export default function AdminCareerApplicationsPage() {
   const { toast } = useToast();

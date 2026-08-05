@@ -59,7 +59,7 @@ export default async function LocaleLayout({
 
   return (
     <html lang={locale} className={`storefront-theme ${mikado.variable} ${workSans.variable}`}>
-      <body className="flex min-h-screen flex-col">
+      <body className="flex min-h-screen flex-col font-display">
         <NextIntlClientProvider>
           <CartProvider>
             <SiteHeader />

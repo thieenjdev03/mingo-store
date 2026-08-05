@@ -12,7 +12,7 @@ import type {
 } from 'swr';
 
 import type {
-  User
+  UserResponseDto
 } from '../ecomAPI.schemas';
 
 import { customFetch } from '../../fetcher';
@@ -27,7 +27,7 @@ import { customFetch } from '../../fetcher';
 export const meControllerGetMe = (
     
  ) => {
-    return customFetch<User>(
+    return customFetch<UserResponseDto>(
     {url: `/me`, method: 'GET'
     },
     );
@@ -51,82 +51,6 @@ export const useMeControllerGetMe = <TError = unknown>(
   const isEnabled = swrOptions?.enabled !== false
   const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getMeControllerGetMeKey() : null);
   const swrFn = () => meControllerGetMe()
-
-  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
-
-  return {
-    swrKey,
-    ...query
-  }
-}
-/**
- * @summary Get orders owned by the authenticated customer
- */
-export const meOrdersControllerGetOrders = (
-    
- ) => {
-    return customFetch<void>(
-    {url: `/me/orders`, method: 'GET'
-    },
-    );
-  }
-
-
-
-export const getMeOrdersControllerGetOrdersKey = () => [`/me/orders`] as const;
-
-export type MeOrdersControllerGetOrdersQueryResult = NonNullable<Awaited<ReturnType<typeof meOrdersControllerGetOrders>>>
-export type MeOrdersControllerGetOrdersQueryError = unknown
-
-/**
- * @summary Get orders owned by the authenticated customer
- */
-export const useMeOrdersControllerGetOrders = <TError = unknown>(
-   options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof meOrdersControllerGetOrders>>, TError> & { swrKey?: Key, enabled?: boolean },  }
-) => {
-  const {swr: swrOptions} = options ?? {}
-
-  const isEnabled = swrOptions?.enabled !== false
-  const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getMeOrdersControllerGetOrdersKey() : null);
-  const swrFn = () => meOrdersControllerGetOrders()
-
-  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
-
-  return {
-    swrKey,
-    ...query
-  }
-}
-/**
- * @summary Get one owned order by its public order number
- */
-export const meOrdersControllerGetOrder = (
-    orderNumber: string,
- ) => {
-    return customFetch<void>(
-    {url: `/me/orders/${orderNumber}`, method: 'GET'
-    },
-    );
-  }
-
-
-
-export const getMeOrdersControllerGetOrderKey = (orderNumber: string,) => [`/me/orders/${orderNumber}`] as const;
-
-export type MeOrdersControllerGetOrderQueryResult = NonNullable<Awaited<ReturnType<typeof meOrdersControllerGetOrder>>>
-export type MeOrdersControllerGetOrderQueryError = unknown
-
-/**
- * @summary Get one owned order by its public order number
- */
-export const useMeOrdersControllerGetOrder = <TError = unknown>(
-  orderNumber: string, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof meOrdersControllerGetOrder>>, TError> & { swrKey?: Key, enabled?: boolean },  }
-) => {
-  const {swr: swrOptions} = options ?? {}
-
-  const isEnabled = swrOptions?.enabled !== false && !!(orderNumber)
-  const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getMeOrdersControllerGetOrderKey(orderNumber) : null);
-  const swrFn = () => meOrdersControllerGetOrder(orderNumber)
 
   const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
 

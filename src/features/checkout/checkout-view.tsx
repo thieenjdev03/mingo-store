@@ -10,6 +10,7 @@ import { getAccessToken, clearAccessToken } from '@/lib/auth/token';
 import { meControllerGetMe } from '@/lib/api/generated/me/me';
 import { getApiErrorMessage } from '@/lib/api/error-message';
 import { fCurrencyVND } from '@/lib/format';
+import { MeltingIceCreamLoader } from '@/components/ui/melting-ice-cream-loader';
 import { provinces, type Province } from '@/lib/vn-address';
 import { createCheckoutOrder, quoteCheckout, quoteShipping, upsertShippingAddress } from './api';
 import { getShippingAreas, type ShippingAreaOption } from './shipping-locations';
@@ -145,7 +146,7 @@ export function CheckoutView() {
   }
 
   if (step === 'checking-auth' || cart.isLoading) {
-    return <div className="bg-ivory py-20 text-center text-muted-foreground">{t('loading')}</div>;
+    return <div className="bg-ivory py-20"><MeltingIceCreamLoader label={t('loading')} /></div>;
   }
 
   if (!userId) {

@@ -15,6 +15,7 @@ import {
   type CategoryOption,
 } from '@/features/distribution/data';
 import { extractMapsSrc } from '@/lib/maps-embed';
+import { MeltingIceCreamLoader } from '@/components/ui/melting-ice-cream-loader';
 
 export function StoreLocator() {
   const t = useTranslations('stores');
@@ -128,7 +129,7 @@ export function StoreLocator() {
               ))}
             </div>
           ) : (
-            <p className="mt-8 text-sm text-muted-foreground">{loading ? '…' : t('notFound')}</p>
+            loading ? <div className="mt-8"><MeltingIceCreamLoader size="sm" /></div> : <p className="mt-8 text-sm text-muted-foreground">{t('notFound')}</p>
           )}
         </div>
         <div className="min-h-[420px] border-t border-border lg:min-h-full lg:border-l lg:border-t-0">

@@ -116,14 +116,17 @@ export function CategoryForm({ open, onOpenChange, category, allCategories, onSa
           <ImageUpload value={imageUrl} onChange={setImageUrl} folder="categories" />
         </Field>
         <div className="grid gap-4 sm:grid-cols-2">
-          <Field id="parent" label="Danh mục cha" required={false}>
-            <NativeSelect id="parent" value={parentId} onChange={(e) => setParentId(e.target.value)}>
-              <option value="">— Không có (cấp gốc) —</option>
-              {parentOptions.map((c) => (
-                <option key={c.id} value={c.id}>{c.name}</option>
-              ))}
-            </NativeSelect>
-          </Field>
+          {/* Chọn danh mục cha chỉ hiển thị khi tạo mới; sửa danh mục thì ẩn đi. */}
+          {!category ? (
+            <Field id="parent" label="Danh mục cha" required={false}>
+              <NativeSelect id="parent" value={parentId} onChange={(e) => setParentId(e.target.value)}>
+                <option value="">— Không có (cấp gốc) —</option>
+                {parentOptions.map((c) => (
+                  <option key={c.id} value={c.id}>{c.name}</option>
+                ))}
+              </NativeSelect>
+            </Field>
+          ) : null}
           <Field id="order" label="Thứ tự" required={false}>
             <Input id="order" type="number" min={0} value={displayOrder} onChange={(e) => setDisplayOrder(Number(e.target.value))} />
           </Field>

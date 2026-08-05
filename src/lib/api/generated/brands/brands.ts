@@ -153,6 +153,44 @@ export const useBrandsControllerFindBySlug = <TError = void>(
   }
 }
 /**
+ * @summary Get a brand by ID
+ */
+export const brandsControllerFindOne = (
+    id: string,
+ ) => {
+    return customFetch<BrandDto>(
+    {url: `/brands/${id}`, method: 'GET'
+    },
+    );
+  }
+
+
+
+export const getBrandsControllerFindOneKey = (id: string,) => [`/brands/${id}`] as const;
+
+export type BrandsControllerFindOneQueryResult = NonNullable<Awaited<ReturnType<typeof brandsControllerFindOne>>>
+export type BrandsControllerFindOneQueryError = void
+
+/**
+ * @summary Get a brand by ID
+ */
+export const useBrandsControllerFindOne = <TError = void>(
+  id: string, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof brandsControllerFindOne>>, TError> & { swrKey?: Key, enabled?: boolean },  }
+) => {
+  const {swr: swrOptions} = options ?? {}
+
+  const isEnabled = swrOptions?.enabled !== false && !!(id)
+  const swrKey = swrOptions?.swrKey ?? (() => isEnabled ? getBrandsControllerFindOneKey(id) : null);
+  const swrFn = () => brandsControllerFindOne(id)
+
+  const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
+/**
  * @summary Update a brand (admin)
  */
 export const brandsControllerUpdate = (

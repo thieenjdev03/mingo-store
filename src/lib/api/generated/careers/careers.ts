@@ -19,7 +19,6 @@ import type {
 
 import type {
   CareerApplicationDto,
-  CareerApplicationListDto,
   CareerApplicationReceiptDto,
   CareerApplicationsControllerFindAllParams,
   CareerDto,
@@ -379,12 +378,12 @@ export const useCareersControllerRemove = <TError = unknown>(
   }
 }
 /**
- * @summary List applications across all jobs (admin)
+ * @summary List all applications across careers (admin)
  */
 export const careerApplicationsControllerFindAll = (
     params?: CareerApplicationsControllerFindAllParams,
  ) => {
-    return customFetch<CareerApplicationListDto>(
+    return customFetch<CareerApplicationDto[]>(
     {url: `/career-applications`, method: 'GET',
         params
     },
@@ -399,7 +398,7 @@ export type CareerApplicationsControllerFindAllQueryResult = NonNullable<Awaited
 export type CareerApplicationsControllerFindAllQueryError = unknown
 
 /**
- * @summary List applications across all jobs (admin)
+ * @summary List all applications across careers (admin)
  */
 export const useCareerApplicationsControllerFindAll = <TError = unknown>(
   params?: CareerApplicationsControllerFindAllParams, options?: { swr?:SWRConfiguration<Awaited<ReturnType<typeof careerApplicationsControllerFindAll>>, TError> & { swrKey?: Key, enabled?: boolean },  }

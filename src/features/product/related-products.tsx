@@ -33,7 +33,7 @@ export function RelatedProducts({
                 <div className="flex size-full items-center justify-center text-5xl">🍦</div>
               )}
             </div>
-            <h3 className="mt-8 truncate text-center text-[20px] font-bold leading-6 transition-colors group-hover:text-primary lg:mt-12 lg:text-[32px]">
+            <h3 className="mt-8 truncate text-center font-sans text-[20px] font-bold leading-6 transition-colors group-hover:text-primary lg:mt-12 lg:text-[32px]">
               {product.name}
             </h3>
             <div className="mt-3 flex items-baseline justify-between gap-2 text-[10px] font-light leading-6 lg:mt-5 lg:text-[14px]">

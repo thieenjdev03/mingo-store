@@ -21,10 +21,16 @@ import { productsKey, listProducts, deleteProduct } from '@/features/admin/produ
 import { categoriesKey, listCategories } from '@/features/admin/categories/api';
 import { brandsKey, listBrands } from '@/features/admin/brands/api';
 
-const LIMIT = 12;
+const LIMIT = 10;
 const STATUS_LABEL: Record<string, string> = {
-  active: 'Đang bán', draft: 'Nháp', inactive: 'Ẩn', out_of_stock: 'Hết hàng', discontinued: 'Ngừng bán',
+  active: 'Đăng bán', draft: 'Nháp', inactive: 'Ẩn', out_of_stock: 'Hết hàng (dữ liệu cũ)', discontinued: 'Ngừng bán (dữ liệu cũ)',
 };
+
+const STATUS_FILTERS = [
+  { value: 'active', label: 'Đăng bán' },
+  { value: 'draft', label: 'Nháp' },
+  { value: 'inactive', label: 'Ẩn' },
+] as const;
 
 export default function AdminProductsPage() {
   const { toast } = useToast();
@@ -136,7 +142,7 @@ export default function AdminProductsPage() {
         </NativeSelect>
         <NativeSelect fitContent value={status} onChange={(e) => { setStatus(e.target.value as typeof status); setPage(1); }}>
           <option value="">Tất cả trạng thái</option>
-          {Object.entries(STATUS_LABEL).map(([v, l]) => (<option key={v} value={v}>{l}</option>))}
+          {STATUS_FILTERS.map(({ value, label }) => (<option key={value} value={value}>{label}</option>))}
         </NativeSelect>
       </div>
 

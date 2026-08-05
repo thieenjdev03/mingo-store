@@ -1,4 +1,4 @@
-import type { User } from '@/lib/api/generated/ecomAPI.schemas';
+import type { UserResponseDto } from '@/lib/api/generated/ecomAPI.schemas';
 
 /** TẦNG 2 — view model của tài khoản đăng nhập. Component chỉ nhận type này, không đụng User trực tiếp. */
 export interface AccountView {
@@ -21,12 +21,13 @@ interface AddressLike {
   province?: string;
 }
 
-export function toAccountView(user: User & { addresses?: AddressLike[] }): AccountView {
+export function toAccountView(user: UserResponseDto): AccountView {
   const firstName = user.firstName ?? '';
   const lastName = user.lastName ?? '';
   const fullName = [firstName, lastName].filter(Boolean).join(' ') || user.email;
 
-  const firstAddress = user.addresses?.[0];
+  // Backend chưa có DTO gõ kiểu riêng cho address item — đọc mềm qua AddressLike.
+  const firstAddress = (user.addresses as AddressLike[] | undefined)?.[0];
   const addressSummary = firstAddress
     ? [firstAddress.streetLine1, firstAddress.ward, firstAddress.district, firstAddress.province]
         .filter(Boolean)

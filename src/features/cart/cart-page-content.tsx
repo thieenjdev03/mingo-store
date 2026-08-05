@@ -6,6 +6,7 @@ import { useTranslations } from 'next-intl';
 import { Link } from '@/i18n/navigation';
 import { fCurrencyVND } from '@/lib/format';
 import { useCart } from './cart-context';
+import { MeltingIceCreamLoader } from '@/components/ui/melting-ice-cream-loader';
 
 export function CartPageContent() {
   const t = useTranslations('cart');
@@ -25,7 +26,7 @@ export function CartPageContent() {
         {cart.errorMessage ? <div className="mt-6 rounded-lg bg-destructive/10 p-4 text-sm font-semibold text-destructive" role="alert">{cart.errorMessage}</div> : null}
 
         {cart.isLoading ? (
-          <div className="mt-8 min-h-[240px] rounded-xl bg-card p-8 text-center text-muted-foreground">{t('loading')}</div>
+          <div className="mt-8 flex min-h-[240px] items-center justify-center rounded-xl bg-card p-8"><MeltingIceCreamLoader label={t('loading')} /></div>
         ) : cart.items.length === 0 ? (
           <section className="mt-8 flex min-h-[360px] flex-col items-center justify-center rounded-xl bg-card px-6 text-center shadow-sm">
             <ShoppingBag className="size-14 text-muted-foreground" strokeWidth={1.25} aria-hidden="true" />
@@ -44,7 +45,7 @@ export function CartPageContent() {
                   <div className="min-w-0 flex-1">
                     <div className="flex items-start justify-between gap-3">
                       <div>
-                        <Link href={`/products/${item.product.slug}`} className="text-lg font-bold hover:text-primary">{item.product.name}</Link>
+                        <Link href={`/products/${item.product.slug}`} className="font-sans text-lg font-bold hover:text-primary">{item.product.name}</Link>
                         {!item.product.available ? <p className="mt-1 text-sm font-semibold text-destructive">{t('unavailable')}</p> : null}
                       </div>
                       <button type="button" disabled={cart.isMutating} onClick={() => void cart.removeItem(item.id)} aria-label={`${t('remove')} ${item.product.name}`} className="rounded p-2 text-muted-foreground hover:bg-muted hover:text-destructive disabled:opacity-50"><Trash2 className="size-4" aria-hidden="true" /></button>

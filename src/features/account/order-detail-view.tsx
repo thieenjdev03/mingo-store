@@ -8,6 +8,7 @@ import { fCurrencyVND } from '@/lib/format';
 import { getApiErrorMessage } from '@/lib/api/error-message';
 import { getMyOrder } from '@/features/checkout/api';
 import type { OrderView } from '@/features/checkout/types';
+import { MeltingIceCreamLoader } from '@/components/ui/melting-ice-cream-loader';
 
 export function OrderDetailView({ orderCode }: { orderCode: string }) {
   const t = useTranslations('orders');
@@ -19,7 +20,7 @@ export function OrderDetailView({ orderCode }: { orderCode: string }) {
   }, [orderCode, t]);
 
   if (error) return <div className="bg-ivory py-20 text-center text-destructive">{error}</div>;
-  if (!order) return <div className="bg-ivory py-20 text-center text-muted-foreground">{t('loading')}</div>;
+  if (!order) return <div className="bg-ivory py-20"><MeltingIceCreamLoader label={t('loading')} /></div>;
 
   const address = order.shippingSnapshot ?? order.shippingAddress;
   return (
@@ -41,7 +42,7 @@ export function OrderDetailView({ orderCode }: { orderCode: string }) {
           <ul className="mt-7 divide-y divide-border border-y border-border">
             {order.items.map((item) => (
               <li key={item.productId} className="flex justify-between gap-4 py-4">
-                <div><p className="font-semibold">{item.productName}</p><p className="text-sm text-muted-foreground">× {item.quantity}</p></div>
+                <div><p className="font-sans font-semibold">{item.productName}</p><p className="text-sm text-muted-foreground">× {item.quantity}</p></div>
                 <p className="font-bold">{fCurrencyVND(Number(item.totalPrice))}</p>
               </li>
             ))}

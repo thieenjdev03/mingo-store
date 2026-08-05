@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import useSWR from 'swr';
 import { Dialog } from '@/components/admin/ui/dialog';
+import { MeltingIceCreamLoader } from '@/components/ui/melting-ice-cream-loader';
 import { Field } from '@/components/admin/ui/field';
 import { Input } from '@/components/admin/ui/input';
 import { Textarea } from '@/components/admin/ui/textarea';
@@ -17,6 +18,7 @@ import { getCategoryOptions } from '@/features/admin/shared/options';
 import { brandsKey, listBrands } from '@/features/admin/brands/api';
 import { listSizes } from '@/features/admin/sizes/api';
 import { packagingLabel } from '@/features/product/types';
+import { fCurrencyVND } from '@/lib/format';
 import type { CreateProductDtoStatus } from '@/lib/api/generated/ecomAPI.schemas';
 import { getProductForEdit, createProduct, updateProduct } from './api';
 
@@ -35,12 +37,129 @@ interface ProductFormProps {
 }
 
 const STATUSES: { value: CreateProductDtoStatus; label: string }[] = [
-  { value: 'active', label: 'Đang bán' },
+  { value: 'active', label: 'Đăng bán' },
   { value: 'draft', label: 'Nháp' },
   { value: 'inactive', label: 'Ẩn' },
-  { value: 'out_of_stock', label: 'Hết hàng' },
-  { value: 'discontinued', label: 'Ngừng bán' },
 ];
+
+const LEGACY_STATUS_LABEL: Record<string, string> = {
+  active: 'Đăng bán',
+  draft: 'Nháp',
+  inactive: 'Ẩn',
+  out_of_stock: 'Hết hàng (dữ liệu cũ)',
+  discontinued: 'Ngừng bán (dữ liệu cũ)',
+};
+
+const normalizeStatus = (value: CreateProductDtoStatus | null | undefined): CreateProductDtoStatus =>
+  value === 'draft' || value === 'inactive' ? value : 'active';
+
+/** Chỉ loại bỏ các thẻ có thể thực thi khi render bản xem trước cục bộ. Backend vẫn sanitize lần cuối. */
+const sanitizePreviewHtml = (html: string) =>
+  html
+    .replace(/<script[\s\S]*?<\/script>/gi, '')
+    .replace(/<iframe[\s\S]*?<\/iframe>/gi, '')
+    .replace(/<object[\s\S]*?<\/object>/gi, '')
+    .replace(/<style[\s\S]*?<\/style>/gi, '')
+    .replace(/\s+(?:href|src)\s*=\s*(?:"\s*javascript:[^"]*"|'\s*javascript:[^']*'|javascript:[^\s>]+)/gi, '')
+    .replace(/\s+on[a-z]+\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]+)/gi, '');
+
+interface ProductPreviewProps {
+  name: string;
+  images: string[];
+  price: number;
+  salePrice: string;
+  status: CreateProductDtoStatus;
+  variants: VariantRow[];
+  sizeOptions: Array<{ id: string; name: string }>;
+  description: string;
+  shortDescription: string;
+  usage: string;
+  notes: string;
+}
+
+function ProductPreview({
+  name,
+  images,
+  price,
+  salePrice,
+  status,
+  variants,
+  sizeOptions,
+  description,
+  shortDescription,
+  usage,
+  notes,
+}: ProductPreviewProps) {
+  const renderedPrice = salePrice ? Number(salePrice) : price;
+  const statusLabel = LEGACY_STATUS_LABEL[status] ?? status;
+  const richFields = [
+    { label: 'Mô tả', value: description },
+    { label: 'Thành phần & chất gây dị ứng', value: shortDescription },
+    { label: 'Hướng dẫn sử dụng', value: usage },
+    { label: 'Chú ý', value: notes },
+  ];
+
+  return (
+    <div className="rounded-lg border border-border bg-background p-4 shadow-sm">
+      <div className="mb-4 flex items-center justify-between gap-3">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Bản xem trước</p>
+          <h2 className="text-lg font-bold text-foreground">Sản phẩm trước khi lưu</h2>
+        </div>
+        <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">{statusLabel}</span>
+      </div>
+
+      <div className="grid gap-5 md:grid-cols-[180px_1fr]">
+        <div className="aspect-square overflow-hidden rounded-lg border border-border bg-muted/30">
+          {images[0] ? (
+            <img src={images[0]} alt={name || 'Ảnh sản phẩm'} className="size-full object-cover" />
+          ) : (
+            <div className="flex size-full items-center justify-center text-4xl" aria-label="Chưa có ảnh sản phẩm">🍦</div>
+          )}
+        </div>
+
+        <div className="min-w-0">
+          <h3 className="text-xl font-bold text-foreground">{name || 'Chưa nhập tên sản phẩm'}</h3>
+          <div className="mt-2 flex flex-wrap items-baseline gap-2">
+            <span className="text-lg font-bold text-primary">{fCurrencyVND(renderedPrice || 0)}</span>
+            {salePrice && Number(salePrice) < price ? (
+              <span className="text-sm text-muted-foreground line-through">{fCurrencyVND(price)}</span>
+            ) : null}
+          </div>
+
+          {variants.length > 0 ? (
+            <div className="mt-4 flex flex-wrap gap-2">
+              {variants.map((variant, index) => {
+                const sizeName = (sizeOptions.find((size) => size.id === variant.size_id)?.name ?? variant.sku) || `Biến thể ${index + 1}`;
+                return (
+                  <span key={`${variant.sku}-${index}`} className="rounded-full border border-border px-2.5 py-1 text-xs text-muted-foreground">
+                    {sizeName} · {fCurrencyVND(variant.price || price)} · còn {variant.stock}
+                  </span>
+                );
+              })}
+            </div>
+          ) : null}
+        </div>
+      </div>
+
+      <div className="mt-5 grid gap-4 border-t border-border pt-4 md:grid-cols-2">
+        {richFields.map((field) => (
+          <section key={field.label} className="min-w-0">
+            <h4 className="mb-1 text-sm font-semibold text-foreground">{field.label}</h4>
+            {field.value ? (
+              <div
+                className="prose prose-sm max-w-none text-sm text-muted-foreground [&_a]:text-primary [&_img]:max-h-40 [&_img]:rounded [&_li]:ml-4 [&_ol]:list-decimal [&_p]:my-1 [&_strong]:font-semibold [&_ul]:list-disc"
+                dangerouslySetInnerHTML={{ __html: sanitizePreviewHtml(field.value) }}
+              />
+            ) : (
+              <p className="text-sm italic text-muted-foreground">Chưa nhập nội dung</p>
+            )}
+          </section>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 export function ProductForm({ open, onOpenChange, productId, onSaved }: ProductFormProps) {
   const { toast } = useToast();
@@ -55,8 +174,9 @@ export function ProductForm({ open, onOpenChange, productId, onSaved }: ProductF
   const [nameVi, setNameVi] = useState(''); const [nameEn, setNameEn] = useState('');
   const [slugVi, setSlugVi] = useState(''); const [slugEn, setSlugEn] = useState('');
   const [shortVi, setShortVi] = useState(''); const [shortEn, setShortEn] = useState('');
-  const [nutritionVi, setNutritionVi] = useState(''); const [nutritionEn, setNutritionEn] = useState('');
+  const [usageVi, setUsageVi] = useState(''); const [usageEn, setUsageEn] = useState('');
   const [descVi, setDescVi] = useState(''); const [descEn, setDescEn] = useState('');
+  const [notesVi, setNotesVi] = useState(''); const [notesEn, setNotesEn] = useState('');
   const [price, setPrice] = useState(0);
   const [salePrice, setSalePrice] = useState('');
   const [stock, setStock] = useState(0);
@@ -73,6 +193,12 @@ export function ProductForm({ open, onOpenChange, productId, onSaved }: ProductF
   const [nameEnEdited, setNameEnEdited] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [previewOpen, setPreviewOpen] = useState(false);
+
+  // Khi có biến thể theo quy cách, tồn kho sản phẩm = tổng tồn các quy cách (không nhập tay).
+  const hasVariants = variants.length > 0;
+  const variantStockTotal = variants.reduce((sum, v) => sum + (Number(v.stock) || 0), 0);
+  const effectiveStock = hasVariants ? variantStockTotal : stock;
 
   const changeNameVi = (val: string) => {
     setNameVi(val);
@@ -87,13 +213,15 @@ export function ProductForm({ open, onOpenChange, productId, onSaved }: ProductF
     if (!open) return;
     setError(null);
     setLang('vi');
+    setPreviewOpen(false);
     if (productId && editData) {
       setNameEnEdited(!!editData.name.en);
       setNameVi(editData.name.vi); setNameEn(editData.name.en);
       setSlugVi(editData.slug.vi); setSlugEn(editData.slug.en);
       setShortVi(editData.short_description.vi); setShortEn(editData.short_description.en);
-      setNutritionVi(editData.nutrition_information.vi); setNutritionEn(editData.nutrition_information.en);
+      setUsageVi(editData.usage_instructions.vi); setUsageEn(editData.usage_instructions.en);
       setDescVi(editData.description.vi); setDescEn(editData.description.en);
+      setNotesVi(editData.notes.vi); setNotesEn(editData.notes.en);
       setPrice(Number(editData.base.price) || 0);
       setSalePrice(editData.base.sale_price != null ? String(editData.base.sale_price) : '');
       setStock(editData.base.stock_quantity ?? 0);
@@ -101,7 +229,7 @@ export function ProductForm({ open, onOpenChange, productId, onSaved }: ProductF
       setCategoryId(editData.base.category?.id ?? '');
       setBrandId(editData.base.brand?.id ?? '');
       setImages(editData.base.images ?? []);
-      setStatus((editData.base.status as CreateProductDtoStatus) ?? 'active');
+      setStatus(normalizeStatus(editData.base.status as CreateProductDtoStatus | undefined));
       setIsFeatured(editData.base.is_featured ?? false);
       setEnableSaleTag(editData.base.enable_sale_tag ?? false);
       setVariants(
@@ -115,7 +243,7 @@ export function ProductForm({ open, onOpenChange, productId, onSaved }: ProductF
     } else if (!productId) {
       setNameEnEdited(false);
       setNameVi(''); setNameEn(''); setSlugVi(''); setSlugEn('');
-      setShortVi(''); setShortEn(''); setNutritionVi(''); setNutritionEn(''); setDescVi(''); setDescEn('');
+      setShortVi(''); setShortEn(''); setUsageVi(''); setUsageEn(''); setDescVi(''); setDescEn(''); setNotesVi(''); setNotesEn('');
       setPrice(0); setSalePrice(''); setStock(0); setSku(''); setCategoryId(''); setBrandId('');
       setImages([]); setStatus('active'); setIsFeatured(false); setEnableSaleTag(false);
       setVariants([]);
@@ -147,13 +275,15 @@ export function ProductForm({ open, onOpenChange, productId, onSaved }: ProductF
         name: nm,
         slug: loc(slugVi.trim() || slugify(nm.vi), slugEn.trim() || slugify(nm.en)),
         short_description: loc(shortVi.trim(), shortEn.trim()),
-        nutrition_information: loc(nutritionVi.trim(), nutritionEn.trim()),
+        usage_instructions: loc(usageVi.trim(), usageEn.trim()),
         description: descVi || descEn ? loc(descVi.trim(), descEn.trim()) : undefined,
+        notes: loc(notesVi.trim(), notesEn.trim()),
         price: Number(price),
         sale_price: salePrice ? Number(salePrice) : undefined,
         images,
         variants: variantPayload.length > 0 ? variantPayload : undefined,
-        stock_quantity: Number(stock) || 0,
+        // Có biến thể => tồn kho sản phẩm là tổng tồn các quy cách; không thì lấy tồn nhập tay.
+        stock_quantity: hasVariants ? variantStockTotal : Number(stock) || 0,
         sku: sku.trim() || undefined,
         category_id: categoryId || undefined,
         brand_id: brandId || null,
@@ -185,6 +315,13 @@ export function ProductForm({ open, onOpenChange, productId, onSaved }: ProductF
       className="max-w-3xl"
       footer={
         <>
+          <Button
+            variant="outline"
+            onClick={() => setPreviewOpen((current) => !current)}
+            disabled={saving || (!!productId && loadingEdit)}
+          >
+            {previewOpen ? 'Chỉnh sửa' : 'Xem trước'}
+          </Button>
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={saving}>Huỷ</Button>
           <Button onClick={onSubmit} disabled={saving || (!!productId && loadingEdit)}>
             {saving ? 'Đang lưu…' : 'Lưu'}
@@ -193,11 +330,28 @@ export function ProductForm({ open, onOpenChange, productId, onSaved }: ProductF
       }
     >
       {productId && loadingEdit ? (
-        <p className="py-8 text-center text-sm text-muted-foreground">Đang tải…</p>
+        <div className="py-5"><MeltingIceCreamLoader size="sm" /></div>
+      ) : previewOpen ? (
+        <ProductPreview
+          name={lang === 'en' ? nameEn || nameVi : nameVi || nameEn}
+          images={images}
+          price={price}
+          salePrice={salePrice}
+          status={status}
+          variants={variants}
+          sizeOptions={sizeOptions}
+          description={lang === 'en' ? descEn || descVi : descVi || descEn}
+          shortDescription={lang === 'en' ? shortEn || shortVi : shortVi || shortEn}
+          usage={lang === 'en' ? usageEn || usageVi : usageVi || usageEn}
+          notes={lang === 'en' ? notesEn || notesVi : notesVi || notesEn}
+        />
       ) : (
         <div className="flex flex-col gap-4">
           {/* Nội dung song ngữ dạng tab — ưu tiên Tiếng Việt; mở tab EN khi cần dịch. */}
           <div className="rounded-md border border-border p-3">
+            <p className="mb-3 rounded-md bg-muted/40 px-3 py-2 text-xs leading-relaxed text-muted-foreground">
+              Các trường mô tả, thành phần &amp; chất gây dị ứng, hướng dẫn sử dụng và chú ý nhận HTML. Dùng các thẻ trình bày như <code>&lt;p&gt;</code>, <code>&lt;strong&gt;</code>, <code>&lt;ul&gt;</code>; hệ thống sẽ lọc thẻ nguy hiểm trước khi lưu.
+            </p>
             <div className="mb-3 inline-flex rounded-md border border-border bg-muted/40 p-0.5 text-sm font-semibold">
               {(['vi', 'en'] as const).map((l) => (
                 <button
@@ -223,19 +377,22 @@ export function ProductForm({ open, onOpenChange, productId, onSaved }: ProductF
                 <Field id="slugVi" label="Slug" required={false} hint="Bỏ trống để tự sinh từ tên.">
                   <Input id="slugVi" value={slugVi} onChange={(e) => setSlugVi(e.target.value)} />
                 </Field>
+                <Field id="descVi" label="Mô tả (HTML)" required={false} hint="Ví dụ: <p>Kem tươi vị vani, dùng ngon hơn khi để mềm 5 phút.</p>">
+                  <Textarea id="descVi" rows={4} value={descVi} onChange={(e) => setDescVi(e.target.value)} />
+                </Field>
                 <Field
                   id="shortVi"
-                  label="Chất gây dị ứng (HTML)"
+                  label="Thành phần & chất gây dị ứng (HTML)"
                   required={false}
                   hint="Ví dụ: <p>Có chứa <strong>sữa, đậu nành</strong>.</p>"
                 >
                   <Textarea id="shortVi" rows={4} className="font-mono text-xs" value={shortVi} onChange={(e) => setShortVi(e.target.value)} />
                 </Field>
-                <Field id="nutritionVi" label="Thông tin dinh dưỡng (HTML)" required={false}>
-                  <Textarea id="nutritionVi" rows={6} className="font-mono text-xs" value={nutritionVi} onChange={(e) => setNutritionVi(e.target.value)} />
+                <Field id="usageVi" label="Hướng dẫn sử dụng (HTML)" required={false} hint="Ví dụ: <ol><li>Để kem mềm 5 phút trước khi dùng.</li><li>Dùng ngay sau khi mở hộp.</li></ol>">
+                  <Textarea id="usageVi" rows={6} className="font-mono text-xs" value={usageVi} onChange={(e) => setUsageVi(e.target.value)} />
                 </Field>
-                <Field id="descVi" label="Mô tả" required={false}>
-                  <Textarea id="descVi" rows={4} value={descVi} onChange={(e) => setDescVi(e.target.value)} />
+                <Field id="notesVi" label="Chú ý (HTML)" required={false} hint="Ví dụ: <ul><li>Bảo quản đông lạnh.</li><li>Không cấp đông lại sau khi rã đông.</li></ul>">
+                  <Textarea id="notesVi" rows={4} className="font-mono text-xs" value={notesVi} onChange={(e) => setNotesVi(e.target.value)} />
                 </Field>
               </div>
             ) : (
@@ -246,14 +403,17 @@ export function ProductForm({ open, onOpenChange, productId, onSaved }: ProductF
                 <Field id="slugEn" label="Slug" required={false} hint="Bỏ trống để tự sinh.">
                   <Input id="slugEn" value={slugEn} onChange={(e) => setSlugEn(e.target.value)} />
                 </Field>
-                <Field id="shortEn" label="Allergen information (HTML)" required={false}>
+                <Field id="descEn" label="Description (HTML)" required={false} hint="Example: <p>Fresh vanilla cream, best served after softening for 5 minutes.</p>">
+                  <Textarea id="descEn" rows={4} value={descEn} onChange={(e) => setDescEn(e.target.value)} />
+                </Field>
+                <Field id="shortEn" label="Ingredients & allergen information (HTML)" required={false} hint="Example: <p>Contains <strong>milk and soy</strong>.</p>">
                   <Textarea id="shortEn" rows={4} className="font-mono text-xs" value={shortEn} onChange={(e) => setShortEn(e.target.value)} />
                 </Field>
-                <Field id="nutritionEn" label="Nutrition information (HTML)" required={false}>
-                  <Textarea id="nutritionEn" rows={6} className="font-mono text-xs" value={nutritionEn} onChange={(e) => setNutritionEn(e.target.value)} />
+                <Field id="usageEn" label="Usage instructions (HTML)" required={false} hint="Example: <ol><li>Soften for 5 minutes before serving.</li><li>Consume immediately after opening.</li></ol>">
+                  <Textarea id="usageEn" rows={6} className="font-mono text-xs" value={usageEn} onChange={(e) => setUsageEn(e.target.value)} />
                 </Field>
-                <Field id="descEn" label="Description" required={false}>
-                  <Textarea id="descEn" rows={4} value={descEn} onChange={(e) => setDescEn(e.target.value)} />
+                <Field id="notesEn" label="Notes (HTML)" required={false} hint="Example: <ul><li>Keep frozen.</li><li>Do not refreeze after thawing.</li></ul>">
+                  <Textarea id="notesEn" rows={4} className="font-mono text-xs" value={notesEn} onChange={(e) => setNotesEn(e.target.value)} />
                 </Field>
               </div>
             )}
@@ -264,7 +424,21 @@ export function ProductForm({ open, onOpenChange, productId, onSaved }: ProductF
           <div className="grid gap-4 sm:grid-cols-3">
             <Field id="price" label="Giá (VND)"><Input id="price" type="number" min={0} value={price} onChange={(e) => setPrice(Number(e.target.value))} /></Field>
             <Field id="sale" label="Giá KM" required={false}><Input id="sale" type="number" min={0} value={salePrice} onChange={(e) => setSalePrice(e.target.value)} /></Field>
-            <Field id="stock" label="Tồn kho" required={false}><Input id="stock" type="number" min={0} value={stock} onChange={(e) => setStock(Number(e.target.value))} /></Field>
+            <Field
+              id="stock"
+              label="Tồn kho"
+              required={false}
+              hint={hasVariants ? 'Tự tính từ tổng tồn các quy cách bên dưới — không sửa trực tiếp.' : undefined}
+            >
+              <Input
+                id="stock"
+                type="number"
+                min={0}
+                disabled={hasVariants}
+                value={effectiveStock}
+                onChange={(e) => setStock(Number(e.target.value))}
+              />
+            </Field>
           </div>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <Field id="sku" label="SKU" required={false}><Input id="sku" value={sku} onChange={(e) => setSku(e.target.value)} /></Field>

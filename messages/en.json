@@ -230,11 +230,18 @@
     "signIn": "Sign in",
     "profile": "Personal details",
     "name": "Full name",
+    "firstName": "First name",
+    "lastName": "Last name",
     "email": "Email",
     "phone": "Phone number",
+    "country": "Country",
     "birthDate": "Date of birth",
     "address": "Shipping address",
     "edit": "Edit",
+    "save": "Save changes",
+    "cancel": "Cancel",
+    "updateSuccess": "Personal information updated.",
+    "updateError": "We couldn't update your information. Please try again.",
     "remove": "Remove",
     "orders": "Recent orders",
     "ordersEmpty": "You have no orders yet.",
@@ -369,6 +376,7 @@
       "cta": "Ask a question"
     },
     "brands": {
+      "eyebrow": "our heritage",
       "title": "Brands",
       "intro": "Discover the brands that join Mingo.",
       "body": "From familiar flavours to new ideas, every brand has a story of its own.",
@@ -447,6 +455,9 @@
     "barcode": "Barcode",
     "notProvided": "Not provided",
     "decreaseQuantity": "Decrease quantity",
-    "increaseQuantity": "Increase quantity"
+    "increaseQuantity": "Increase quantity",
+    "variants": "Variants",
+    "skuLabel": "SKU: {sku}",
+    "availableCount": "{count} items"
   }
 }

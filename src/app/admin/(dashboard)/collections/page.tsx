@@ -68,7 +68,12 @@ export default function AdminCollectionsPage() {
       key: 'is_active',
       header: 'Trạng thái',
       align: 'center',
-      render: (c) => <Badge tone={c.is_active ? 'success' : 'neutral'}>{c.is_active ? 'Hiển thị' : 'Ẩn'}</Badge>,
+      render: (c) => (
+        <div className="flex flex-wrap items-center justify-center gap-1.5">
+          <Badge tone={c.is_active ? 'success' : 'neutral'}>{c.is_active ? 'Hiển thị' : 'Ẩn'}</Badge>
+          {c.homepage_section?.trim() ? <Badge tone="info">Trang chủ</Badge> : null}
+        </div>
+      ),
     },
     {
       key: 'actions',

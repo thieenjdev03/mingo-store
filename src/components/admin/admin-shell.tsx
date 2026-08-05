@@ -58,14 +58,14 @@ export function AdminShell({ children }: { children: ReactNode }) {
   );
 
   return (
-    <div className="flex min-h-screen bg-muted/30">
+    <div className="min-h-screen bg-muted/30">
       {/* Sidebar desktop */}
-      <aside className="hidden w-64 shrink-0 border-r border-border bg-white lg:block">
-        <div className="flex h-16 items-center border-b border-border px-6">
+      <aside className="fixed inset-y-0 left-0 z-40 hidden w-64 flex-col border-r border-border bg-white lg:flex">
+        <div className="flex h-16 shrink-0 items-center border-b border-border px-6">
           <Logo height={28} />
           <span className="ml-2 text-sm font-semibold text-muted-foreground">Admin</span>
         </div>
-        <div className="h-[calc(100vh-4rem)] overflow-y-auto">{nav}</div>
+        <div className="min-h-0 flex-1 overflow-y-auto">{nav}</div>
       </aside>
 
       {/* Sidebar mobile (drawer) */}
@@ -85,7 +85,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
       ) : null}
 
       {/* Main */}
-      <div className="flex min-w-0 flex-1 flex-col">
+      <div className="flex min-h-screen min-w-0 flex-col lg:pl-64">
         <header className="flex h-16 items-center justify-between border-b border-border bg-white px-4 sm:px-6">
           <button className="lg:hidden" onClick={() => setMobileOpen(true)}>
             <Menu className="size-6" />
