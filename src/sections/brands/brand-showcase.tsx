@@ -57,7 +57,7 @@ export function BrandShowcase({
       </section>
 
       <section className="border-t border-primary/15">
-        <div className="mx-auto max-w-3xl px-5 py-16 sm:px-8 lg:py-20">
+        <div className="mx-auto max-w-4xl px-5 py-16 sm:px-8 lg:py-20">
           <h2 className="font-display text-4xl font-extrabold uppercase leading-tight text-foreground sm:text-5xl">{joyTitle}</h2>
           <p className="mt-8 text-sm leading-7 text-foreground/85 sm:text-base">{joyParagraphOne}</p>
           <p className="mt-6 text-sm leading-7 text-foreground/85 sm:text-base">{joyParagraphTwo}</p>

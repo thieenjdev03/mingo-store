@@ -63,9 +63,10 @@ export function packagingLabel(size: {
   unit?: string | null;
   packQty?: number | null;
   volumeMl?: number | null;
+  volumeUnit?: string | null;
 }): string {
   if (size.name?.trim()) return size.name.trim();
-  if (size.volumeMl) return `${size.unit ?? 'Hộp'} ${size.volumeMl}ml`;
+  if (size.volumeMl) return `${size.unit ?? 'Hộp'} ${size.volumeMl}${size.volumeUnit ?? 'ml'}`;
   if (size.packQty) return `${size.packQty} ${size.unit ?? ''}/thùng`.trim();
   return size.name;
 }

@@ -51,7 +51,7 @@ export default function AdminSizesPage() {
     { key: 'name', header: 'Nhãn quy cách', render: (s) => <span className="font-semibold">{s.name}</span> },
     { key: 'unit', header: 'Đơn vị', render: (s) => s.unit || dash },
     { key: 'packQty', header: 'SL/thùng', align: 'center', render: (s) => s.packQty ?? dash },
-    { key: 'volumeMl', header: 'Dung tích (ml)', align: 'center', render: (s) => s.volumeMl ?? dash },
+    { key: 'volumeMl', header: 'Khối lượng / Dung tích', align: 'center', render: (s) => (s.volumeMl != null ? `${s.volumeMl} ${s.volumeUnit ?? 'ml'}` : dash) },
     { key: 'sortOrder', header: 'Thứ tự', align: 'center', render: (s) => s.sortOrder },
     {
       key: 'categories',

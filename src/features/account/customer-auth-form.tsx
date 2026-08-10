@@ -24,8 +24,10 @@ interface PendingRegistration {
   firstName: string;
   lastName: string;
   phoneNumber: string;
-  country: string;
 }
+
+/** Quốc gia mặc định — form đăng ký đã bỏ field này nhưng RegisterDto vẫn yêu cầu. */
+const DEFAULT_COUNTRY = 'Vietnam';
 
 /** Số giây chờ trước khi cho phép gửi lại mã OTP. */
 const OTP_RESEND_COOLDOWN = 60;
@@ -52,6 +54,9 @@ export function CustomerAuthForm({ mode, onAuthenticated }: CustomerAuthFormProp
   const [pending, setPending] = useState<PendingRegistration | null>(null);
   const [otpValue, setOtpValue] = useState('');
   const [resendCooldown, setResendCooldown] = useState(0);
+  // Backend verifyOtp sẽ tự tạo tài khoản, nên phải register (đặt đúng mật khẩu) TRƯỚC khi
+  // verify. Cờ này đảm bảo chỉ register 1 lần dù người dùng nhập sai OTP rồi thử lại.
+  const [accountCreated, setAccountCreated] = useState(false);
 
   // Đếm ngược cooldown gửi lại OTP.
   useEffect(() => {
@@ -93,14 +98,21 @@ export function CustomerAuthForm({ mode, onAuthenticated }: CustomerAuthFormProp
           return;
         }
         // Xác thực email trước khi tạo tài khoản: gửi OTP rồi chuyển sang bước nhập mã.
-        await otpControllerSendOtp({ email });
+        try {
+          await otpControllerSendOtp({ email });
+        } catch (error) {
+          // Nếu OTP trước vẫn còn hiệu lực, backend từ chối gửi lại — nhưng mã đã nằm trong
+          // email của người dùng, vẫn cho sang bước nhập mã thay vì chặn. Các lỗi khác
+          // (email đã tồn tại...) thì ném ra để hiển thị và giữ ở bước điền form.
+          if (!isOtpStillValidError(error)) throw error;
+        }
+        setAccountCreated(false);
         setPending({
           email,
           password,
           firstName: String(data.get('firstName') ?? ''),
           lastName: String(data.get('lastName') ?? ''),
           phoneNumber: String(data.get('phoneNumber') ?? ''),
-          country: String(data.get('country') ?? ''),
         });
         setOtpValue('');
         setResendCooldown(OTP_RESEND_COOLDOWN);
@@ -124,7 +136,9 @@ export function CustomerAuthForm({ mode, onAuthenticated }: CustomerAuthFormProp
     }
   }
 
-  // Bước 2 của đăng ký: xác thực OTP -> tạo tài khoản -> đăng nhập.
+  // Bước 2 của đăng ký. Thứ tự bắt buộc theo backend hiện tại:
+  //   register (đặt đúng mật khẩu + hồ sơ) -> verifyOtp (đánh dấu email đã xác thực; vì user
+  //   đã tồn tại nên KHÔNG bị tự tạo account mật khẩu ngẫu nhiên) -> login.
   async function handleVerifyOtp(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!pending) return;
@@ -132,15 +146,19 @@ export function CustomerAuthForm({ mode, onAuthenticated }: CustomerAuthFormProp
     setInfoMessage(null);
     setSubmitting(true);
     try {
+      // Chỉ tạo tài khoản một lần; nếu người dùng nhập sai OTP rồi thử lại thì bỏ qua bước này.
+      if (!accountCreated) {
+        await authControllerRegister({
+          email: pending.email,
+          password: pending.password,
+          firstName: pending.firstName,
+          lastName: pending.lastName,
+          phoneNumber: pending.phoneNumber,
+          country: DEFAULT_COUNTRY,
+        });
+        setAccountCreated(true);
+      }
       await otpControllerVerifyOtp({ email: pending.email, otp: otpValue.trim() });
-      await authControllerRegister({
-        email: pending.email,
-        password: pending.password,
-        firstName: pending.firstName,
-        lastName: pending.lastName,
-        phoneNumber: pending.phoneNumber,
-        country: pending.country,
-      });
       // Backend không trả accessToken khi đăng ký — đăng nhập lại ngay bằng thông tin vừa tạo.
       const loginRes = await authControllerLogin({ email: pending.email, password: pending.password });
       setAccessToken(loginRes.accessToken);
@@ -174,6 +192,7 @@ export function CustomerAuthForm({ mode, onAuthenticated }: CustomerAuthFormProp
     setErrorMessage(null);
     setInfoMessage(null);
     setResendCooldown(0);
+    setAccountCreated(false);
   }
 
   return (
@@ -252,10 +271,7 @@ export function CustomerAuthForm({ mode, onAuthenticated }: CustomerAuthFormProp
               ) : null}
               <AuthInput id="email" name="email" type="email" label={t('email')} placeholder={t('emailPlaceholder')} autoComplete="email" required />
               {mode === 'register' ? (
-                <div className="grid gap-5 sm:grid-cols-2">
-                  <AuthInput id="phoneNumber" name="phoneNumber" type="tel" label={t('phoneNumber')} autoComplete="tel" required />
-                  <AuthInput id="country" name="country" label={t('country')} autoComplete="country-name" required />
-                </div>
+                <AuthInput id="phoneNumber" name="phoneNumber" type="tel" label={t('phoneNumber')} autoComplete="tel" required />
               ) : null}
               {mode !== 'forgot' ? (
                 <div>
@@ -296,6 +312,15 @@ function errorMessageFromApiError(error: ApiError): string {
   const body = error.body as { message?: string | string[] } | null;
   if (!body?.message) return 'Something went wrong';
   return Array.isArray(body.message) ? body.message.join(', ') : body.message;
+}
+
+/**
+ * Backend từ chối gửi OTP mới khi mã cũ VẪN còn hiệu lực (message chứa "hiệu lực").
+ * Trường hợp này mã đã ở email người dùng nên ta vẫn cho vào bước nhập mã.
+ */
+function isOtpStillValidError(error: unknown): boolean {
+  if (!(error instanceof ApiError)) return false;
+  return errorMessageFromApiError(error).toLowerCase().includes('hiệu lực');
 }
 
 interface AuthInputProps extends React.InputHTMLAttributes<HTMLInputElement> {

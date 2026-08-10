@@ -13,6 +13,9 @@ const DEPARTMENT_EMAILS = [
   { key: "external", email: "pr@mingo.hongtanphat.com" },
 ] as const;
 
+/** Hotline hiển thị ở card "Bộ phận Kinh doanh". */
+const SALES_PHONE = { href: "tel:+0977008879", label: "0977 008 879" };
+
 interface ContactPillProps {
   href: string;
   label: string;
@@ -67,10 +70,10 @@ export async function AboutBrandView() {
             <p className="mx-auto max-w-2xl text-base font-bold leading-7 text-primary">
               {t("history.kicker")}
             </p>
-            <p className="mx-auto mt-12 max-w-2xl text-sm leading-6 text-foreground/85 sm:text-base">
+            <p className="mx-auto mt-12 max-w-2xl text-sm leading-6 text-foreground sm:text-base">
               {t("history.paragraphOne")}
             </p>
-            <p className="mx-auto mt-9 max-w-2xl text-sm leading-6 text-foreground/85 sm:text-base">
+            <p className="mx-auto mt-9 max-w-2xl text-sm leading-6 text-foreground sm:text-base">
               {t("history.paragraphTwo")}
             </p>
           </div>
@@ -107,11 +110,6 @@ export async function AboutBrandView() {
           </address>
           <div className="mx-auto w-full max-w-xs space-y-3 text-left">
             <ContactPill
-              href="tel:+8437481009"
-              label="037-481-009"
-              icon="phone"
-            />
-            <ContactPill
               href="mailto:hongtanphatco@gmail.com"
               label="hongtanphatco@gmail.com"
               icon="mail"
@@ -119,18 +117,29 @@ export async function AboutBrandView() {
           </div>
         </div>
 
-        <div className="mt-24 grid gap-10 sm:grid-cols-2 lg:grid-cols-4 lg:gap-12">
+        <div className="mt-24 grid gap-4 sm:grid-cols-2 lg:grid-cols-4 lg:gap-6">
           {DEPARTMENT_EMAILS.map((department) => (
             <div key={department.key} className="text-center">
               <h3 className="mb-4 text-base font-bold">
                 {t(`departments.${department.key}`)}
               </h3>
-              <ContactPill
-                href={`mailto:${department.email}`}
-                label={department.email}
-                icon="mail"
-                compact
-              />
+              <div className="space-y-3">
+                {/* Bộ phận Kinh doanh: SĐT nằm trên email. */}
+                {department.key === "sales" ? (
+                  <ContactPill
+                    href={SALES_PHONE.href}
+                    label={SALES_PHONE.label}
+                    icon="phone"
+                    compact
+                  />
+                ) : null}
+                <ContactPill
+                  href={`mailto:${department.email}`}
+                  label={department.email}
+                  icon="mail"
+                  compact
+                />
+              </div>
             </div>
           ))}
         </div>

@@ -8,17 +8,17 @@
 
 :root {
   /* --- Brand palette --- */
-  --mingo-orange: #ff5c00; /* Primary — CTA, active states, headline */
+  --mingo-orange: #F37453; /* Primary — CTA, active states, headline */
   --mingo-orange-dark: #a73a00; /* hover/pressed của Primary */
   --mingo-brown: #334155; /* Neutral — body text, secondary label */
   --mingo-blue: #f97316; /* Tertiary — supporting bg (hero), hover accents */
-  --mingo-cream: #fffbeb; /* Secondary — background chính, "creamy off-white" */
+  --mingo-cream: #FFFDEB; /* Secondary — background chính, "creamy off-white" */
   --mingo-gray: var(--mingo-cream);
-  --mingo-ivory: #fff6ec; /* peach-white — section tonal layer khác với cream */
+  --mingo-ivory: #FFFDEB; /* peach-white — section tonal layer khác với cream */
   --mingo-blush: #fdf2f2; /* Functional Tint — nền form field */
   --mingo-sand: #ffd9a0; /* banner accent ấm */
-  --mingo-coral: #ef6b0a; /* tertiary-container — about story panel */
-  --mingo-butter: #ffdf82; /* about history panel */
+  --mingo-coral: #F37453; /* tertiary-container — about story panel */
+  --mingo-butter: #FCDD7C; /* about history panel */
   --mingo-fog: #f5f4f2; /* nền trung tính nhạt — lưới sản phẩm trang danh mục */
   --mingo-white: #ffffff;
 
@@ -214,9 +214,44 @@
   animation: mingo-loader-melt 1.4s ease-in-out infinite;
 }
 
+/* Loader mascot Mingo: nhún nhẹ lên xuống + lắc nhẹ, bóng đổ "thở" theo. */
+@keyframes mingo-mascot-bob {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-3deg);
+  }
+  50% {
+    transform: translateY(-12%) rotate(3deg);
+  }
+}
+
+@keyframes mingo-mascot-shadow {
+  0%,
+  100% {
+    transform: scaleX(1);
+    opacity: 0.28;
+  }
+  50% {
+    transform: scaleX(0.72);
+    opacity: 0.16;
+  }
+}
+
+.mingo-mascot-bob {
+  animation: mingo-mascot-bob 1.4s ease-in-out infinite;
+  transform-origin: center center;
+}
+
+.mingo-mascot-shadow {
+  animation: mingo-mascot-shadow 1.4s ease-in-out infinite;
+  transform-origin: center center;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .mingo-loader-sway,
-  .mingo-loader-scoop {
+  .mingo-loader-scoop,
+  .mingo-mascot-bob,
+  .mingo-mascot-shadow {
     animation: none;
   }
 }
