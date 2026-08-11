@@ -3,6 +3,7 @@ import { Link } from '@/i18n/navigation';
 import { getCareers } from '@/features/careers/api';
 import { toCareerView, type CareerView } from '@/features/careers/types';
 import { CareersHero } from './careers-hero';
+import { CareersFilterMobile } from './careers-filter-mobile';
 
 interface CareersSearchViewProps {
   query?: string;
@@ -35,25 +36,39 @@ export async function CareersSearchView({ query = '', groups = [], locations = [
   });
 
   const distinct = (values: string[]) => [...new Set(values.filter(Boolean))];
+  const groupValues = distinct(allJobs.map((j) => j.category));
+  const locationValues = distinct(allJobs.map((j) => j.location));
+  const typeValues = distinct(allJobs.map((j) => j.level));
 
   return (
     <div className="bg-background">
       <CareersHero query={query} />
 
       <section className="mx-auto max-w-[1200px] px-5 py-12 sm:px-8 sm:py-16 lg:py-20">
-        {/* Filters sit under the results below lg — otherwise mobile users scroll
-            past every checkbox before seeing a single job. */}
+        {/* Dưới lg: bộ lọc ẩn sau nút "Bộ lọc" (drawer) để không đẩy job list xuống dưới. */}
+        <div className="mb-8 lg:hidden">
+          <CareersFilterMobile
+            query={query}
+            resultCount={jobs.length}
+            groups={[
+              { title: t('filters.group'), name: 'group', values: groupValues, selected: groups },
+              { title: t('filters.location'), name: 'location', values: locationValues, selected: locations },
+              { title: t('filters.type'), name: 'type', values: typeValues, selected: types },
+            ]}
+          />
+        </div>
+
         <div className="grid gap-10 lg:grid-cols-[230px_1fr] lg:gap-12">
-          <aside className="order-2 lg:order-none">
+          <aside className="hidden lg:block">
             <form method="get" className="space-y-8">
               <input type="hidden" name="q" value={query} />
-              <FilterGroup title={t('filters.group')} name="group" values={distinct(allJobs.map((j) => j.category))} selected={groups} />
-              <FilterGroup title={t('filters.location')} name="location" values={distinct(allJobs.map((j) => j.location))} selected={locations} />
-              <FilterGroup title={t('filters.type')} name="type" values={distinct(allJobs.map((j) => j.level))} selected={types} />
+              <FilterGroup title={t('filters.group')} name="group" values={groupValues} selected={groups} />
+              <FilterGroup title={t('filters.location')} name="location" values={locationValues} selected={locations} />
+              <FilterGroup title={t('filters.type')} name="type" values={typeValues} selected={types} />
               <button type="submit" className="h-11 rounded-lg bg-primary px-5 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary-dark">{t('filters.apply')}</button>
             </form>
           </aside>
-          <div className="order-1 lg:order-none">
+          <div>
             {jobs.length > 0 ? (
               <div className="space-y-4" aria-live="polite">
                 {jobs.map((job) => <JobCard key={job.slug} job={job} applyLabel={t('apply')} />)}

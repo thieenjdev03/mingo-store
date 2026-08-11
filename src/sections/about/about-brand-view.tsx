@@ -87,7 +87,7 @@ export async function AboutBrandView() {
         <div className="text-center">
           <h2
             id="office-title"
-            className="font-display text-4xl font-bold uppercase text-foreground sm:text-5xl lg:text-6xl"
+            className="font-display text-4xl font-bold uppercase text-foreground sm:text-5xl lg:text-6xl text-primary"
           >
             {t("office.country")}
           </h2>
@@ -96,7 +96,7 @@ export async function AboutBrandView() {
           </p>
         </div>
 
-        <div className="mx-auto mt-20 grid max-w-3xl gap-10 text-center md:grid-cols-2 md:items-center md:gap-14">
+        <div className="mx-auto md:mt-20 mt-10 grid max-w-3xl gap-10 text-center md:grid-cols-2 md:items-center md:gap-14">
           <address className="not-italic">
             <p className="text-lg font-bold">{t("office.company")}</p>
             <a
@@ -105,7 +105,9 @@ export async function AboutBrandView() {
               rel="noreferrer"
               className="mx-auto mt-4 block max-w-xs text-sm leading-7 text-muted-foreground transition-colors hover:text-primary"
             >
+              <span>
               {t("office.address")}
+              </span>
             </a>
           </address>
           <div className="mx-auto w-full max-w-xs space-y-3 text-left">

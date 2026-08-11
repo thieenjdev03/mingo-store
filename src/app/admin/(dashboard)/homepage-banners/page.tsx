@@ -45,6 +45,11 @@ export default function AdminBannersPage() {
       render: (b) => (
         <div className="relative h-12 w-20 overflow-hidden rounded border border-border bg-muted">
           {b.image_url ? <Image src={b.image_url} alt={b.alt_text ?? ''} fill className="object-cover" sizes="80px" /> : null}
+          {b.video_url ? (
+            <span className="absolute bottom-0.5 left-0.5 rounded bg-black/70 px-1 text-[10px] font-semibold uppercase leading-4 text-white">
+              Video
+            </span>
+          ) : null}
         </div>
       ),
     },

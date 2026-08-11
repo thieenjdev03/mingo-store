@@ -7,8 +7,8 @@ import { Chip } from '@/components/ui/chip';
 import { fWeight } from '@/lib/format';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { PurchasePanel } from '@/features/product/purchase-panel';
-import { RelatedProducts } from '@/features/product/related-products';
-import { getCollectionCatalog, getProductBySlug } from '@/features/product/api';
+import { MustTrySection } from '@/sections/mingo-home/must-try/must-try-section';
+import { getProductBySlug, getProductsByCategory } from '@/features/product/api';
 import { getMockupBySlug, toMockupProductDto } from '@/features/product/mockup-catalog';
 import { toProductCardView, toProductDetailView } from '@/features/product/types';
 import { routing } from '@/i18n/routing';
@@ -39,13 +39,13 @@ export default async function ProductDetailPage({
   if (!apiProduct) notFound();
   const product = toProductDetailView(apiProduct, safeLocale);
 
-  const collectionCatalog = product.collectionSlug
-    ? await getCollectionCatalog(product.collectionSlug, safeLocale).catch(() => null)
-    : null;
-  const suggestions = (collectionCatalog?.products ?? [])
-    .filter((item) => item.id !== product.id && item.status === 'active')
-    .slice(0, 4)
-    .map((item) => toProductCardView(item, safeLocale));
+  // "Gợi ý cho bạn": sản phẩm cùng category với sản phẩm đang xem (loại chính nó), tối đa 8.
+  const suggestions = product.categoryId
+    ? (await getProductsByCategory(product.categoryId, safeLocale).catch(() => []))
+        .filter((item) => item.id !== product.id && item.status === 'active')
+        .slice(0, 8)
+        .map((item) => toProductCardView(item, safeLocale))
+    : [];
 
   const breadcrumbCollection = product.collectionName ?? product.categoryName;
 
@@ -151,7 +151,11 @@ export default async function ProductDetailPage({
         </div>
       </main>
 
-      <RelatedProducts title={t('suggestions')} products={suggestions} />
+      <MustTrySection
+        title={t('suggestions')}
+        titleAlign="center"
+        products={suggestions}
+      />
     </div>
   );
 }

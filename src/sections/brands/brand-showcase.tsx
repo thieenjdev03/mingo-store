@@ -61,11 +61,11 @@ export function BrandShowcase({
           <h2 className="font-display text-4xl font-extrabold uppercase leading-tight text-foreground sm:text-5xl">{joyTitle}</h2>
           <p className="mt-8 text-sm leading-7 text-foreground/85 sm:text-base">{joyParagraphOne}</p>
           <p className="mt-6 text-sm leading-7 text-foreground/85 sm:text-base">{joyParagraphTwo}</p>
-          <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
-            <Button asChild className="bg-foreground text-white hover:bg-foreground/90">
+          <div className="mt-10 flex flex-col items-stretch gap-4 sm:flex-row sm:flex-wrap sm:items-center sm:justify-center">
+            <Button asChild size="lg" className="w-full rounded-lg bg-foreground text-white hover:bg-foreground/90 sm:w-auto">
               <Link href="/products">{exploreCta}</Link>
             </Button>
-            <Button asChild variant="outline">
+            <Button asChild variant="outline" size="lg" className="w-full rounded-lg sm:w-auto">
               <Link href="/about">{aboutCta}</Link>
             </Button>
           </div>

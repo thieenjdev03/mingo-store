@@ -12,7 +12,7 @@ export interface CareerView {
   excerpt: string;
   /** Sanitized HTML from the backend (sanitize-html server-side). */
   contentHtml: string;
-  related: Array<{ slug: string; title: string }>;
+  related: Array<{ slug: string; title: string; location: string }>;
 }
 
 export function toCareerView(api: CareerDto): CareerView {
@@ -25,7 +25,7 @@ export function toCareerView(api: CareerDto): CareerView {
     level: api.level ?? '',
     excerpt: stripHtml(api.content).slice(0, 240),
     contentHtml: api.content,
-    related: (api.subCareers ?? []).map((sub) => ({ slug: sub.slug, title: sub.title })),
+    related: (api.subCareers ?? []).map((sub) => ({ slug: sub.slug, title: sub.title, location: sub.location ?? '' })),
   };
 }
 

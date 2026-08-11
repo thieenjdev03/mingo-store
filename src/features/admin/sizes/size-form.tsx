@@ -112,6 +112,7 @@ export function SizeForm({ open, onOpenChange, size, onSaved }: SizeFormProps) {
       onOpenChange={onOpenChange}
       title={size ? 'Sửa quy cách' : 'Thêm quy cách'}
       description="Nhãn hiển thị (name) là chính; đơn vị / SL·thùng / dung tích là metadata tuỳ chọn."
+      className="max-w-xl"
       footer={
         <>
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={saving}>Huỷ</Button>
@@ -128,26 +129,31 @@ export function SizeForm({ open, onOpenChange, size, onSaved }: SizeFormProps) {
             onChange={(e) => { setNameTouched(true); setName(e.target.value); }}
           />
         </Field>
-        <div className="grid gap-4 sm:grid-cols-3">
-          <Field id="unit" label="Đơn vị" required={false}>
-            <Input id="unit" list="unit-suggestions" value={unit} onChange={(e) => setUnit(e.target.value)} placeholder="cây / hộp / lít" />
-            <datalist id="unit-suggestions">
-              {UNIT_SUGGESTIONS.map((u) => <option key={u} value={u} />)}
-            </datalist>
-          </Field>
-          <Field id="packQty" label="SL / thùng" required={false}>
-            <Input id="packQty" type="number" min={0} value={packQty} onChange={(e) => setPackQty(e.target.value)} placeholder="24" />
-          </Field>
-          <Field id="volumeMl" label="Khối lượng / Dung tích" required={false}>
-            <div className="flex gap-2">
-              <Input id="volumeMl" type="number" min={0} value={volumeMl} onChange={(e) => setVolumeMl(e.target.value)} placeholder="250" className="flex-1" />
-              <NativeSelect fitContent aria-label="Đơn vị khối lượng / dung tích" value={volumeUnit} onChange={(e) => setVolumeUnit(e.target.value)}>
-                <option value="">— đơn vị —</option>
-                {VOLUME_UNITS.map((u) => <option key={u} value={u}>{u}</option>)}
-              </NativeSelect>
-            </div>
-          </Field>
-        </div>
+        <fieldset className="rounded-lg border border-border bg-muted/40 p-4">
+          <legend className="px-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            Thông số đóng gói (tuỳ chọn)
+          </legend>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Field id="unit" label="Đơn vị" required={false}>
+              <Input id="unit" list="unit-suggestions" value={unit} onChange={(e) => setUnit(e.target.value)} placeholder="cây / hộp / lít" />
+              <datalist id="unit-suggestions">
+                {UNIT_SUGGESTIONS.map((u) => <option key={u} value={u} />)}
+              </datalist>
+            </Field>
+            <Field id="packQty" label="SL / thùng" required={false}>
+              <Input id="packQty" type="number" min={0} value={packQty} onChange={(e) => setPackQty(e.target.value)} placeholder="24" />
+            </Field>
+            <Field id="volumeMl" label="Khối lượng / Dung tích" required={false} className="sm:col-span-2">
+              <div className="flex gap-2">
+                <Input id="volumeMl" type="number" min={0} value={volumeMl} onChange={(e) => setVolumeMl(e.target.value)} placeholder="250" className="flex-1" />
+                <NativeSelect fitContent aria-label="Đơn vị khối lượng / dung tích" value={volumeUnit} onChange={(e) => setVolumeUnit(e.target.value)}>
+                  <option value="">— đơn vị —</option>
+                  {VOLUME_UNITS.map((u) => <option key={u} value={u}>{u}</option>)}
+                </NativeSelect>
+              </div>
+            </Field>
+          </div>
+        </fieldset>
         <Field id="categories" label="Phạm vi danh mục" required={false} hint="Có thể chọn nhiều; bỏ trống = dùng chung toàn hệ thống.">
           <MultiSelect options={categoryOptions} value={categoryIds} onChange={setCategoryIds} />
         </Field>

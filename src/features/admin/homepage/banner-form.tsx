@@ -7,6 +7,7 @@ import { Input } from '@/components/admin/ui/input';
 import { Switch } from '@/components/admin/ui/switch';
 import { Button } from '@/components/admin/ui/button';
 import { ImageUpload } from '@/components/admin/ui/image-upload';
+import { VideoUpload } from '@/components/admin/ui/video-upload';
 import { useToast } from '@/components/admin/ui/toast';
 import { createBanner, updateBanner, type BannerDto } from './api';
 
@@ -20,6 +21,7 @@ interface BannerFormProps {
 export function BannerForm({ open, onOpenChange, banner, onSaved }: BannerFormProps) {
   const { toast } = useToast();
   const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [videoUrl, setVideoUrl] = useState<string | null>(null);
   const [altText, setAltText] = useState('');
   const [linkUrl, setLinkUrl] = useState('');
   const [displayOrder, setDisplayOrder] = useState(0);
@@ -31,6 +33,7 @@ export function BannerForm({ open, onOpenChange, banner, onSaved }: BannerFormPr
     if (!open) return;
     setError(null);
     setImageUrl(banner?.image_url ?? null);
+    setVideoUrl(banner?.video_url ?? null);
     setAltText(banner?.alt_text ?? '');
     setLinkUrl(banner?.link_url ?? '');
     setDisplayOrder(banner?.display_order ?? 0);
@@ -46,6 +49,8 @@ export function BannerForm({ open, onOpenChange, banner, onSaved }: BannerFormPr
     try {
       const payload = {
         image_url: imageUrl,
+        // Gửi null (không phải undefined) để xoá video ở bản ghi đang sửa.
+        video_url: videoUrl || null,
         alt_text: altText || undefined,
         link_url: linkUrl || undefined,
         display_order: Number(displayOrder) || 0,
@@ -84,8 +89,21 @@ export function BannerForm({ open, onOpenChange, banner, onSaved }: BannerFormPr
       }
     >
       <div className="flex flex-col gap-4">
-        <Field id="image" label="Ảnh banner" error={error ?? undefined}>
+        <Field
+          id="image"
+          label="Ảnh banner"
+          error={error ?? undefined}
+          hint="Bắt buộc. Nếu có video, ảnh này dùng làm poster (hiện khi video đang tải / trên thiết bị không tự phát)."
+        >
           <ImageUpload value={imageUrl} onChange={setImageUrl} folder="homepage/banners" />
+        </Field>
+        <Field
+          id="video"
+          label="Video nền (tuỳ chọn)"
+          required={false}
+          hint="MP4 — storefront sẽ tự phát (muted, lặp lại) khi mở trang chủ. Bỏ trống để dùng ảnh tĩnh."
+        >
+          <VideoUpload value={videoUrl} onChange={setVideoUrl} folder="homepage/banners" />
         </Field>
         <Field id="alt" label="Alt text" required={false}>
           <Input id="alt" value={altText} onChange={(e) => setAltText(e.target.value)} placeholder="Mô tả ảnh (SEO/accessibility)" />

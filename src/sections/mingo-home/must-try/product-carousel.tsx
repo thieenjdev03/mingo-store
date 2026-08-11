@@ -43,29 +43,30 @@ export function ProductCarousel({ products }: { products: ProductCardView[] }) {
         aria-label="Sản phẩm trước"
         disabled={!canGoBack}
         onClick={() => move(-1)}
-        className="absolute left-1 top-[46%] z-10 grid size-11 -translate-y-1/2 place-items-center rounded-full bg-background/85 text-foreground transition disabled:opacity-40 lg:top-[172px] min-[1360px]:-left-20"
+        className="absolute left-1 top-[46%] z-10 hidden size-11 -translate-y-1/2 place-items-center rounded-full bg-background/85 text-foreground transition disabled:opacity-40 sm:grid lg:top-[172px] min-[1360px]:-left-20"
       >
         <ChevronLeft className="size-8" strokeWidth={1.25} />
       </button>
 
+      {/* Mobile: lưới 2 cột, không cuộn ngang (theo design). Từ sm trở lên chuyển sang carousel cuộn ngang. */}
       <div
         ref={trackRef}
         onScroll={updateControls}
-        className="no-scrollbar flex snap-x snap-mandatory gap-4 overflow-x-auto px-4 pb-2 sm:gap-6 sm:px-0 lg:gap-6"
+        className="no-scrollbar grid grid-cols-2 gap-x-4 gap-y-8 px-4 sm:flex sm:snap-x sm:snap-mandatory sm:gap-6 sm:overflow-x-auto sm:px-0 sm:pb-2"
       >
         {products.map((product) => (
           <Link
             key={product.id}
             href={`/products/${product.slug}`}
-            className="group block min-w-0 shrink-0 basis-[82%] snap-start text-left sm:basis-[48%] lg:basis-[calc(25%-18px)]"
+            className="group block min-w-0 text-left sm:shrink-0 sm:basis-[48%] sm:snap-start lg:basis-[calc(25%-18px)]"
           >
-            <div className="relative mx-auto h-[330px] w-full sm:h-[390px] lg:h-[376px]">
+            <div className="relative mx-auto h-[210px] w-full sm:h-[390px] lg:h-[376px]">
               {product.image ? (
                 <Image
                   src={product.image}
                   alt={product.name}
                   fill
-                  sizes="(max-width: 640px) 82vw, (max-width: 1024px) 48vw, 282px"
+                  sizes="(max-width: 640px) 45vw, (max-width: 1024px) 48vw, 282px"
                   className="object-contain transition-transform duration-300 motion-reduce:transition-none group-hover:-translate-y-2 group-hover:scale-[1.02]"
                 />
               ) : (
@@ -74,10 +75,10 @@ export function ProductCarousel({ products }: { products: ProductCardView[] }) {
                 </div>
               )}
             </div>
-            <h3 className="mt-6 font-sans text-[22px] font-bold leading-7 text-[#563e2b] transition-colors group-hover:text-primary sm:mt-10 sm:text-[24px] lg:mt-12 lg:text-[32px] lg:leading-6">
+            <h3 className="mt-4 font-sans text-base font-bold leading-6 text-[#563e2b] transition-colors group-hover:text-primary sm:mt-10 sm:text-[24px] sm:leading-7 lg:mt-12 lg:text-[32px] lg:leading-6">
               {product.name}
             </h3>
-            <div className="mt-5 flex min-h-6 items-baseline justify-between gap-3 text-[14px] font-light leading-6 text-[#563e2b]">
+            <div className="mt-2 flex min-h-6 items-baseline justify-between gap-2 text-xs font-light leading-6 text-[#563e2b] sm:mt-5 sm:gap-3 sm:text-[14px]">
               <span className="truncate">{product.spec ?? ''}</span>
               <span className="shrink-0">{fCurrencyVND(product.price)}</span>
               {product.compareAtPrice ? <span className="text-sm text-muted-foreground line-through">{fCurrencyVND(product.compareAtPrice)}</span> : null}
@@ -92,7 +93,7 @@ export function ProductCarousel({ products }: { products: ProductCardView[] }) {
         aria-label="Sản phẩm tiếp theo"
         disabled={!canGoForward}
         onClick={() => move(1)}
-        className="absolute right-1 top-[46%] z-10 grid size-11 -translate-y-1/2 place-items-center rounded-full bg-background/85 text-foreground transition disabled:opacity-40 lg:top-[172px] min-[1360px]:-right-20"
+        className="absolute right-1 top-[46%] z-10 hidden size-11 -translate-y-1/2 place-items-center rounded-full bg-background/85 text-foreground transition disabled:opacity-40 sm:grid lg:top-[172px] min-[1360px]:-right-20"
       >
         <ChevronRight className="size-8" strokeWidth={1.25} />
       </button>

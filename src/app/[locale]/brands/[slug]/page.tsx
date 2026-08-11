@@ -61,7 +61,7 @@ export default async function BrandPage({ params }: { params: Promise<{ locale: 
   return (
     <div className="bg-fog">
       <section
-        className="relative flex h-[360px] items-center justify-center overflow-hidden px-5 text-center sm:h-[420px]"
+        className="relative flex h-[280px] items-center justify-center overflow-hidden px-5 text-center sm:h-[360px]"
         style={bannerUrl ? undefined : { backgroundColor: bannerColorFromSlug(slug) }}
       >
         {bannerUrl ? (
@@ -81,7 +81,7 @@ export default async function BrandPage({ params }: { params: Promise<{ locale: 
           {title}
         </h1>
       </section>
-      <section className="min-h-[560px] bg-fog py-16 sm:py-20 lg:py-24">
+      <section className="min-h-[560px] bg-fog py-8 sm:py-14 lg:py-18">
         {loadFailed || products.length === 0 ? (
           <p className="mx-auto max-w-xl px-5 text-center text-muted-foreground">{loadFailed ? t('loadError') : t('empty')}</p>
         ) : (

@@ -39,6 +39,8 @@ export interface ProductDetailView extends ProductCardView {
   /** Mô tả HTML đã được backend sanitize. */
   descriptionHtml: string | null;
   categoryName: string | null;
+  categoryId: string | null;
+  categorySlug: string | null;
   /** Khối lượng theo kg (backend), null nếu chưa nhập. */
   weightKg: number | null;
   weightGrams: number | null;
@@ -130,6 +132,8 @@ export function toProductDetailView(p: ProductResponseDto, locale: Locale): Prod
     // Backend đã sanitize HTML; giữ markup để hiển thị đúng nội dung quản trị nhập.
     descriptionHtml: resolveLocalized(p.description, locale) || null,
     categoryName: p.category?.name ?? null,
+    categoryId: p.category?.id ?? null,
+    categorySlug: p.category?.slug ?? null,
     weightKg: p.weight ?? null,
     weightGrams: weightKgToGrams(p.weight),
     allergensHtml: resolveLocalized(p.short_description, locale) || null,

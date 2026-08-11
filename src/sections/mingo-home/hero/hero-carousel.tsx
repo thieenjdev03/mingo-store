@@ -12,6 +12,23 @@ interface HeroCarouselProps {
 }
 
 function BackendBanner({ banner }: { banner: HeroBannerView }) {
+  // Có video -> tự phát nền (muted + playsInline để iOS/Chrome cho autoplay), lặp lại;
+  // dùng ảnh làm poster để có khung hình ngay khi video chưa tải xong / thiết bị chặn autoplay.
+  if (banner.videoUrl) {
+    return (
+      <video
+        className="absolute inset-0 h-full w-full object-cover"
+        src={banner.videoUrl}
+        poster={banner.imageUrl || undefined}
+        autoPlay
+        muted
+        loop
+        playsInline
+        preload="metadata"
+        aria-label={banner.alt || undefined}
+      />
+    );
+  }
   return (
     <picture className="absolute inset-0">
       {banner.mobileImageUrl ? <source media="(max-width: 639px)" srcSet={banner.mobileImageUrl} /> : null}

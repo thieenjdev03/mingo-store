@@ -1,12 +1,14 @@
 import Image from 'next/image';
 import { getTranslations } from 'next-intl/server';
 import { Link } from '@/i18n/navigation';
-import { BRANDS } from '@/config/brands';
+import { fetchNavBrands, fetchNavCategories, localNavBrands } from '@/features/catalog/nav-data';
+
+/** Fallback dòng sản phẩm khi backend chưa seed categories. */
 const LINES = [
-  { label: 'Kem hộp', slug: 'kem-hop' },
-  { label: 'Kem que', slug: 'kem-que' },
-  { label: 'Kem ốc quế', slug: 'kem-oc-que' },
-  { label: 'Kem đá', slug: 'kem-da' },
+  { name: 'Kem hộp', slug: 'kem-hop' },
+  { name: 'Kem que', slug: 'kem-que' },
+  { name: 'Kem ốc quế', slug: 'kem-oc-que' },
+  { name: 'Kem đá', slug: 'kem-da' },
 ];
 const SOCIALS = [
   { label: 'Facebook', href: 'https://www.facebook.com', icon: '/assets/mingo/home/facebook.svg' },
@@ -18,6 +20,14 @@ export async function SiteFooter() {
   const t = await getTranslations('footer');
   const linkClass = 'block py-0.5 text-[14px] uppercase leading-[26px] text-[#563e2b] transition-colors hover:text-primary lg:text-[16px] lg:leading-7';
 
+  // Thương hiệu & dòng sản phẩm lấy từ backend; rỗng hoặc lỗi (vd chưa cấu hình API URL server-side) -> fallback local.
+  const [apiBrands, apiLines] = await Promise.all([
+    fetchNavBrands().catch(() => []),
+    fetchNavCategories().catch(() => []),
+  ]);
+  const brands = apiBrands.length > 0 ? apiBrands : localNavBrands();
+  const lines = apiLines.length > 0 ? apiLines : LINES;
+
   return (
     <footer className="bg-white text-[#563e2b]">
       <div className="mx-auto grid h-auto max-w-[1200px] items-start gap-10 px-5 py-10 sm:grid-cols-2 sm:px-8 lg:grid-cols-[120px_120px_155px_1fr] lg:gap-[31px] lg:py-6 xl:px-0">
@@ -28,14 +38,13 @@ export async function SiteFooter() {
             <li><Link href="/contact" className={linkClass}>{t('contact')}</Link></li>
             <li><Link href="/policies" className={linkClass}>{t('policy')}</Link></li>
             <li><Link href="/careers" className={linkClass}>{t('career')}</Link></li>
-            <li><Link href="/faqs" className={linkClass}>FAQs</Link></li>
           </ul>
         </div>
 
         <div>
           <h3 className="mb-3 text-[14px] font-bold uppercase leading-8 lg:text-[16px]">{t('brandsTitle')}</h3>
           <ul>
-            {BRANDS.map((brand) => (
+            {brands.map((brand) => (
               <li key={brand.slug}>
                 <Link href={`/brands/${brand.slug}`} className={linkClass}>{brand.name}</Link>
               </li>
@@ -46,9 +55,9 @@ export async function SiteFooter() {
         <div>
           <h3 className="mb-3 text-[14px] font-bold uppercase leading-8 lg:text-[16px]">{t('linesTitle')}</h3>
           <ul>
-            {LINES.map((line) => (
+            {lines.map((line) => (
               <li key={line.slug}>
-                <Link href={`/categories/${line.slug}`} className={linkClass}>{line.label}</Link>
+                <Link href={`/categories/${line.slug}`} className={linkClass}>{line.name}</Link>
               </li>
             ))}
           </ul>

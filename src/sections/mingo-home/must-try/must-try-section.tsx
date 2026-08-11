@@ -6,31 +6,52 @@ interface CollectionShowcaseProps {
   title: string;
   products: ProductCardView[];
   description?: string | null;
-  /** Link "xem tất cả" (vd sang trang collection). Bỏ trống -> ẩn. */
+  /** Link "xem tất cả" (vd sang trang collection). Bỏ trống -> ẩn nút. */
   href?: string;
   viewAllLabel?: string;
+  /** Canh tiêu đề (mặc định 'left'). 'center' căn giữa cả section (dùng ở khối gợi ý PDP). */
+  titleAlign?: 'left' | 'center' | 'right';
 }
+
+const TITLE_ALIGN_CLASS = {
+  left: 'text-left',
+  center: 'text-center',
+  right: 'text-right',
+} as const;
 
 /**
  * Section sản phẩm theo collection ở trang chủ (tiêu đề = tên collection do admin đặt).
  * Nhiều section có thể xếp chồng nên KHÔNG dùng chiều cao cố định.
  */
-export function MustTrySection({ title, products, description, href, viewAllLabel }: CollectionShowcaseProps) {
+export function MustTrySection({ title, products, description, href, viewAllLabel, titleAlign = 'left' }: CollectionShowcaseProps) {
   if (products.length === 0) return null;
+
+  // Chỉ hiện nút "xem tất cả" khi có đủ href + label.
+  const showViewAll = Boolean(href && viewAllLabel);
+  const alignClass = TITLE_ALIGN_CLASS[titleAlign];
 
   return (
     <section className="bg-background py-[56px] sm:py-[72px] lg:py-[100px]">
       <div className="mx-auto max-w-[1200px] px-5 sm:px-8 xl:px-0">
         <div className="mb-10 lg:mb-[60px]">
-          <div className="flex flex-wrap items-end justify-between gap-4">
-            <h2 className="text-[40px] font-bold leading-none text-primary sm:text-[48px] lg:text-[60px]">{title}</h2>
-            {href && viewAllLabel ? (
-              <Link href={href} className="text-sm font-bold uppercase tracking-wide text-foreground hover:text-primary">
+          <div className="flex flex-wrap items-end gap-4">
+            {/* flex-1 để h2 chiếm hết chỗ trống -> text-align mới thực sự canh được trong section. */}
+            <h2 className={`flex-1 text-[40px] font-bold leading-none text-primary sm:text-[48px] lg:text-[60px] ${alignClass}`}>
+              {title}
+            </h2>
+            {showViewAll ? (
+              <Link href={href!} className="shrink-0 text-sm font-bold uppercase tracking-wide text-foreground hover:text-primary">
                 {viewAllLabel}
               </Link>
             ) : null}
           </div>
-          {description ? <p className="mt-4 max-w-2xl text-sm leading-7 text-foreground/70 sm:text-base">{description}</p> : null}
+          {description ? (
+            <p className={`mt-4 max-w-2xl text-sm leading-7 text-foreground/70 sm:text-base ${
+              titleAlign === 'center' ? 'mx-auto text-center' : titleAlign === 'right' ? 'ml-auto text-right' : ''
+            }`}>
+              {description}
+            </p>
+          ) : null}
         </div>
         <ProductCarousel products={products} />
       </div>

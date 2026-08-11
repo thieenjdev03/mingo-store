@@ -326,7 +326,13 @@
       "group": "Job Group",
       "location": "Job Location",
       "type": "Job Type",
-      "apply": "Apply filters"
+      "apply": "Apply filters",
+      "title": "Filter jobs",
+      "trigger": "Filters",
+      "clearAll": "Clear all",
+      "showing": "Showing {count} opportunities",
+      "applyCount": "Apply {count} results",
+      "close": "Close filters"
     },
     "apply": "Apply now",
     "noResults": {

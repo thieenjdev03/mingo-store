@@ -35,6 +35,8 @@ export interface HomepageSectionDto {
 export interface HomepageBannerDto {
   id: string;
   image_url: string;
+  /** Video nền tuỳ chọn (mp4). Có -> hero phát autoplay/muted/loop, image_url làm poster. */
+  video_url?: string | null;
   alt_text?: string | null;
   link_url?: string | null;
   display_order: number;
@@ -45,6 +47,8 @@ export interface HeroBannerView {
   id: string;
   imageUrl: string;
   mobileImageUrl: string | null;
+  /** Video nền (mp4) nếu admin cấu hình; null -> dùng ảnh tĩnh. */
+  videoUrl: string | null;
   alt: string;
   ctaLabel: string | null;
   linkUrl: string;
@@ -55,6 +59,7 @@ export function toHeroBannerView(banner: HomepageBannerDto): HeroBannerView {
     id: banner.id,
     imageUrl: banner.image_url,
     mobileImageUrl: null,
+    videoUrl: banner.video_url ?? null,
     alt: banner.alt_text ?? '',
     // Banner backend chưa có nhãn CTA riêng — carousel sẽ dùng nhãn mặc định.
     ctaLabel: null,

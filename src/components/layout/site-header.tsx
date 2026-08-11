@@ -42,6 +42,8 @@ export function SiteHeader() {
   // Header trong suốt + chữ trắng khi: đang ở homepage, chưa cuộn, và không mở
   // panel nào (search/menu mở => cần nền trắng để đọc được).
   const overlay = isHome && !scrolled && !searchOpen && !menuOpen;
+  // Trên homepage lúc chưa cuộn: ẩn hẳn header (trượt lên trên), chỉ hiện khi cuộn xuống.
+  const hidden = isHome && !scrolled && !searchOpen && !menuOpen;
   // Nav key của dropdown đang mở ("products" | "brands"), hoặc null. Chỉ một dropdown mở cùng lúc.
   const [openNav, setOpenNav] = useState<string | null>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
@@ -115,8 +117,10 @@ export function SiteHeader() {
 
   return (
     <header
-      className={`sticky top-0 z-50 h-[64px] transition-colors duration-300 xl:h-[84px] ${
+      className={`sticky top-0 z-50 h-[64px] transition-[transform,opacity,background-color] duration-300 xl:h-[84px] ${
         overlay ? "bg-transparent text-white" : "bg-white text-[#563e2b]"
+      } ${
+        hidden ? "pointer-events-none -translate-y-full opacity-0" : "translate-y-0 opacity-100"
       }`}
     >
       <div className="relative mx-auto flex h-full max-w-[1440px] items-center px-4 sm:px-8 xl:block xl:px-0">

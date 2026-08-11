@@ -59,51 +59,41 @@ export function PurchasePanel({ product }: { product: ProductDetailView }) {
         )}
       </div>
       {hasVariants ? (
-        <div className="border-y border-[#e5beb2]/30 py-4">
-          <p className="mb-3 text-[13px] font-bold uppercase tracking-wide text-[#563e2b]/70">{t('variants')}</p>
-          <div className="space-y-2" role="radiogroup" aria-label={t('variants')}>
-            {product.variants.map((variant) => {
-              const selected = variant.sku === selectedVariant?.sku;
-              return (
-                <button
-                  key={variant.sku}
-                  type="button"
-                  role="radio"
-                  aria-checked={selected}
-                  disabled={!variant.inStock || cart.isMutating}
-                  onClick={() => selectVariant(variant.sku)}
-                  className={`flex w-full items-center justify-between gap-3 rounded-lg border px-3 py-2.5 text-left transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
-                    selected
-                      ? 'border-[#563e2b] bg-[#563e2b]/[0.06]'
-                      : 'border-[#e5beb2]/60 hover:border-[#563e2b]/50'
-                  }`}
-                >
-                  <span className="flex min-w-0 items-center gap-3">
-                    <span
-                      className={`grid size-5 shrink-0 place-items-center rounded-full border-2 ${
-                        selected ? 'border-[#563e2b]' : 'border-[#b8a99a]'
-                      }`}
-                    >
-                      {selected ? <span className="size-2.5 rounded-full bg-[#563e2b]" /> : null}
-                    </span>
-                    <span className="min-w-0">
-                      <span className="block truncate text-[15px] font-bold uppercase leading-5 text-[#563e2b] lg:text-[18px]">
-                        {variant.label}
-                      </span>
-                      <span className={`block text-xs ${variant.inStock ? 'text-emerald-700' : 'text-destructive'}`}>
-                        {variant.inStock ? t('availableCount', { count: variant.stock }) : t('outOfStock')}
-                      </span>
-                    </span>
+        <div className="border-y border-[#e5beb2]/30" role="radiogroup" aria-label={t('variants')}>
+          {product.variants.map((variant, index) => {
+            const selected = variant.sku === selectedVariant?.sku;
+            return (
+              <button
+                key={variant.sku}
+                type="button"
+                role="radio"
+                aria-checked={selected}
+                disabled={!variant.inStock || cart.isMutating}
+                onClick={() => selectVariant(variant.sku)}
+                className={`flex w-full items-center justify-between gap-3 py-[17px] text-left text-[#563e2b] transition-opacity disabled:cursor-not-allowed disabled:opacity-40 ${
+                  index > 0 ? 'border-t border-[#e5beb2]/30' : ''
+                }`}
+              >
+                <span className="flex min-w-0 items-center gap-3">
+                  <span
+                    className={`grid size-5 shrink-0 place-items-center rounded-full border-2 ${
+                      selected ? 'border-[#563e2b]' : 'border-[#b8a99a]'
+                    }`}
+                  >
+                    {selected ? <span className="size-2.5 rounded-full bg-[#563e2b]" /> : null}
                   </span>
-                  {!product.priceOnRequest ? (
-                    <span className="shrink-0 text-[16px] font-extrabold text-black lg:text-[18px]">
-                      {fCurrencyVND(variant.price)}
-                    </span>
-                  ) : null}
-                </button>
-              );
-            })}
-          </div>
+                  <span className="truncate text-[16px] font-bold uppercase leading-6 lg:text-[18px]">
+                    {variant.label}
+                  </span>
+                </span>
+                {!product.priceOnRequest ? (
+                  <span className="shrink-0 text-[16px] font-bold lg:text-[18px]">
+                    {fCurrencyVND(variant.price)}
+                  </span>
+                ) : null}
+              </button>
+            );
+          })}
         </div>
       ) : (
         <div className="flex items-center border-y border-[#e5beb2]/30 py-[17px] text-[#563e2b]">

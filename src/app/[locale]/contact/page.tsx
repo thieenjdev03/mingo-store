@@ -8,11 +8,11 @@ export default async function ContactPage({ params }: { params: Promise<{ locale
 
   return (
     <div className="bg-ivory">
-      <section className="mx-auto max-w-[1440px] px-5 pb-20 pt-[76px] sm:px-8 sm:pb-24 sm:pt-[82px] min-[1504px]:px-0 lg:pb-[82px] lg:pt-[78px]">
-        <h1 className="mx-auto max-w-[950px] text-center font-display text-[42px] font-bold leading-[1.04] text-primary sm:text-[52px] lg:text-[60px]">
+      <section className="mx-auto max-w-[1440px] px-5 pb-16 pt-12 sm:px-8 sm:pb-24 sm:pt-[82px] min-[1504px]:px-0 lg:pb-[82px] lg:pt-[78px]">
+        <h1 className="mx-auto max-w-[950px] text-center font-display text-[34px] font-bold leading-[1.08] text-primary sm:text-[52px] sm:leading-[1.04] lg:text-[60px]">
           {t('title')}
         </h1>
-        <div className="mx-auto mt-[72px] max-w-[1226px]">
+        <div className="mx-auto mt-10 max-w-[1226px] sm:mt-[72px]">
           <ContactForm />
         </div>
       </section>

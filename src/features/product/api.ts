@@ -38,6 +38,25 @@ export async function getAllProducts(
   return [first, ...rest].flatMap((page) => page.data);
 }
 
+/**
+ * Sản phẩm cùng category — dùng cho khối "Gợi ý cho bạn" ở PDP.
+ * Trả trang đầu (status active); call site tự loại sản phẩm đang xem.
+ */
+export async function getProductsByCategory(
+  categoryId: string,
+  locale: string,
+  limit = 12,
+): Promise<ProductResponseDto[]> {
+  const res = await getProducts({
+    category_id: categoryId,
+    status: 'active',
+    locale: locale as ProductsControllerFindAllParams['locale'],
+    page: 1,
+    limit,
+  });
+  return res.data;
+}
+
 export async function getProductBySlug(slug: string, locale: string): Promise<ProductDetailApiDto | null> {
   try {
     return await customFetch<ProductDetailApiDto>({

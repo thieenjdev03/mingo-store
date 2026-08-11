@@ -326,7 +326,13 @@
       "group": "Job Group",
       "location": "Job Location",
       "type": "Job Type",
-      "apply": "Lọc việc làm"
+      "apply": "Lọc việc làm",
+      "title": "Lọc công việc",
+      "trigger": "Bộ lọc",
+      "clearAll": "Xóa tất cả",
+      "showing": "Hiển thị {count} công việc",
+      "applyCount": "Áp dụng {count} kết quả",
+      "close": "Đóng bộ lọc"
     },
     "apply": "Ứng tuyển ngay",
     "noResults": {

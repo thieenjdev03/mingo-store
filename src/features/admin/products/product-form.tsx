@@ -200,6 +200,21 @@ export function ProductForm({ open, onOpenChange, productId, onSaved }: ProductF
   const variantStockTotal = variants.reduce((sum, v) => sum + (Number(v.stock) || 0), 0);
   const effectiveStock = hasVariants ? variantStockTotal : stock;
 
+  // Quy cách phù hợp với danh mục sản phẩm: quy cách dùng chung (không gắn danh mục)
+  // + quy cách gắn đúng danh mục đang chọn. Quy cách của danh mục khác bị loại khỏi dropdown.
+  const availableSizes = sizeOptions.filter(
+    (s) => s.categories.length === 0 || (categoryId !== '' && s.categories.some((c) => c.id === categoryId)),
+  );
+  // Với 1 dòng biến thể: luôn kèm quy cách đang chọn kể cả khi nằm ngoài phạm vi hiện tại
+  // (vd đổi danh mục sau khi đã chọn quy cách) để không âm thầm mất giá trị đã lưu.
+  const sizeOptionsForRow = (sizeId: string) => {
+    if (sizeId && !availableSizes.some((s) => s.id === sizeId)) {
+      const current = sizeOptions.find((s) => s.id === sizeId);
+      if (current) return [...availableSizes, current];
+    }
+    return availableSizes;
+  };
+
   const changeNameVi = (val: string) => {
     setNameVi(val);
     if (!nameEnEdited) setNameEn(val);
@@ -494,6 +509,7 @@ export function ProductForm({ open, onOpenChange, productId, onSaved }: ProductF
               <Button
                 variant="outline"
                 size="sm"
+                disabled={availableSizes.length === 0}
                 onClick={() => setVariants((prev) => [...prev, { size_id: '', sku: '', price: price || 0, stock: 0 }])}
               >
                 <Plus className="size-4" /> Thêm biến thể
@@ -513,7 +529,7 @@ export function ProductForm({ open, onOpenChange, productId, onSaved }: ProductF
                       aria-label="Quy cách"
                     >
                       <option value="">— Quy cách —</option>
-                      {sizeOptions.map((s) => (<option key={s.id} value={s.id}>{packagingLabel(s)}</option>))}
+                      {sizeOptionsForRow(v.size_id).map((s) => (<option key={s.id} value={s.id}>{packagingLabel(s)}</option>))}
                     </NativeSelect>
                     <Input
                       placeholder="SKU"
@@ -539,6 +555,10 @@ export function ProductForm({ open, onOpenChange, productId, onSaved }: ProductF
             )}
             {sizeOptions.length === 0 ? (
               <p className="mt-2 text-xs text-muted-foreground">Chưa có quy cách nào — tạo ở mục “Quy cách” trước.</p>
+            ) : !categoryId ? (
+              <p className="mt-2 text-xs text-muted-foreground">Chọn <strong>Danh mục</strong> cho sản phẩm để hiện quy cách riêng của danh mục (hiện chỉ liệt kê quy cách dùng chung).</p>
+            ) : availableSizes.length === 0 ? (
+              <p className="mt-2 text-xs text-muted-foreground">Danh mục này chưa có quy cách phù hợp — thêm quy cách cho danh mục ở mục “Quy cách”, hoặc dùng quy cách dùng chung.</p>
             ) : null}
           </div>
         </div>

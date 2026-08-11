@@ -25,7 +25,7 @@ export default async function CollectionPage({
 
   return (
     <div className="bg-fog">
-      <section className="flex h-[360px] flex-col items-center justify-center gap-4 bg-butter px-5 text-center sm:h-[420px]">
+      <section className="flex h-[240px] flex-col items-center justify-center gap-4 bg-butter px-5 text-center sm:h-[320px]">
         <h1 className="font-display text-[40px] font-bold leading-none text-foreground sm:text-[48px] lg:text-[56px]">{collection.name}</h1>
         {collection.description ? (
           <p className="max-w-2xl text-sm leading-7 text-foreground/70 sm:text-base">{collection.description}</p>
