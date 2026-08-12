@@ -11,6 +11,8 @@ import { resolveLocalized, type Locale } from '@/types/localized';
 export interface BrandNavItem {
   name: string;
   slug: string;
+  /** URL logo (Cloudinary từ backend, hoặc file tĩnh ở fallback local). null = chưa có logo. */
+  logoUrl: string | null;
 }
 
 export interface CategoryNavItem {
@@ -21,6 +23,7 @@ export interface CategoryNavItem {
 interface RawBrand {
   name: string;
   slug: string;
+  logo_url?: string | null;
   is_active?: boolean;
   display_order?: number;
 }
@@ -47,12 +50,12 @@ export async function fetchNavBrands(): Promise<BrandNavItem[]> {
   return (brands ?? [])
     .filter((b) => b.is_active !== false)
     .sort((a, b) => (a.display_order ?? 0) - (b.display_order ?? 0))
-    .map((b) => ({ name: b.name, slug: b.slug }));
+    .map((b) => ({ name: b.name, slug: b.slug, logoUrl: b.logo_url ?? null }));
 }
 
 /** Thương hiệu local (config BRANDS) làm fallback khi backend chưa seed brands. */
 export function localNavBrands(): BrandNavItem[] {
-  return BRANDS.map((b) => ({ name: b.name, slug: b.slug }));
+  return BRANDS.map((b) => ({ name: b.name, slug: b.slug, logoUrl: b.logo }));
 }
 
 export async function fetchNavCategories(): Promise<CategoryNavItem[]> {

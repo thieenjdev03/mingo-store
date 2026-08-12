@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 import Image from 'next/image';
 import { Link } from '@/i18n/navigation';
 import { Button } from '@/components/ui/button';
-import { BRANDS } from '@/config/brands';
+import { fetchNavBrands, localNavBrands } from '@/features/catalog/nav-data';
 
 interface BrandShowcaseProps {
   /** Nhãn phụ phía trên tiêu đề (vd "our heritage"). */
@@ -17,7 +17,7 @@ interface BrandShowcaseProps {
 }
 
 /** Nội dung thương hiệu dùng chung ở homepage và trang /brands. */
-export function BrandShowcase({
+export async function BrandShowcase({
   eyebrow,
   title,
   joyTitle,
@@ -26,6 +26,10 @@ export function BrandShowcase({
   exploreCta,
   aboutCta,
 }: BrandShowcaseProps) {
+  // Logo thương hiệu do admin upload (backend). Rỗng/lỗi -> fallback logo tĩnh trong config.
+  const apiBrands = await fetchNavBrands().catch(() => []);
+  const brands = apiBrands.length > 0 ? apiBrands : localNavBrands();
+
   return (
     <div className="bg-ivory">
       <section className="mx-auto max-w-[1200px] px-5 py-16 sm:px-8 lg:py-20">
@@ -39,15 +43,15 @@ export function BrandShowcase({
           <span className="mt-3 block h-1 w-24 rounded-full bg-primary sm:w-28" aria-hidden />
         </header>
         <div className="mx-auto mt-14 grid max-w-4xl grid-cols-2 items-center gap-x-8 gap-y-14 sm:grid-cols-3 sm:gap-x-12 lg:mt-20 lg:gap-y-24">
-          {BRANDS.map((brand) => (
+          {brands.map((brand) => (
             <Link
               key={brand.slug}
               href={`/brands/${brand.slug}`}
               aria-label={brand.name}
               className="relative mx-auto flex h-28 w-full max-w-[280px] items-center justify-center transition-transform hover:scale-105 sm:h-36 lg:h-44"
             >
-              {brand.logo ? (
-                <Image src={brand.logo} alt={brand.name} fill sizes="(max-width: 640px) 45vw, 280px" className="object-contain" />
+              {brand.logoUrl ? (
+                <Image src={brand.logoUrl} alt={brand.name} fill sizes="(max-width: 640px) 45vw, 280px" className="object-contain" />
               ) : (
                 <span className="font-display text-4xl italic font-bold text-foreground sm:text-5xl">{brand.name}</span>
               )}

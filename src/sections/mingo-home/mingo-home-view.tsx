@@ -23,6 +23,15 @@ export async function MingoHomeView({ locale }: { locale: Locale }) {
     <>
       {/* Banner cứng có sẵn luôn hiển thị; banner do admin tạo (nếu có) nối tiếp phía sau. */}
       <HeroCarousel banners={heroes} />
+      <BrandShowcase
+        eyebrow={tBrands('eyebrow')}
+        title={tBrands('title')}
+        joyTitle={tBrands('joy.title')}
+        joyParagraphOne={tBrands('joy.paragraphOne')}
+        joyParagraphTwo={tBrands.rich('joy.paragraphTwo', { b: (chunks) => <strong className="font-bold">{chunks}</strong> })}
+        exploreCta={tBrands('joy.exploreCta')}
+        aboutCta={tBrands('joy.aboutCta')}
+      />
       {sections.length > 0 ? (
         sections.map((section) => (
           <MustTrySection
@@ -36,15 +45,6 @@ export async function MingoHomeView({ locale }: { locale: Locale }) {
       ) : (
         <MustTrySection title={tHome('mustTry')} products={fallbackProducts} />
       )}
-      <BrandShowcase
-        eyebrow={tBrands('eyebrow')}
-        title={tBrands('title')}
-        joyTitle={tBrands('joy.title')}
-        joyParagraphOne={tBrands('joy.paragraphOne')}
-        joyParagraphTwo={tBrands.rich('joy.paragraphTwo', { b: (chunks) => <strong className="font-bold">{chunks}</strong> })}
-        exploreCta={tBrands('joy.exploreCta')}
-        aboutCta={tBrands('joy.aboutCta')}
-      />
     </>
   );
 }
