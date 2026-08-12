@@ -27,6 +27,8 @@ export interface ProductCardView {
   available: boolean;
   /** Nhãn quy cách đại diện dùng ở product card, ưu tiên size của variant đầu tiên. */
   spec: string | null;
+  /** Quy cách đại diện trên card đang tạm hết hàng; khi true phải ẩn giá. */
+  specOutOfStock: boolean;
   /**
    * Giá theo yêu cầu: khi bật cờ "Nổi bật" (is_featured) ở admin, storefront KHÔNG
    * công khai giá mà hiển thị "liên hệ để nhận báo giá" thay cho giá bán.
@@ -91,8 +93,10 @@ export function discountPercent(price: number, compareAtPrice: number | null): n
 }
 
 export function toProductCardView(p: ProductResponseDto, locale: Locale): ProductCardView {
-  const price = getEffectivePrice(p);
   const firstVariant = p.variants?.[0];
+  const price = getEffectivePrice(p, firstVariant);
+  const hasVariants = Boolean(p.variants?.length);
+  const anyVariantInStock = p.variants?.some((variant) => Number(variant.stock) > 0) ?? false;
   return {
     id: p.id,
     slug: resolveLocalized(p.slug, locale),
@@ -105,12 +109,15 @@ export function toProductCardView(p: ProductResponseDto, locale: Locale): Produc
         ? Number(p.price)
         : null,
     stock: Number(p.stock_quantity),
-    available: p.status === 'active' && Number(p.stock_quantity) > 0,
+    available:
+      p.status === 'active' &&
+      (hasVariants ? anyVariantInStock : Number(p.stock_quantity) > 0),
     spec: firstVariant?.size
       ? packagingLabel(firstVariant.size)
       : firstVariant
         ? resolveLocalized(firstVariant.name, locale)
         : null,
+    specOutOfStock: Boolean(firstVariant && Number(firstVariant.stock) <= 0),
     priceOnRequest: p.is_featured === true,
   };
 }
@@ -148,6 +155,8 @@ export function toProductDetailView(p: ProductResponseDto, locale: Locale): Prod
     barcode: p.barcode ?? null,
     collectionName: p.collections?.[0]?.name ?? null,
     collectionSlug: p.collections?.[0]?.slug ?? null,
-    purchasable: p.status === 'active' && p.stock_quantity > 0,
+    purchasable:
+      p.status === 'active' &&
+      (variants.length > 0 ? variants.some((variant) => variant.inStock) : p.stock_quantity > 0),
   };
 }

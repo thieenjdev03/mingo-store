@@ -78,12 +78,21 @@ export function ProductCarousel({ products }: { products: ProductCardView[] }) {
             <h3 className="mt-4 font-sans text-base font-bold leading-6 text-[#563e2b] transition-colors group-hover:text-primary sm:mt-10 sm:text-[24px] sm:leading-7 lg:mt-12 lg:text-[32px] lg:leading-6">
               {product.name}
             </h3>
-            <div className="mt-2 flex min-h-6 items-baseline justify-between gap-2 text-xs font-light leading-6 text-[#563e2b] sm:mt-5 sm:gap-3 sm:text-[14px]">
-              <span className="truncate">{product.spec ?? ''}</span>
-              <span className="shrink-0">{fCurrencyVND(product.price)}</span>
-              {product.compareAtPrice ? <span className="text-sm text-muted-foreground line-through">{fCurrencyVND(product.compareAtPrice)}</span> : null}
-            </div>
-            {!product.available ? <p className="mt-1 text-xs font-bold uppercase tracking-wide text-destructive">{t('outOfStock')}</p> : null}
+            {product.available ? (
+              <div className="mt-2 flex min-h-6 items-baseline justify-between gap-2 text-xs font-light leading-6 text-[#563e2b] sm:mt-5 sm:gap-3 sm:text-[14px]">
+                {!product.specOutOfStock ? <span className="truncate">{product.spec ?? ''}</span> : <span />}
+                {product.specOutOfStock ? (
+                <span className="shrink-0 font-semibold text-muted-foreground">{t('temporarilyOutOfStock')}</span>
+                ) : (
+                  <>
+                    <span className="shrink-0">{fCurrencyVND(product.price)}</span>
+                    {product.compareAtPrice ? <span className="text-sm text-muted-foreground line-through">{fCurrencyVND(product.compareAtPrice)}</span> : null}
+                  </>
+                )}
+              </div>
+            ) : (
+              <p className="mt-2 min-h-6 text-sm font-semibold leading-6 text-primary">{t('contactForInfo')}</p>
+            )}
           </Link>
         ))}
       </div>

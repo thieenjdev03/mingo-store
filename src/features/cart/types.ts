@@ -1,36 +1,10 @@
-/**
- * TẦNG 1 (khai báo tay) — backend chưa có module /cart nên các DTO này chưa có trong
- * `@/lib/api/generated`. Frontend chạy trước; khi backend build xong sẽ chuyển sang type generated.
- */
-export interface CartResponseDto {
-  id: string;
-  items: {
-    id: string;
-    quantity: number;
-    unitPrice: number | string;
-    lineTotal: number | string;
-    product: {
-      id: string;
-      name: string;
-      slug: string;
-      image: string | null;
-      stock: number | string;
-      available: boolean;
-    };
-  }[];
-  subtotal: number | string;
-  totalQuantity: number | string;
-  valid: boolean;
-}
+import type {
+  AddCartItemDto,
+  CartResponseDto,
+  UpdateCartItemDto,
+} from '@/lib/api/generated/ecomAPI.schemas';
 
-export interface AddCartItemDto {
-  productId: string;
-  quantity: number;
-}
-
-export interface UpdateCartItemDto {
-  quantity: number;
-}
+export type { AddCartItemDto, CartResponseDto, UpdateCartItemDto };
 
 export interface CartProductView {
   id: string;
@@ -44,6 +18,8 @@ export interface CartProductView {
 export interface CartItemView {
   id: string;
   quantity: number;
+  variantSku: string | null;
+  variantName: string | null;
   unitPrice: number;
   lineTotal: number;
   product: CartProductView;
@@ -71,10 +47,13 @@ export function toCartView(cart: CartResponseDto): CartView {
     items: cart.items.map((item) => ({
       id: item.id,
       quantity: item.quantity,
+      variantSku: item.variantSku ?? null,
+      variantName: item.variantName ?? null,
       unitPrice: Number(item.unitPrice),
       lineTotal: Number(item.lineTotal),
       product: {
         ...item.product,
+        image: item.product.image ?? null,
         stock: Number(item.product.stock),
       },
     })),

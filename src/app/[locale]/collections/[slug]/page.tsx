@@ -35,7 +35,7 @@ export default async function CollectionPage({
         {products.length === 0 ? (
           <p className="mx-auto max-w-xl px-5 text-center text-muted-foreground">{t('empty')}</p>
         ) : (
-          <ProductShowcaseGrid products={products} outOfStockLabel={t('outOfStock')} contactLabel={t('priceOnRequest')} />
+          <ProductShowcaseGrid products={products} outOfStockLabel={t('outOfStock')} contactLabel={t('priceOnRequest')} unavailableContactLabel={t('contactForInfo')} />
         )}
       </section>
     </div>

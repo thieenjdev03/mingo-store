@@ -2,8 +2,9 @@ import Image from 'next/image';
 import { Link } from '@/i18n/navigation';
 import { fCurrencyVND } from '@/lib/format';
 import type { ProductCardView } from './types';
+import { getTranslations } from 'next-intl/server';
 
-export function RelatedProducts({
+export async function RelatedProducts({
   title,
   products,
 }: {
@@ -11,6 +12,7 @@ export function RelatedProducts({
   products: ProductCardView[];
 }) {
   if (products.length === 0) return null;
+  const t = await getTranslations('product');
 
   return (
     <section className="mx-auto w-full max-w-[1200px] px-4 pb-20 pt-20 sm:px-8 lg:pb-[140px] lg:pt-[145px] xl:px-0">
@@ -36,10 +38,14 @@ export function RelatedProducts({
             <h3 className="mt-8 truncate text-center font-sans text-[20px] font-bold leading-6 transition-colors group-hover:text-primary lg:mt-12 lg:text-[32px]">
               {product.name}
             </h3>
-            <div className="mt-3 flex items-baseline justify-between gap-2 text-[10px] font-light leading-6 lg:mt-5 lg:text-[14px]">
-              <span className="truncate">{product.spec ?? ''}</span>
-              <span className="shrink-0">{fCurrencyVND(product.price)}</span>
-            </div>
+            {product.available ? <div className="mt-3 flex items-baseline justify-between gap-2 text-[10px] font-light leading-6 lg:mt-5 lg:text-[14px]">
+              {!product.specOutOfStock ? <span className="truncate">{product.spec ?? ''}</span> : <span />}
+              {product.specOutOfStock ? (
+                <span className="shrink-0 font-semibold text-muted-foreground">{t('temporarilyOutOfStock')}</span>
+              ) : (
+                <span className="shrink-0">{fCurrencyVND(product.price)}</span>
+              )}
+            </div> : <p className="mt-3 text-sm font-semibold leading-6 text-primary lg:mt-5">{t('contactForInfo')}</p>}
           </Link>
         ))}
       </div>

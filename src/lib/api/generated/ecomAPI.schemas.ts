@@ -356,7 +356,8 @@ export interface ProductVariantDto {
   stock: number;
   barcode?: string;
   color_id?: string;
-  size_id: string;
+  /** Optional packaging size reference; variant name remains the fallback label */
+  size_id?: string;
   image_url?: string;
 }
 
@@ -377,8 +378,6 @@ export const CreateProductDtoStatus = {
   active: 'active',
   inactive: 'inactive',
   draft: 'draft',
-  out_of_stock: 'out_of_stock',
-  discontinued: 'discontinued',
 } as const;
 
 export interface CreateProductDto {
@@ -386,15 +385,15 @@ export interface CreateProductDto {
   name: LocalizedStringDto;
   /** Product slug in multiple languages */
   slug: LocalizedStringDto;
-  /** Product description in multiple languages */
+  /** Product description HTML in multiple languages. Unsafe tags and attributes are removed before storage. */
   description?: LocalizedStringDto;
-  /** Short description in multiple languages */
+  /** Ingredients and allergen information HTML in multiple languages. Unsafe tags and attributes are removed before storage. */
   short_description?: LocalizedStringDto;
-  /** Deprecated compatibility alias for usage instructions HTML */
+  /** Deprecated compatibility alias for usage instructions HTML. New clients should send usage_instructions. */
   nutrition_information?: LocalizedStringDto;
-  /** Usage instructions HTML in multiple languages */
+  /** Usage instructions HTML in multiple languages. Stored in the existing nutrition_information column. */
   usage_instructions?: LocalizedStringDto;
-  /** Notes / cautions in multiple languages */
+  /** Sanitized notes / cautions HTML in multiple languages */
   notes?: LocalizedStringDto;
   price: number;
   sale_price?: number;
@@ -430,13 +429,13 @@ export interface ProductDimensionsResponseDto {
   height?: number;
 }
 
-export interface ProductCategorySummaryDto {
+export interface ProductCollectionSummaryDto {
   id: string;
   name: string;
   slug: string;
 }
 
-export interface ProductCollectionSummaryDto {
+export interface ProductCategorySummaryDto {
   id: string;
   name: string;
   slug: string;
@@ -485,7 +484,8 @@ export interface ProductVariantResponseDto {
   barcode?: string | null;
   /** @nullable */
   color_id?: string | null;
-  size_id: string;
+  /** @nullable */
+  size_id?: string | null;
   /** @nullable */
   image_url?: string | null;
   color?: ProductVariantColorDto;
@@ -514,8 +514,6 @@ export type ProductResponseDtoDimensions = ProductDimensionsResponseDto | null;
  */
 export type ProductResponseDtoCategory = ProductCategorySummaryDto | null;
 
-export type ProductResponseDtoCollections = ProductCollectionSummaryDto[];
-
 /**
  * @nullable
  */
@@ -525,21 +523,30 @@ export interface ProductResponseDto {
   id: string;
   name: string;
   slug: string;
-  /** @nullable */
+  /**
+   * Sanitized product description HTML resolved for the requested locale
+   * @nullable
+   */
   description?: string | null;
-  /** @nullable */
+  /**
+   * Sanitized ingredients and allergen information HTML resolved for the requested locale
+   * @nullable
+   */
   short_description?: string | null;
   /**
-   * Deprecated compatibility alias for usage instructions HTML resolved for the requested locale
+   * Deprecated compatibility alias for usage instructions HTML. New clients should use usage_instructions.
    * @nullable
    */
   nutrition_information?: string | null;
   /**
-   * Usage instructions HTML resolved for the requested locale
+   * Usage instructions HTML resolved for the requested locale. Preferred key for new clients.
    * @nullable
    */
   usage_instructions?: string | null;
-  /** Sanitized notes / cautions HTML resolved for the requested locale */
+  /**
+   * Sanitized notes / cautions HTML resolved for the requested locale
+   * @nullable
+   */
   notes?: string | null;
   price: number;
   /** @nullable */
@@ -566,9 +573,9 @@ export interface ProductResponseDto {
   dimensions?: ProductResponseDtoDimensions;
   created_at: string;
   updated_at: string;
+  collections?: ProductCollectionSummaryDto[];
   /** @nullable */
   category?: ProductResponseDtoCategory;
-  collections?: ProductResponseDtoCollections;
   /** @nullable */
   brand: ProductResponseDtoBrand;
   variants?: ProductVariantResponseDto[];
@@ -594,8 +601,6 @@ export const UpdateProductDtoStatus = {
   active: 'active',
   inactive: 'inactive',
   draft: 'draft',
-  out_of_stock: 'out_of_stock',
-  discontinued: 'discontinued',
 } as const;
 
 export interface UpdateProductDto {
@@ -603,15 +608,15 @@ export interface UpdateProductDto {
   name?: LocalizedStringDto;
   /** Product slug in multiple languages */
   slug?: LocalizedStringDto;
-  /** Product description in multiple languages */
+  /** Product description HTML in multiple languages. Unsafe tags and attributes are removed before storage. */
   description?: LocalizedStringDto;
-  /** Short description in multiple languages */
+  /** Ingredients and allergen information HTML in multiple languages. Unsafe tags and attributes are removed before storage. */
   short_description?: LocalizedStringDto;
-  /** Deprecated compatibility alias for usage instructions HTML */
+  /** Deprecated compatibility alias for usage instructions HTML. New clients should send usage_instructions. */
   nutrition_information?: LocalizedStringDto;
-  /** Usage instructions HTML in multiple languages */
+  /** Usage instructions HTML in multiple languages. Stored in the existing nutrition_information column. */
   usage_instructions?: LocalizedStringDto;
-  /** Notes / cautions in multiple languages */
+  /** Sanitized notes / cautions HTML in multiple languages */
   notes?: LocalizedStringDto;
   price?: number;
   sale_price?: number;
@@ -1205,6 +1210,8 @@ export interface UpdateBrandDto {
 export interface CreateHomepageBannerDto {
   /** Banner image URL, from /files/upload(-multiple) */
   image_url: string;
+  /** Optional background video (mp4). When set, storefront autoplays it (muted/loop) with image_url as poster/fallback. */
+  video_url?: string;
   alt_text?: string;
   /** Optional CTA target when the banner is clicked */
   link_url?: string;
@@ -1328,6 +1335,66 @@ export interface PolicyListItemDto {
   slug: string;
   display_order: number;
   is_active: boolean;
+}
+
+export interface CartItemProductDto {
+  id: string;
+  name: string;
+  slug: string;
+  /**
+   * First product image, or null
+   * @nullable
+   */
+  image?: string | null;
+  /** Current stock available for this product */
+  stock: number;
+  /** Whether the product can currently be purchased */
+  available: boolean;
+}
+
+export interface CartItemResponseDto {
+  id: string;
+  quantity: number;
+  /**
+   * Selected packaging variant SKU
+   * @nullable
+   */
+  variantSku?: string | null;
+  /**
+   * Selected packaging variant label
+   * @nullable
+   */
+  variantName?: string | null;
+  /** Effective unit price (sale_price ?? price) */
+  unitPrice: number;
+  /** unitPrice × quantity */
+  lineTotal: number;
+  product: CartItemProductDto;
+}
+
+export interface CartResponseDto {
+  id: string;
+  items: CartItemResponseDto[];
+  /** Sum of every line total */
+  subtotal: number;
+  /** Sum of every item quantity */
+  totalQuantity: number;
+  /** True when every line is available and within stock */
+  valid: boolean;
+}
+
+export interface AddCartItemDto {
+  /** Product to add to the cart */
+  productId: string;
+  /** Required when purchasing a product packaging variant */
+  variantSku?: string;
+  /** Quantity to add (added on top of any existing quantity) */
+  quantity: number;
+}
+
+export interface UpdateCartItemDto {
+  /** New absolute quantity. 0 removes the line. */
+  quantity: number;
 }
 
 export type HealthControllerGetHealth200 = {
@@ -1766,3 +1833,84 @@ search?: string;
  */
 is_active?: boolean;
 };
+
+export type CartControllerGetCartParams = {
+/**
+ * Locale used to resolve product name/slug (default: en)
+ */
+locale?: CartControllerGetCartLocale;
+};
+
+export type CartControllerGetCartLocale = typeof CartControllerGetCartLocale[keyof typeof CartControllerGetCartLocale];
+
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const CartControllerGetCartLocale = {
+  en: 'en',
+  vi: 'vi',
+} as const;
+
+export type CartControllerAddItemParams = {
+/**
+ * Locale used to resolve product name/slug (default: en)
+ */
+locale?: CartControllerAddItemLocale;
+};
+
+export type CartControllerAddItemLocale = typeof CartControllerAddItemLocale[keyof typeof CartControllerAddItemLocale];
+
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const CartControllerAddItemLocale = {
+  en: 'en',
+  vi: 'vi',
+} as const;
+
+export type CartControllerUpdateItemParams = {
+/**
+ * Locale used to resolve product name/slug (default: en)
+ */
+locale?: CartControllerUpdateItemLocale;
+};
+
+export type CartControllerUpdateItemLocale = typeof CartControllerUpdateItemLocale[keyof typeof CartControllerUpdateItemLocale];
+
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const CartControllerUpdateItemLocale = {
+  en: 'en',
+  vi: 'vi',
+} as const;
+
+export type CartControllerRemoveItemParams = {
+/**
+ * Locale used to resolve product name/slug (default: en)
+ */
+locale?: CartControllerRemoveItemLocale;
+};
+
+export type CartControllerRemoveItemLocale = typeof CartControllerRemoveItemLocale[keyof typeof CartControllerRemoveItemLocale];
+
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const CartControllerRemoveItemLocale = {
+  en: 'en',
+  vi: 'vi',
+} as const;
+
+export type CartControllerMergeParams = {
+/**
+ * Locale used to resolve product name/slug (default: en)
+ */
+locale?: CartControllerMergeLocale;
+};
+
+export type CartControllerMergeLocale = typeof CartControllerMergeLocale[keyof typeof CartControllerMergeLocale];
+
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const CartControllerMergeLocale = {
+  en: 'en',
+  vi: 'vi',
+} as const;
+

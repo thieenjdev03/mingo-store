@@ -11,7 +11,13 @@ import type {
   SWRConfiguration
 } from 'swr';
 
+import useSWRMutation from 'swr/mutation';
 import type {
+  SWRMutationConfiguration
+} from 'swr/mutation';
+
+import type {
+  UpdateUserDto,
   UserResponseDto
 } from '../ecomAPI.schemas';
 
@@ -53,6 +59,51 @@ export const useMeControllerGetMe = <TError = unknown>(
   const swrFn = () => meControllerGetMe()
 
   const query = useSwr<Awaited<ReturnType<typeof swrFn>>, TError>(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
+/**
+ * @summary Update current user profile
+ */
+export const meControllerUpdateMe = (
+    updateUserDto: UpdateUserDto,
+ ) => {
+    return customFetch<UserResponseDto>(
+    {url: `/me`, method: 'PATCH',
+      headers: {'Content-Type': 'application/json', },
+      data: updateUserDto
+    },
+    );
+  }
+
+
+
+export const getMeControllerUpdateMeMutationFetcher = ( ) => {
+  return (_: Key, { arg }: { arg: UpdateUserDto }) => {
+    return meControllerUpdateMe(arg);
+  }
+}
+export const getMeControllerUpdateMeMutationKey = () => [`/me`] as const;
+
+export type MeControllerUpdateMeMutationResult = NonNullable<Awaited<ReturnType<typeof meControllerUpdateMe>>>
+export type MeControllerUpdateMeMutationError = unknown
+
+/**
+ * @summary Update current user profile
+ */
+export const useMeControllerUpdateMe = <TError = unknown>(
+   options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof meControllerUpdateMe>>, TError, Key, UpdateUserDto, Awaited<ReturnType<typeof meControllerUpdateMe>>> & { swrKey?: string }, }
+) => {
+
+  const {swr: swrOptions} = options ?? {}
+
+  const swrKey = swrOptions?.swrKey ?? getMeControllerUpdateMeMutationKey();
+  const swrFn = getMeControllerUpdateMeMutationFetcher();
+
+  const query = useSWRMutation(swrKey, swrFn, swrOptions)
 
   return {
     swrKey,

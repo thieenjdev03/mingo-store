@@ -104,6 +104,7 @@ function toTileCardView(tile: HomepageProductTileDto): ProductCardView {
     stock: Number(tile.stock_quantity),
     available: tile.status === 'active' && Number(tile.stock_quantity) > 0,
     spec: null,
+    specOutOfStock: false,
     priceOnRequest: tile.is_featured === true,
   };
 }

@@ -23,7 +23,9 @@ export interface BannerDto {
 
 // `video_url` post-date lần gen openapi gần nhất (backend vừa thêm) nên chưa có trong
 // CreateHomepageBannerDto generated — mở rộng ở đây và cast ở call site (giống pattern hand-declared của feature này).
-export type SaveBannerInput = CreateHomepageBannerDto & { video_url?: string | null };
+export type SaveBannerInput = Omit<CreateHomepageBannerDto, 'video_url'> & {
+  video_url?: string | null;
+};
 
 export const bannersKey = ['/homepage/banners'] as const;
 

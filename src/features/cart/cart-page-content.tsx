@@ -44,8 +44,9 @@ export function CartPageContent() {
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <Link href={`/products/${item.product.slug}`} className="font-sans text-lg font-bold hover:text-primary">{item.product.name}</Link>
+                      <div className="min-w-0 flex-1">
+                        <Link href={`/products/${item.product.slug}`} className="line-clamp-2 break-words font-sans text-lg font-bold hover:text-primary">{item.product.name}</Link>
+                        {item.variantName ? <p className="mt-1 text-sm text-muted-foreground">{item.variantName}</p> : null}
                         {!item.product.available ? <p className="mt-1 text-sm font-semibold text-destructive">{t('unavailable')}</p> : null}
                       </div>
                       <button type="button" disabled={cart.isMutating} onClick={() => void cart.removeItem(item.id)} aria-label={`${t('remove')} ${item.product.name}`} className="rounded p-2 text-muted-foreground hover:bg-muted hover:text-destructive disabled:opacity-50"><Trash2 className="size-4" aria-hidden="true" /></button>

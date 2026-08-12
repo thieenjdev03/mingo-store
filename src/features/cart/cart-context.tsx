@@ -26,7 +26,7 @@ interface CartContextValue extends CartView {
   isMutating: boolean;
   errorMessage: string | null;
   isDrawerOpen: boolean;
-  addItem: (productId: string, quantity: number) => Promise<boolean>;
+  addItem: (productId: string, quantity: number, variantSku?: string) => Promise<boolean>;
   removeItem: (itemId: string) => Promise<void>;
   setQuantity: (itemId: string, quantity: number) => Promise<void>;
   clear: () => Promise<void>;
@@ -83,9 +83,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
   );
 
   const addItem = useCallback(
-    async (productId: string, quantity: number) => {
+    async (productId: string, quantity: number, variantSku?: string) => {
       const success = await runMutation(() =>
-        addCartItem({ productId, quantity }, locale),
+        addCartItem({ productId, quantity, variantSku }, locale),
       );
       if (success) setDrawerOpen(true);
       return success;

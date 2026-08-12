@@ -37,6 +37,7 @@
     "empty": "There are no active products yet.",
     "outOfStock": "Out of stock",
     "priceOnRequest": "Contact for price",
+    "contactForInfo": "Contact us for information",
     "contactForPrice": "Contact us for a quote"
   },
   "contact": {
@@ -464,6 +465,8 @@
   "product": {
     "addToCart": "Add to cart",
     "outOfStock": "Out of stock",
+    "temporarilyOutOfStock": "Temporarily out of stock",
+    "contactForInfo": "Contact us for information",
     "contactForPrice": "Contact us for a quote",
     "priceOnRequest": "Price on request",
     "description": "Description",

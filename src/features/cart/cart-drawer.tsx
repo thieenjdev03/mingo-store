@@ -32,8 +32,8 @@ export function CartDrawer() {
   return (
     <div className="fixed inset-0 z-[70]" role="presentation">
       <button type="button" aria-label={t('close')} className="absolute inset-0 bg-foreground/35 backdrop-blur-[1px]" onClick={cart.closeDrawer} />
-      <aside aria-label={t('drawerTitle')} aria-modal="true" role="dialog" className="absolute right-0 top-0 flex h-full w-full max-w-[440px] flex-col bg-card shadow-2xl">
-        <header className="flex items-center justify-between border-b border-border px-5 py-5 sm:px-7">
+      <aside aria-label={t('drawerTitle')} aria-modal="true" role="dialog" className="absolute inset-y-0 right-0 flex h-dvh w-full max-w-[440px] flex-col overflow-hidden bg-card shadow-2xl">
+        <header className="shrink-0 flex items-center justify-between border-b border-border px-5 py-5 sm:px-7">
           <div className="flex items-center gap-3">
             <ShoppingBag className="size-5 text-primary" aria-hidden="true" />
             <h2 className="font-display text-xl font-bold text-foreground">{t('drawerTitle')}</h2>
@@ -53,9 +53,9 @@ export function CartDrawer() {
         ) : null}
 
         {cart.isLoading ? (
-          <div className="flex flex-1 items-center justify-center"><MeltingIceCreamLoader label={t('loading')} size="sm" /></div>
+          <div className="flex min-h-0 flex-1 items-center justify-center"><MeltingIceCreamLoader label={t('loading')} size="sm" /></div>
         ) : cart.items.length === 0 ? (
-          <div className="flex flex-1 flex-col items-center justify-center px-8 text-center">
+          <div className="flex min-h-0 flex-1 flex-col items-center justify-center px-8 text-center">
             <ShoppingBag className="mb-5 size-12 text-muted-foreground" strokeWidth={1.25} aria-hidden="true" />
             <h3 className="font-display text-2xl font-bold">{t('emptyTitle')}</h3>
             <p className="mt-2 max-w-xs text-sm text-muted-foreground">{t('emptyDescription')}</p>
@@ -65,7 +65,7 @@ export function CartDrawer() {
           </div>
         ) : (
           <>
-            <div className="no-scrollbar flex-1 space-y-4 overflow-y-auto px-5 py-5 sm:px-7">
+            <div className="no-scrollbar min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain px-5 py-5 sm:px-7">
               {cart.items.map((item) => (
                 <article key={item.id} className="flex gap-4 border-b border-border pb-4 last:border-0">
                   <div className="relative size-20 shrink-0 rounded-lg bg-background">
@@ -73,8 +73,9 @@ export function CartDrawer() {
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="flex items-start justify-between gap-2">
-                      <div>
-                        <h3 className="font-sans font-semibold leading-5">{item.product.name}</h3>
+                      <div className="min-w-0 flex-1">
+                        <h3 className="line-clamp-2 break-words font-sans font-semibold leading-5">{item.product.name}</h3>
+                        {item.variantName ? <p className="mt-1 truncate text-xs text-muted-foreground">{item.variantName}</p> : null}
                         {!item.product.available ? <p className="mt-1 text-xs font-semibold text-destructive">{t('unavailable')}</p> : null}
                       </div>
                       <button type="button" disabled={cart.isMutating} onClick={() => void cart.removeItem(item.id)} aria-label={`${t('remove')} ${item.product.name}`} className="rounded p-1 text-muted-foreground hover:text-destructive disabled:opacity-50">
@@ -93,7 +94,7 @@ export function CartDrawer() {
                 </article>
               ))}
             </div>
-            <footer className="space-y-3 border-t border-border px-5 py-5 sm:px-7">
+            <footer className="relative z-10 mt-auto shrink-0 space-y-3 border-t border-border bg-card px-5 py-5 sm:px-7">
               <div className="flex items-center justify-between text-base font-semibold">
                 <span>{t('subtotal')}</span>
                 <span className="text-primary">{fCurrencyVND(cart.subtotal)}</span>

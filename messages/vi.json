@@ -37,6 +37,7 @@
     "empty": "Hiện chưa có sản phẩm đang bán.",
     "outOfStock": "Tạm hết hàng",
     "priceOnRequest": "Liên hệ nhận giá",
+    "contactForInfo": "Liên hệ để biết thông tin",
     "contactForPrice": "Liên hệ để nhận báo giá"
   },
   "contact": {
@@ -464,6 +465,8 @@
   "product": {
     "addToCart": "Thêm vào giỏ hàng",
     "outOfStock": "Hết hàng",
+    "temporarilyOutOfStock": "Tạm hết hàng",
+    "contactForInfo": "Liên hệ để biết thông tin",
     "contactForPrice": "Liên hệ để nhận báo giá",
     "priceOnRequest": "Giá liên hệ",
     "description": "Mô tả",
