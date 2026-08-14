@@ -1,8 +1,15 @@
+import type {
+  CheckoutQuoteDto,
+  CheckoutShippingAddressDto,
+  CreateCheckoutOrderDto,
+  ShippingQuoteDto,
+} from '@/lib/api/generated/ecomAPI.schemas';
 import { customFetch } from '@/lib/api/fetcher';
 import { getOrCreateCartToken } from '@/features/cart/cart-token';
 import type {
   CheckoutQuoteDto,
   CheckoutQuoteView,
+  CheckoutRequestInput,
   CreateCheckoutOrderDto,
   CreateOrderResult,
   OrderView,
@@ -15,6 +22,27 @@ import type {
 
 function cartHeaders(): Record<string, string> {
   return { 'X-Cart-Token': getOrCreateCartToken() };
+}
+
+function toCheckoutAddress(address: ShippingAddressInput): CheckoutShippingAddressDto {
+  return {
+    recipient_name: address.recipientName,
+    recipient_phone: address.recipientPhone,
+    province: address.province,
+    district: address.district,
+    ward: address.ward,
+    street_line_1: address.streetLine1,
+  };
+}
+
+function toCheckoutDto(input: CheckoutRequestInput): CreateCheckoutOrderDto {
+  return {
+    shipping_address_id: input.shippingAddressId,
+    shipping_address: input.shippingAddress ? toCheckoutAddress(input.shippingAddress) : undefined,
+    province_code: input.provinceCode,
+    district_code: input.districtCode,
+    notes: input.notes,
+  };
 }
 
 export function quoteShipping(dto: ShippingQuoteDto): Promise<ShippingQuoteView> {
@@ -37,9 +65,10 @@ export function upsertShippingAddress(
 }
 
 export function quoteCheckout(
-  dto: CheckoutQuoteDto,
+  input: CheckoutRequestInput,
   locale: string,
 ): Promise<CheckoutQuoteView> {
+  const dto: CheckoutQuoteDto = toCheckoutDto(input);
   return customFetch<CheckoutQuoteView>({
     url: '/checkout/quote',
     method: 'POST',
@@ -50,9 +79,10 @@ export function quoteCheckout(
 }
 
 export function createCheckoutOrder(
-  dto: CreateCheckoutOrderDto,
+  input: CheckoutRequestInput,
   locale: string,
 ): Promise<CreateOrderResult> {
+  const dto = toCheckoutDto(input);
   return customFetch<CreateOrderResult>({
     url: '/checkout/create-order',
     method: 'POST',
@@ -80,5 +110,13 @@ export function getMyOrder(orderNumber: string): Promise<OrderView> {
   return customFetch<OrderView>({
     url: `/me/orders/${encodeURIComponent(orderNumber)}`,
     method: 'GET',
+  });
+}
+
+export function getCheckoutOrder(orderNumber: string): Promise<OrderView> {
+  return customFetch<OrderView>({
+    url: `/checkout/orders/${encodeURIComponent(orderNumber)}`,
+    method: 'GET',
+    headers: cartHeaders(),
   });
 }

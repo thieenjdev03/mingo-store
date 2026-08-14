@@ -60,6 +60,14 @@ export interface ShippingAddressView extends ShippingAddressInput {
   id: string;
 }
 
+export interface CheckoutRequestInput {
+  shippingAddressId?: string;
+  shippingAddress?: ShippingAddressInput;
+  provinceCode: string;
+  districtCode: string;
+  notes?: string;
+}
+
 export interface OrderItemView {
   productId: string;
   productName: string;
@@ -93,9 +101,10 @@ export interface CheckoutQuoteView {
   summary: OrderSummaryView;
   shipping: ShippingQuoteView;
   address: {
-    id: string;
+    id: string | null;
     recipient_name: string;
     phone?: string;
+    email?: string;
     province: string;
     district: string;
     ward?: string;

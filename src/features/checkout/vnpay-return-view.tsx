@@ -8,7 +8,8 @@ import { Link } from '@/i18n/navigation';
 import { getApiErrorMessage } from '@/lib/api/error-message';
 import { fCurrencyVND } from '@/lib/format';
 import { notifyCartUpdated } from '@/features/cart/cart-token';
-import { getMyOrder, getVnpayReturnState } from './api';
+import { getAccessToken } from '@/lib/auth/token';
+import { getCheckoutOrder, getVnpayReturnState } from './api';
 import type { OrderView, VnpayReturnState } from './types';
 
 export function VnpayReturnView() {
@@ -26,7 +27,7 @@ export function VnpayReturnView() {
         if (!returnState.valid || !returnState.order_number) {
           throw new Error(t('invalidReturn'));
         }
-        const freshOrder = await getMyOrder(returnState.order_number);
+        const freshOrder = await getCheckoutOrder(returnState.order_number);
         setOrder(freshOrder);
         if (freshOrder.paymentStatus === 'PAID') notifyCartUpdated();
       })
@@ -43,6 +44,7 @@ export function VnpayReturnView() {
   const icon = paid ? <CheckCircle2 className="size-14 text-green-600" /> : failed ? <XCircle className="size-14 text-destructive" /> : <Clock3 className="size-14 text-primary" />;
   const title = paid ? t('paidTitle') : failed ? t('failedTitle') : t('pendingTitle');
   const description = paid ? t('paidDescription') : failed ? t('failedDescription') : t('pendingDescription');
+  const signedIn = Boolean(getAccessToken());
 
   return (
     <ReturnShell icon={icon} title={title} description={description}>
@@ -53,8 +55,8 @@ export function VnpayReturnView() {
         <div className="flex justify-between gap-4 border-t border-border pt-3"><dt>{t('total')}</dt><dd className="font-bold text-primary">{fCurrencyVND(Number(order.summary.total))}</dd></div>
       </dl>
       <div className="mt-6 grid gap-3 sm:grid-cols-2">
-        <Link href={`/orders/${order.orderNumber}`} className="inline-flex h-11 items-center justify-center rounded-lg border-2 border-primary px-5 text-sm font-bold text-primary">{t('viewOrder')}</Link>
-        <Link href="/products" className="inline-flex h-11 items-center justify-center rounded-lg bg-primary px-5 text-sm font-bold text-primary-foreground">{t('continueShopping')}</Link>
+        {signedIn ? <Link href={`/orders/${order.orderNumber}`} className="inline-flex h-11 items-center justify-center rounded-lg border-2 border-primary px-5 text-sm font-bold text-primary">{t('viewOrder')}</Link> : null}
+        <Link href="/products" className={`inline-flex h-11 items-center justify-center rounded-lg bg-primary px-5 text-sm font-bold text-primary-foreground ${signedIn ? '' : 'sm:col-span-2'}`}>{t('continueShopping')}</Link>
       </div>
     </ReturnShell>
   );

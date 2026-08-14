@@ -1397,6 +1397,40 @@ export interface UpdateCartItemDto {
   quantity: number;
 }
 
+export interface CheckoutShippingAddressDto {
+  recipient_name: string;
+  recipient_phone: string;
+  email?: string;
+  province: string;
+  district: string;
+  ward?: string;
+  street_line_1: string;
+  street_line_2?: string;
+}
+
+export interface CheckoutQuoteDto {
+  /** Saved address for an authenticated customer */
+  shipping_address_id?: string;
+  /** Inline address for guest checkout */
+  shipping_address?: CheckoutShippingAddressDto;
+  /** Vietnam province/city code */
+  province_code: string;
+  /** Vietnam district code */
+  district_code: string;
+}
+
+export interface CreateCheckoutOrderDto {
+  /** Saved address for an authenticated customer */
+  shipping_address_id?: string;
+  /** Inline address for guest checkout */
+  shipping_address?: CheckoutShippingAddressDto;
+  /** Vietnam province/city code */
+  province_code: string;
+  /** Vietnam district code */
+  district_code: string;
+  notes?: string;
+}
+
 export type HealthControllerGetHealth200 = {
   status?: string;
   timestamp?: number;
