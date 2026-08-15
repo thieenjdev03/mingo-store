@@ -3,6 +3,7 @@ import { Work_Sans } from 'next/font/google';
 import { NextIntlClientProvider, hasLocale } from 'next-intl';
 import { setRequestLocale } from 'next-intl/server';
 import { notFound } from 'next/navigation';
+import { Analytics } from '@vercel/analytics/next';
 import { routing } from '@/i18n/routing';
 import { CartProvider } from '@/features/cart/cart-context';
 import { SiteHeader } from '@/components/layout/site-header';
@@ -79,6 +80,7 @@ export default async function LocaleLayout({
             <SiteFooter />
           </CartProvider>
         </NextIntlClientProvider>
+        <Analytics />
       </body>
     </html>
   );
