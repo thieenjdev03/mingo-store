@@ -15,6 +15,7 @@ export interface FetchConfig {
   headers?: Record<string, string>;
   signal?: AbortSignal;
   cache?: RequestCache;
+  next?: NextFetchRequestConfig;
 }
 
 export class ApiError extends Error {
@@ -37,7 +38,7 @@ function buildUrl(url: string, params?: Record<string, unknown>): string {
 }
 
 export async function customFetch<T>(config: FetchConfig): Promise<T> {
-  const { url, method, params, data, headers, signal, cache } = config;
+  const { url, method, params, data, headers, signal, cache, next } = config;
 
   const token = getAccessToken();
   // FormData (file uploads) must be sent as-is — JSON.stringify would collapse
@@ -55,6 +56,7 @@ export async function customFetch<T>(config: FetchConfig): Promise<T> {
     method,
     signal,
     cache,
+    next,
     headers: mergedHeaders,
     body: isFormData ? (data as FormData) : data !== undefined ? JSON.stringify(data) : undefined,
   });

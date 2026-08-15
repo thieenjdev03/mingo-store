@@ -1,8 +1,16 @@
+import type { Metadata } from 'next';
 import { setRequestLocale } from 'next-intl/server';
 import { MingoHomeView } from '@/sections/mingo-home/mingo-home-view';
 import type { Locale } from '@/types/localized';
+import { pageMetadata, SEO_COPY, toSeoLocale } from '@/lib/seo';
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 300;
+
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+  const { locale } = await params;
+  const seoLocale = toSeoLocale(locale);
+  return pageMetadata({ locale: seoLocale, ...SEO_COPY[seoLocale].home });
+}
 
 export default async function HomePage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;

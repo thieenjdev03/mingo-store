@@ -1,7 +1,20 @@
+import type { Metadata } from 'next';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { getPolicies, getPolicyBySlug } from '@/features/policies/api';
 import type { PolicyDetailView } from '@/features/policies/types';
 import { PoliciesAccordion } from '@/features/policies/policies-accordion';
+import { pageMetadata, toSeoLocale } from '@/lib/seo';
+
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+  const { locale } = await params;
+  const seoLocale = toSeoLocale(locale);
+  return pageMetadata({
+    locale: seoLocale,
+    pathname: '/policies',
+    title: seoLocale === 'vi' ? 'Chính sách mua hàng và bảo mật | Mingo Ice Cream' : 'Purchase and privacy policies | Mingo Ice Cream',
+    description: seoLocale === 'vi' ? 'Đọc chính sách mua hàng, giao nhận, thanh toán và bảo mật thông tin của Mingo Ice Cream.' : 'Read Mingo Ice Cream policies for purchases, delivery, payments and information privacy.',
+  });
+}
 
 /**
  * Trang "Chính sách và hỗ trợ" — danh sách chính sách dạng accordion (GET /policies),

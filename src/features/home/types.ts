@@ -1,4 +1,4 @@
-import type { ProductCardView } from '@/features/product/types';
+import { isPublicCatalogProduct, type ProductCardView } from '@/features/product/types';
 
 /**
  * TẦNG 1 (khai báo tay) — shape của GET /collections/homepage.
@@ -120,9 +120,14 @@ export function toHomeSectionsView(
       description: section.description ?? null,
       homepageSection: section.homepage_section ?? '',
       productCount: section.product_count,
-      products: section.products.map(toTileCardView),
+      products: section.products.filter(isPublicCatalogProduct).map(toTileCardView),
     }))
     // Backend lọc `homepage_section IS NOT NULL`, nhưng admin "gỡ khỏi trang chủ"
     // lưu chuỗi rỗng => phòng thủ ở đây, và bỏ khối không có sản phẩm để hiển thị.
-    .filter((section) => section.homepageSection.trim() !== '' && section.products.length > 0);
+    .filter((section) =>
+      section.homepageSection.trim() !== '' &&
+      section.products.length > 0 &&
+      section.slug.trim().toLowerCase() !== 'test' &&
+      section.title.trim().toLowerCase() !== 'test'
+    );
 }

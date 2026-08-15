@@ -27,7 +27,7 @@ export async function getCategoryBySlug(slug: string): Promise<StorefrontCategor
     const category = await customFetch<CategoryDetailDto>({
       url: `/categories/slug/${encodeURIComponent(slug)}`,
       method: 'GET',
-      cache: 'no-store',
+      next: { revalidate: 300 },
     });
     return {
       id: category.id,

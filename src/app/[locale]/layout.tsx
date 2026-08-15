@@ -7,6 +7,8 @@ import { routing } from '@/i18n/routing';
 import { CartProvider } from '@/features/cart/cart-context';
 import { SiteHeader } from '@/components/layout/site-header';
 import { SiteFooter } from '@/components/layout/site-footer';
+import { JsonLd } from '@/components/seo/json-ld';
+import { absoluteUrl, pageMetadata, SEO_COPY, SITE_NAME, SITE_URL, toSeoLocale } from '@/lib/seo';
 import '@/styles/globals.css';
 
 // Typography: Work Sans (có subset vietnamese) dùng chung cho cả headline và
@@ -21,10 +23,17 @@ const workSans = Work_Sans({
   display: 'swap',
 });
 
-export const metadata: Metadata = {
-  title: { default: 'Mingo — Joy in every bite!', template: '%s | Mingo' },
-  description: 'Kem Mingo — kem que, kem hộp, kem ốc quế. Joy in every bite!',
-};
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+  const { locale } = await params;
+  const seoLocale = toSeoLocale(locale);
+  return {
+    metadataBase: SITE_URL,
+    ...pageMetadata({ locale: seoLocale, ...SEO_COPY[seoLocale].home }),
+    applicationName: SITE_NAME,
+    category: 'food',
+    robots: { index: true, follow: true },
+  };
+}
 
 export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
@@ -44,6 +53,25 @@ export default async function LocaleLayout({
   return (
     <html lang={locale} className={`storefront-theme ${workSans.variable}`}>
       <body className="flex min-h-screen flex-col font-display">
+        <JsonLd
+          data={{
+            '@context': 'https://schema.org',
+            '@type': 'Organization',
+            '@id': `${absoluteUrl('/')}#organization`,
+            name: SITE_NAME,
+            legalName: 'Hồng Tân Phát Co., Ltd.',
+            url: absoluteUrl('/'),
+            logo: absoluteUrl('/icon.png'),
+            email: 'hongtanphatco@gmail.com',
+            telephone: '+84 977 008 879',
+            address: {
+              '@type': 'PostalAddress',
+              streetAddress: '232/28 Đ. Tô Hiệu, Phú Thạnh',
+              addressLocality: 'Hồ Chí Minh',
+              addressCountry: 'VN',
+            },
+          }}
+        />
         <NextIntlClientProvider>
           <CartProvider>
             <SiteHeader />

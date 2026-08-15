@@ -19,7 +19,7 @@ async function fetchHomeSections(locale: Locale): Promise<HomeCollectionView[]> 
     url: '/collections/homepage',
     method: 'GET',
     params: { locale, limit: HOME_TILES_PER_SECTION },
-    cache: 'no-store',
+    next: { revalidate: 300 },
   });
   return toHomeSectionsView(sections);
 }
@@ -30,7 +30,7 @@ async function fetchHeroBanners(): Promise<HeroBannerView[]> {
     url: '/homepage/banners',
     method: 'GET',
     params: { active: true },
-    cache: 'no-store',
+    next: { revalidate: 300 },
   });
   return banners
     .filter((banner) => banner.is_active && banner.image_url)

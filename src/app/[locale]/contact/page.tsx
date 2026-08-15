@@ -1,5 +1,13 @@
+import type { Metadata } from 'next';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { ContactForm } from '@/features/contact/contact-form';
+import { pageMetadata, SEO_COPY, toSeoLocale } from '@/lib/seo';
+
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+  const { locale } = await params;
+  const seoLocale = toSeoLocale(locale);
+  return pageMetadata({ locale: seoLocale, pathname: '/contact', ...SEO_COPY[seoLocale].contact });
+}
 
 export default async function ContactPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;

@@ -58,6 +58,12 @@ export interface ProductDetailView extends ProductCardView {
   purchasable: boolean;
 }
 
+/** Không đưa dữ liệu seed/QA như "Test" hoặc "SP A" lên storefront và sitemap. */
+export function isPublicCatalogProduct(product: { name: string; slug?: string }): boolean {
+  const values = [product.name, product.slug ?? ''].map((value) => value.trim());
+  return !values.some((value) => /^(?:test|sp(?:[\s_-]+[a-z0-9]+)?)$/i.test(value));
+}
+
 /**
  * Nhãn quy cách đóng gói từ `size` (API sizes mở rộng). Luôn ưu tiên `name` (đã đúng định dạng:
  * "24 cây / thùng", "Hộp 250ml"); chỉ build từ field khi thiếu name.

@@ -4,6 +4,7 @@ import type {
   ProductResponseDto,
   ProductsControllerFindAllParams,
 } from '@/lib/api/generated/ecomAPI.schemas';
+import { isPublicCatalogProduct } from './types';
 
 export type ProductDetailApiDto = ProductResponseDto & {
   nutrition_information?: string | null;
@@ -18,7 +19,7 @@ export type ProductDetailApiDto = ProductResponseDto & {
  */
 
 export function getProducts(params?: ProductsControllerFindAllParams): Promise<ProductListDto> {
-  return customFetch<ProductListDto>({ url: '/products', method: 'GET', params, cache: 'no-store' });
+  return customFetch<ProductListDto>({ url: '/products', method: 'GET', params, next: { revalidate: 300 } });
 }
 
 /** Fetch the complete product list for catalog pages that do not expose pagination controls. */
@@ -28,14 +29,14 @@ export async function getAllProducts(
   const limit = 100;
   const first = await getProducts({ ...params, page: 1, limit });
   const totalPages = Math.max(1, first.meta?.totalPages ?? 1);
-  if (totalPages === 1) return first.data;
+  if (totalPages === 1) return first.data.filter(isPublicCatalogProduct);
 
   const rest = await Promise.all(
     Array.from({ length: totalPages - 1 }, (_, index) =>
       getProducts({ ...params, page: index + 2, limit }),
     ),
   );
-  return [first, ...rest].flatMap((page) => page.data);
+  return [first, ...rest].flatMap((page) => page.data).filter(isPublicCatalogProduct);
 }
 
 /**
@@ -63,7 +64,7 @@ export async function getProductBySlug(slug: string, locale: string): Promise<Pr
       url: `/products/slug/${encodeURIComponent(slug)}`,
       method: 'GET',
       params: { locale },
-      cache: 'no-store',
+      next: { revalidate: 300 },
     });
   } catch (error) {
     if (error instanceof ApiError && error.status === 404) return null;
@@ -100,7 +101,7 @@ export async function getCollectionCatalog(
     url: '/collections',
     method: 'GET',
     params: { limit: 100, locale },
-    cache: 'no-store',
+    next: { revalidate: 300 },
   });
   const collection = collections.items.find(
     (item) => item.slug === slug && item.is_active !== false,
@@ -114,7 +115,7 @@ export async function getCollectionCatalog(
       url: `/collections/${encodeURIComponent(collection.id)}/products`,
       method: 'GET',
       params: { limit: 100, locale, ...(cursor ? { cursor } : {}) },
-      cache: 'no-store',
+      next: { revalidate: 300 },
     });
     products.push(...page.items);
     cursor = page.nextCursor ?? undefined;

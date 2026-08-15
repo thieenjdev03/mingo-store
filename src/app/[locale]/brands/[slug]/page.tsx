@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import Image from 'next/image';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { hasLocale } from 'next-intl';
@@ -7,6 +8,9 @@ import { toProductCardView } from '@/features/product/types';
 import { routing } from '@/i18n/routing';
 import { BRANDS } from '@/config/brands';
 import { ProductShowcaseGrid, type ProductListCard } from '@/sections/products/product-showcase-grid';
+import { JsonLd } from '@/components/seo/json-ld';
+import { absoluteUrl, localizedPath, pageMetadata, toSeoLocale } from '@/lib/seo';
+import { fetchNavBrands, localNavBrands } from '@/features/catalog/nav-data';
 
 function titleFromSlug(slug: string) {
   return slug.split('-').map((part) => part.charAt(0).toUpperCase() + part.slice(1)).join(' ');
@@ -21,10 +25,36 @@ const BRAND_BANNER_COLORS = [
   '#F1BC72',
 ] as const;
 
+export const revalidate = 300;
+export const dynamic = 'force-static';
+
+export async function generateStaticParams() {
+  const apiBrands = await fetchNavBrands().catch(() => []);
+  const brands = apiBrands.length > 0 ? apiBrands : localNavBrands();
+  return brands.map((brand) => ({ slug: brand.slug }));
+}
+
 /** Chọn màu ổn định theo slug để banner không đổi màu giữa server và client. */
 function bannerColorFromSlug(slug: string) {
   const hash = Array.from(slug).reduce((value, char) => ((value * 31) + char.charCodeAt(0)) >>> 0, 0);
   return BRAND_BANNER_COLORS[hash % BRAND_BANNER_COLORS.length];
+}
+
+export async function generateMetadata({ params }: { params: Promise<{ locale: string; slug: string }> }): Promise<Metadata> {
+  const { locale, slug } = await params;
+  const seoLocale = toSeoLocale(locale);
+  const brand = await getBrandBySlug(slug).catch(() => null);
+  const name = brand?.name ?? BRANDS.find((item) => item.slug === slug)?.name ?? titleFromSlug(slug);
+  const description = seoLocale === 'vi'
+    ? `Khám phá thương hiệu kem ${name}, các sản phẩm và hương vị nổi bật thuộc Mingo Ice Cream.`
+    : `Explore ${name} ice cream products and signature flavours from Mingo Ice Cream.`;
+  return pageMetadata({
+    locale: seoLocale,
+    pathname: `/brands/${slug}`,
+    title: seoLocale === 'vi' ? `Kem ${name} — Sản phẩm và hương vị | Mingo` : `${name} ice cream products and flavours | Mingo`,
+    description,
+    image: brand?.logo_url,
+  });
 }
 
 export default async function BrandPage({ params }: { params: Promise<{ locale: string; slug: string }> }) {
@@ -60,6 +90,20 @@ export default async function BrandPage({ params }: { params: Promise<{ locale: 
 
   return (
     <div className="bg-fog">
+      {products.length > 0 ? (
+        <JsonLd data={{
+          '@context': 'https://schema.org',
+          '@type': 'ItemList',
+          name: title,
+          numberOfItems: products.length,
+          itemListElement: products.map((product, index) => ({
+            '@type': 'ListItem',
+            position: index + 1,
+            name: product.name,
+            url: absoluteUrl(localizedPath(safeLocale, `/products/${product.slug}`)),
+          })),
+        }} />
+      ) : null}
       <section
         className="relative flex h-[280px] items-center justify-center overflow-hidden px-5 text-center sm:h-[360px]"
         style={bannerUrl ? undefined : { backgroundColor: bannerColorFromSlug(slug) }}

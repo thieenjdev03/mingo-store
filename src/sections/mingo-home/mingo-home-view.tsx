@@ -31,6 +31,7 @@ export async function MingoHomeView({ locale }: { locale: Locale }) {
         joyParagraphTwo={tBrands.rich('joy.paragraphTwo', { b: (chunks) => <strong className="font-bold">{chunks}</strong> })}
         exploreCta={tBrands('joy.exploreCta')}
         aboutCta={tBrands('joy.aboutCta')}
+        headingLevel="h2"
       />
       {sections.length > 0 ? (
         sections.map((section) => (

@@ -67,14 +67,14 @@ export function ProductShowcaseGrid({ products, outOfStockLabel, contactLabel, u
           </h2>
 
           {product.available === false ? (
-            <p className="mt-2 text-sm font-semibold text-primary">{unavailableContactLabel}</p>
+            <p className="mt-2 text-sm font-semibold text-primary-dark">{unavailableContactLabel}</p>
           ) : product.spec || product.price || product.priceOnRequest ? (
             <div className="mt-2 flex items-baseline justify-between gap-3 text-xs text-muted-foreground sm:text-sm">
               {!product.specOutOfStock ? <span className="truncate">{product.spec ?? ''}</span> : <span />}
               {product.specOutOfStock ? (
                 <span className="shrink-0 font-semibold text-muted-foreground">{outOfStockLabel}</span>
               ) : product.priceOnRequest ? (
-                <span className="shrink-0 font-semibold text-primary">{contactLabel}</span>
+                <span className="shrink-0 font-semibold text-primary-dark">{contactLabel}</span>
               ) : product.price ? (
                 <span className="flex shrink-0 items-baseline gap-2">
                   {product.compareAtPrice ? <span className="line-through opacity-70">{fCurrencyVND(product.compareAtPrice)}</span> : null}

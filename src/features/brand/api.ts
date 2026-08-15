@@ -14,7 +14,7 @@ export async function getBrandBySlug(slug: string): Promise<BrandDto | null> {
     return await customFetch<BrandDto>({
       url: `/brands/slug/${encodeURIComponent(slug)}`,
       method: 'GET',
-      cache: 'no-store',
+      next: { revalidate: 300 },
     });
   } catch (error) {
     if (error instanceof ApiError && error.status === 404) return null;
@@ -28,7 +28,7 @@ export async function getStorefrontBrands(): Promise<StorefrontBrand[]> {
     url: '/brands',
     method: 'GET',
     params: { active: true },
-    cache: 'no-store',
+    next: { revalidate: 300 },
   });
 
   return (brands ?? [])

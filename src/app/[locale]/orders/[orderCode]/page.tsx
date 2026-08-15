@@ -1,4 +1,7 @@
 import { setRequestLocale } from 'next-intl/server';
+import { NO_INDEX_METADATA } from '@/lib/seo';
+
+export const metadata = NO_INDEX_METADATA;
 import { OrderDetailView } from '@/features/account/order-detail-view';
 
 export default async function OrderDetailPage({ params }: { params: Promise<{ locale: string; orderCode: string }> }) {

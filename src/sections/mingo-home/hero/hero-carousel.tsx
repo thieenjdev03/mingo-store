@@ -29,11 +29,12 @@ function PrimaryBanner() {
         alt=""
         fill
         priority
+        fetchPriority="auto"
         sizes="100vw"
         className="object-cover"
       />
       <div className="absolute left-1/2 top-[12%] z-10 w-[205px] -translate-x-1/2 sm:w-[250px] lg:left-[32.15%] lg:top-[15%] lg:w-[270px] lg:translate-x-0">
-        <Image src={PRIMARY_BANNER.title} alt="" width={270} height={205} priority className="h-auto w-full" />
+        <Image src={PRIMARY_BANNER.title} alt="" width={270} height={205} loading="eager" fetchPriority="low" className="h-auto w-full" />
       </div>
       <div className="absolute -right-8 top-[24%] h-[52%] w-[200px] sm:right-[6%] sm:w-[236px] lg:left-[54.72%] lg:right-auto lg:top-[7%] lg:h-[82%] lg:w-[368px]">
         <Image
@@ -41,6 +42,7 @@ function PrimaryBanner() {
           alt="Kem que Crème Custard Caramel của Mingo"
           fill
           priority
+          fetchPriority="high"
           sizes="(max-width: 640px) 52vw, (max-width: 1024px) 38vw, 368px"
           className="object-contain drop-shadow-[0_18px_18px_rgba(82,45,17,0.12)]"
         />
@@ -50,7 +52,8 @@ function PrimaryBanner() {
           src={PRIMARY_BANNER.pudding}
           alt="Bánh flan caramel"
           fill
-          priority
+          loading="eager"
+          fetchPriority="low"
           sizes="(max-width: 640px) 48vw, 370px"
           className="object-contain"
         />

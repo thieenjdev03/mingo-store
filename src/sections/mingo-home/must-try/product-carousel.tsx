@@ -91,7 +91,7 @@ export function ProductCarousel({ products }: { products: ProductCardView[] }) {
                 )}
               </div>
             ) : (
-              <p className="mt-2 min-h-6 text-sm font-semibold leading-6 text-primary">{t('contactForInfo')}</p>
+              <p className="mt-2 min-h-6 text-sm font-semibold leading-6 text-primary-dark">{t('contactForInfo')}</p>
             )}
           </Link>
         ))}

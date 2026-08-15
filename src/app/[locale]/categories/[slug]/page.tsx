@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { hasLocale } from 'next-intl';
 import { getCategoryBySlug } from '@/features/category/api';
@@ -5,9 +6,37 @@ import { getAllProducts } from '@/features/product/api';
 import { toProductCardView } from '@/features/product/types';
 import { routing } from '@/i18n/routing';
 import { ProductShowcaseGrid, type ProductListCard } from '@/sections/products/product-showcase-grid';
+import { JsonLd } from '@/components/seo/json-ld';
+import { absoluteUrl, localizedPath, pageMetadata, seoDescription, toSeoLocale } from '@/lib/seo';
+import { fetchNavCategories, localNavCategories } from '@/features/catalog/nav-data';
+
+export const revalidate = 300;
+export const dynamic = 'force-static';
+
+export async function generateStaticParams() {
+  const apiCategories = await fetchNavCategories().catch(() => []);
+  const categories = apiCategories.length > 0 ? apiCategories : localNavCategories('vi');
+  return categories.map((category) => ({ slug: category.slug }));
+}
 
 function titleFromSlug(slug: string) {
   return slug.split('-').map((part) => part.charAt(0).toUpperCase() + part.slice(1)).join(' ');
+}
+
+export async function generateMetadata({ params }: { params: Promise<{ locale: string; slug: string }> }): Promise<Metadata> {
+  const { locale, slug } = await params;
+  const seoLocale = toSeoLocale(locale);
+  const category = await getCategoryBySlug(slug).catch(() => null);
+  const name = category?.name ?? titleFromSlug(slug);
+  const fallback = seoLocale === 'vi'
+    ? `Khám phá các sản phẩm ${name} của Mingo Ice Cream, hương vị và quy cách phù hợp cho mọi khoảnh khắc.`
+    : `Explore Mingo ${name} products, flavours and pack sizes for every occasion.`;
+  return pageMetadata({
+    locale: seoLocale,
+    pathname: `/categories/${slug}`,
+    title: seoLocale === 'vi' ? `${name} — Sản phẩm kem Mingo Ice Cream` : `${name} ice cream products | Mingo`,
+    description: seoDescription(category?.description, fallback),
+  });
 }
 
 export default async function CategoryPage({ params }: { params: Promise<{ locale: string; slug: string }> }) {
@@ -42,6 +71,20 @@ export default async function CategoryPage({ params }: { params: Promise<{ local
 
   return (
     <div className="bg-fog">
+      {products.length > 0 ? (
+        <JsonLd data={{
+          '@context': 'https://schema.org',
+          '@type': 'ItemList',
+          name: title,
+          numberOfItems: products.length,
+          itemListElement: products.map((product, index) => ({
+            '@type': 'ListItem',
+            position: index + 1,
+            name: product.name,
+            url: absoluteUrl(localizedPath(safeLocale, `/products/${product.slug}`)),
+          })),
+        }} />
+      ) : null}
       <section className="flex h-[360px] flex-col items-center justify-center gap-4 bg-butter px-5 text-center sm:h-[420px]">
         <h1 className="font-display text-[40px] font-bold leading-none text-foreground sm:text-[48px] lg:text-[56px]">{title}</h1>
         {description ? (

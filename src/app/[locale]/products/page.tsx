@@ -1,9 +1,12 @@
+import type { Metadata } from 'next';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { hasLocale } from 'next-intl';
 import { getProducts } from '@/features/product/api';
-import { toProductCardView, type ProductCardView } from '@/features/product/types';
+import { isPublicCatalogProduct, toProductCardView, type ProductCardView } from '@/features/product/types';
 import { routing } from '@/i18n/routing';
 import { MustTrySection } from '@/sections/mingo-home/must-try/must-try-section';
+import { JsonLd } from '@/components/seo/json-ld';
+import { absoluteUrl, localizedPath, pageMetadata, SEO_COPY, toSeoLocale } from '@/lib/seo';
 
 interface CategorySection {
   slug: string;
@@ -11,7 +14,13 @@ interface CategorySection {
   products: ProductCardView[];
 }
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 300;
+
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+  const { locale } = await params;
+  const seoLocale = toSeoLocale(locale);
+  return pageMetadata({ locale: seoLocale, pathname: '/products', ...SEO_COPY[seoLocale].products });
+}
 
 export default async function ProductListPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
@@ -24,6 +33,7 @@ export default async function ProductListPage({ params }: { params: Promise<{ lo
   try {
     const response = await getProducts({ locale: safeLocale, status: 'active', limit: 100 });
     for (const product of response.data) {
+      if (!isPublicCatalogProduct(product)) continue;
       const view = toProductCardView(product, safeLocale);
       const slug = product.category?.slug ?? 'other';
       const section = apiByCategory.get(slug) ?? {
@@ -42,9 +52,26 @@ export default async function ProductListPage({ params }: { params: Promise<{ lo
 
   const sections = Array.from(apiByCategory.values());
   const totalCount = sections.reduce((sum, section) => sum + section.products.length, 0);
+  const itemList = sections.flatMap((section) => section.products);
 
   return (
     <div className="bg-background">
+      {itemList.length > 0 ? (
+        <JsonLd
+          data={{
+            '@context': 'https://schema.org',
+            '@type': 'ItemList',
+            name: SEO_COPY[toSeoLocale(locale)].products.title,
+            numberOfItems: itemList.length,
+            itemListElement: itemList.map((product, index) => ({
+              '@type': 'ListItem',
+              position: index + 1,
+              name: product.name,
+              url: absoluteUrl(localizedPath(locale, `/products/${product.slug}`)),
+            })),
+          }}
+        />
+      ) : null}
       <section className="flex flex-col items-center justify-center bg-sand px-5 py-16 text-center sm:py-20 lg:py-24">
         <h1 className="font-display text-[34px] font-bold leading-none text-foreground sm:text-[40px] lg:text-[48px]">{t('collectionTitle')}</h1>
         <p className="mt-4 max-w-xl text-base text-foreground/70">{t('subtitle')}</p>

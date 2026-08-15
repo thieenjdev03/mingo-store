@@ -1,25 +1,72 @@
+import type { Metadata } from 'next';
 import Image from 'next/image';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import { Link } from '@/i18n/navigation';
-import { getCareerBySlug } from '@/features/careers/api';
+import { getCareerBySlug, getCareers } from '@/features/careers/api';
 import { toCareerView } from '@/features/careers/types';
 import { CareerApplicationForm } from '@/features/careers/application-form';
+import { JsonLd } from '@/components/seo/json-ld';
+import { absoluteUrl, localizedPath, pageMetadata, seoDescription, toSeoLocale } from '@/lib/seo';
+
+export const revalidate = 300;
+export const dynamic = 'force-static';
+
+export async function generateStaticParams() {
+  const careers = await getCareers({ status: 'published', limit: 100 })
+    .then((response) => response.items)
+    .catch(() => []);
+  return careers.map((career) => ({ slug: career.slug }));
+}
+
+export async function generateMetadata({ params }: { params: Promise<{ locale: string; slug: string }> }): Promise<Metadata> {
+  const { locale, slug } = await params;
+  const seoLocale = toSeoLocale(locale);
+  const job = await getCareerBySlug(slug).then(toCareerView).catch(() => null);
+  const title = job?.title ?? (seoLocale === 'vi' ? 'Vị trí tuyển dụng' : 'Open position');
+  return pageMetadata({
+    locale: seoLocale,
+    pathname: `/careers/${slug}`,
+    title: seoLocale === 'vi' ? `${title} — Tuyển dụng Mingo Ice Cream` : `${title} — Careers at Mingo Ice Cream`,
+    description: seoDescription(job?.excerpt, seoLocale === 'vi' ? `Ứng tuyển vị trí ${title} tại Mingo Ice Cream.` : `Apply for the ${title} position at Mingo Ice Cream.`),
+  });
+}
 
 export default async function CareerDetailPage({ params }: { params: Promise<{ locale: string; slug: string }> }) {
   const { locale, slug } = await params;
   setRequestLocale(locale);
 
-  const job = await getCareerBySlug(slug)
-    .then(toCareerView)
-    .catch(() => null);
-  if (!job) notFound();
+  const apiJob = await getCareerBySlug(slug).catch(() => null);
+  if (!apiJob) notFound();
+  const job = toCareerView(apiJob);
 
   const t = await getTranslations('careers');
   const meta = [job.category, job.location, job.level].filter(Boolean);
 
   return (
     <div className="bg-fog">
+      <JsonLd data={{
+        '@context': 'https://schema.org',
+        '@type': 'JobPosting',
+        title: job.title,
+        description: job.contentHtml,
+        datePosted: apiJob.published_at ?? apiJob.created_at,
+        hiringOrganization: {
+          '@type': 'Organization',
+          name: 'Mingo Ice Cream',
+          sameAs: absoluteUrl('/'),
+          logo: absoluteUrl('/icon.png'),
+        },
+        jobLocation: job.location ? {
+          '@type': 'Place',
+          address: {
+            '@type': 'PostalAddress',
+            addressLocality: job.location,
+            addressCountry: 'VN',
+          },
+        } : undefined,
+        url: absoluteUrl(localizedPath(locale, `/careers/${job.slug}`)),
+      }} />
       <section className="relative isolate min-h-[340px] overflow-hidden bg-card sm:min-h-[410px]" aria-labelledby="career-title">
         <div className="pointer-events-none absolute inset-y-0 right-0 -z-0 hidden w-[68%] sm:block" aria-hidden="true">
           <Image

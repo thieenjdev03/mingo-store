@@ -14,6 +14,7 @@ interface BrandShowcaseProps {
   joyParagraphTwo: ReactNode;
   exploreCta: string;
   aboutCta: string;
+  headingLevel?: 'h1' | 'h2';
 }
 
 /** Nội dung thương hiệu dùng chung ở homepage và trang /brands. */
@@ -25,21 +26,23 @@ export async function BrandShowcase({
   joyParagraphTwo,
   exploreCta,
   aboutCta,
+  headingLevel = 'h1',
 }: BrandShowcaseProps) {
   // Logo thương hiệu do admin upload (backend). Rỗng/lỗi -> fallback logo tĩnh trong config.
   const apiBrands = await fetchNavBrands().catch(() => []);
   const brands = apiBrands.length > 0 ? apiBrands : localNavBrands();
+  const Heading = headingLevel;
 
   return (
     <div className="bg-ivory">
       <section className="mx-auto max-w-[1200px] px-5 py-16 sm:px-8 lg:py-20">
         <header className="flex flex-col items-center text-center">
-          <span className="rounded-full bg-primary/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.25em] text-foreground/55">
+          <span className="rounded-full bg-primary/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.25em] text-foreground/80">
             {eyebrow}
           </span>
-          <h1 className="mt-4 font-display text-4xl font-bold uppercase text-primary sm:text-5xl">
+          <Heading className="mt-4 font-display text-4xl font-bold uppercase text-primary sm:text-5xl">
             {title}
-          </h1>
+          </Heading>
           <span className="mt-3 block h-1 w-24 rounded-full bg-primary sm:w-28" aria-hidden />
         </header>
         <div className="mx-auto mt-14 grid max-w-4xl grid-cols-2 items-center gap-x-8 gap-y-14 sm:grid-cols-3 sm:gap-x-12 lg:mt-20 lg:gap-y-24">
