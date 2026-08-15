@@ -40,6 +40,7 @@ const MOCK: ProductResponseDto = {
   created_at: new Date(0).toISOString(),
   updated_at: new Date(0).toISOString(),
   category: { id: 'c1', name: 'Kem que', slug: 'kem-que' },
+  brand: null,
   variants: [
     {
       sku: 'CC-24',
@@ -95,7 +96,7 @@ export default async function ProductDetailPage({
           <Accordion type="single" collapsible defaultValue="description">
             <AccordionItem value="description">
               <AccordionTrigger>{t('description')}</AccordionTrigger>
-              <AccordionContent>{product.descriptionMarkdown}</AccordionContent>
+              <AccordionContent>{product.descriptionHtml}</AccordionContent>
             </AccordionItem>
             <AccordionItem value="ingredients">
               <AccordionTrigger>{t('ingredients')}</AccordionTrigger>
