@@ -2,15 +2,13 @@ import type {
   CheckoutQuoteDto,
   CheckoutShippingAddressDto,
   CreateCheckoutOrderDto,
-  ShippingQuoteDto,
 } from '@/lib/api/generated/ecomAPI.schemas';
 import { customFetch } from '@/lib/api/fetcher';
 import { getOrCreateCartToken } from '@/features/cart/cart-token';
 import type {
-  CheckoutQuoteDto,
+  CheckoutPaymentMethod,
   CheckoutQuoteView,
   CheckoutRequestInput,
-  CreateCheckoutOrderDto,
   CreateOrderResult,
   OrderView,
   ShippingAddressInput,
@@ -19,6 +17,10 @@ import type {
   ShippingQuoteView,
   VnpayReturnState,
 } from './types';
+
+interface CheckoutOrderDtoWithOptions extends CreateCheckoutOrderDto {
+  payment_method: CheckoutPaymentMethod;
+}
 
 function cartHeaders(): Record<string, string> {
   return { 'X-Cart-Token': getOrCreateCartToken() };
@@ -82,7 +84,10 @@ export function createCheckoutOrder(
   input: CheckoutRequestInput,
   locale: string,
 ): Promise<CreateOrderResult> {
-  const dto = toCheckoutDto(input);
+  const dto: CheckoutOrderDtoWithOptions = {
+    ...toCheckoutDto(input),
+    payment_method: input.paymentMethod,
+  };
   return customFetch<CreateOrderResult>({
     url: '/checkout/create-order',
     method: 'POST',

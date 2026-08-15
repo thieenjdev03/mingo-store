@@ -2,11 +2,12 @@
 
 import Image from 'next/image';
 import { useEffect, useMemo, useState, type FormEvent, type InputHTMLAttributes } from 'react';
-import { CircleUserRound, CreditCard, MapPin, PackageCheck, ShoppingBag, Truck } from 'lucide-react';
+import { Banknote, CheckCircle2, CircleUserRound, PackageCheck, QrCode, ReceiptText, ShoppingBag, Truck } from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
 import { Link } from '@/i18n/navigation';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useCart } from '@/features/cart/cart-context';
+import { notifyCartUpdated } from '@/features/cart/cart-token';
 import { getAccessToken, clearAccessToken } from '@/lib/auth/token';
 import { meControllerGetMe } from '@/lib/api/generated/me/me';
 import { getApiErrorMessage } from '@/lib/api/error-message';
@@ -15,14 +16,14 @@ import { MeltingIceCreamLoader } from '@/components/ui/melting-ice-cream-loader'
 import { provinces, type Province } from '@/lib/vn-address';
 import { createCheckoutOrder, quoteCheckout, quoteShipping, upsertShippingAddress } from './api';
 import { getShippingAreas, type ShippingAreaOption } from './shipping-locations';
-import type { CheckoutQuoteView, CheckoutRequestInput, ShippingAddressInput, ShippingQuoteView } from './types';
+import type { CheckoutPaymentMethod, CheckoutQuoteView, CheckoutRequestInput, ShippingAddressInput, ShippingQuoteView } from './types';
 
 interface PreparedCheckout {
   request: CheckoutRequestInput;
   quote: CheckoutQuoteView;
 }
 
-type Step = 'checking-auth' | 'form' | 'quoting' | 'redirecting';
+type Step = 'checking-auth' | 'form' | 'quoting' | 'redirecting' | 'completed';
 
 export function CheckoutView() {
   const locale = useLocale();
@@ -32,6 +33,10 @@ export function CheckoutView() {
   const [userId, setUserId] = useState<string | null>(null);
   const [profileName, setProfileName] = useState('');
   const [profilePhone, setProfilePhone] = useState('');
+  const [profileEmail, setProfileEmail] = useState('');
+  const [paymentMethod, setPaymentMethod] = useState<CheckoutPaymentMethod>('VIETQR');
+  const [invoiceRequested, setInvoiceRequested] = useState(false);
+  const [completedOrderCode, setCompletedOrderCode] = useState<string | null>(null);
   const [province, setProvince] = useState<Province | null>(null);
   const [area, setArea] = useState<ShippingAreaOption | null>(null);
   const [shippingQuote, setShippingQuote] = useState<ShippingQuoteView | null>(null);
@@ -50,6 +55,7 @@ export function CheckoutView() {
         setUserId(user.id);
         setProfileName([user.firstName, user.lastName].filter(Boolean).join(' '));
         setProfilePhone(user.phoneNumber ?? '');
+        setProfileEmail(user.email);
       })
       .catch(() => clearAccessToken())
       .finally(() => setStep('form'));
@@ -69,6 +75,8 @@ export function CheckoutView() {
     }
 
     const form = new FormData(event.currentTarget);
+    const customerNote = String(form.get('note') ?? '').trim() || undefined;
+    const invoiceEmail = String(form.get('invoiceEmail') ?? '').trim();
     const address: ShippingAddressInput = {
       recipientName: String(form.get('fullName') ?? '').trim(),
       recipientPhone: String(form.get('phone') ?? '').trim(),
@@ -78,7 +86,7 @@ export function CheckoutView() {
       district: area.name,
       ward: area.name,
       streetLine1: String(form.get('addressLine') ?? '').trim(),
-      note: String(form.get('note') ?? '').trim() || undefined,
+      note: customerNote,
       isShipping: true,
       isDefault: true,
     };
@@ -100,7 +108,8 @@ export function CheckoutView() {
         shippingAddress: userId ? undefined : address,
         provinceCode: province.id,
         districtCode: area.id,
-        notes: address.note,
+        notes: buildOrderNotes(customerNote, paymentMethod, invoiceRequested, invoiceEmail),
+        paymentMethod,
       };
       setPrepared({ request, quote: await quoteCheckout(request, locale) });
     } catch (error) {
@@ -117,6 +126,19 @@ export function CheckoutView() {
     setErrorMessage(null);
     try {
       const result = await createCheckoutOrder(prepared.request, locale);
+      if (prepared.request.paymentMethod === 'COD') {
+        setCompletedOrderCode(result.orderCode);
+        setStep('completed');
+        notifyCartUpdated();
+        return;
+      }
+      if (!result.paymentUrl) {
+        setErrorMessage(t('qrUnavailable'));
+        setStep('form');
+        setPrepared(null);
+        await cart.refresh();
+        return;
+      }
       window.location.assign(result.paymentUrl);
     } catch (error) {
       setErrorMessage(getApiErrorMessage(error, t('genericError')));
@@ -128,6 +150,22 @@ export function CheckoutView() {
 
   if (step === 'checking-auth' || cart.isLoading) {
     return <div className="bg-ivory py-20"><MeltingIceCreamLoader label={t('loading')} /></div>;
+  }
+
+  if (step === 'completed' && completedOrderCode) {
+    return (
+      <div className="bg-ivory py-16 sm:py-24">
+        <section className="mx-auto max-w-lg px-5 text-center sm:px-8">
+          <CheckCircle2 className="mx-auto size-16 text-primary" strokeWidth={1.5} aria-hidden="true" />
+          <h1 className="mt-5 font-display text-3xl font-bold text-foreground">{t('codSuccessTitle')}</h1>
+          <p className="mt-3 leading-7 text-muted-foreground">{t('codSuccessDescription', { orderCode: completedOrderCode })}</p>
+          <div className="mt-7 flex flex-col justify-center gap-3 sm:flex-row">
+            {userId ? <Link href={`/orders/${completedOrderCode}`} className="inline-flex h-11 items-center justify-center border-2 border-primary px-6 text-sm font-bold text-primary">{t('viewOrder')}</Link> : null}
+            <Link href="/products" className="inline-flex h-11 items-center justify-center bg-primary px-6 text-sm font-bold text-primary-foreground hover:bg-primary-dark">{t('continueShopping')}</Link>
+          </div>
+        </section>
+      </div>
+    );
   }
 
   if (cart.items.length === 0) {
@@ -148,15 +186,15 @@ export function CheckoutView() {
   const busy = step === 'quoting' || step === 'redirecting';
 
   return (
-    <div className="bg-ivory py-12 sm:py-16 lg:py-20">
+    <div className="min-h-screen bg-ivory py-14 sm:py-20 lg:py-24">
       <div className="mx-auto max-w-[1180px] px-5 sm:px-8">
-        <h1 className="font-display text-4xl font-bold text-foreground sm:text-5xl">{t('title')}</h1>
+        <div className="grid items-start gap-12 lg:grid-cols-2 lg:gap-6 xl:gap-8">
+          <div className="min-w-0 space-y-10 sm:space-y-12">
+            <h1 className="font-display text-4xl font-bold leading-none text-foreground sm:text-5xl">{t('title')}</h1>
 
-        <div className="mt-10 grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_430px] lg:gap-10">
-          <div className="space-y-9">
             <section aria-labelledby="loyalty-title">
-              <h2 id="loyalty-title" className="text-xl font-bold">{t('loyaltyTitle')}</h2>
-              <div className="mt-4 flex items-center gap-3 bg-card px-5 py-4 text-sm font-semibold shadow-sm">
+              <h2 id="loyalty-title" className="text-xl font-bold text-foreground">{t('loyaltyTitle')}</h2>
+              <div className="mt-5 flex min-h-12 items-center gap-3 bg-card px-4 py-3 text-sm font-semibold sm:px-5">
                 <CircleUserRound className="size-5 shrink-0" aria-hidden="true" />
                 {userId ? (
                   <p>{t('memberCheckout')}</p>
@@ -164,19 +202,19 @@ export function CheckoutView() {
                   <p><Link href="/login" className="font-bold text-primary underline underline-offset-2">{t('signIn')}</Link> {t('guestCheckout')}</p>
                 )}
               </div>
-              <div className="mt-3 flex items-center justify-center gap-3 border border-primary px-5 py-3 text-center text-sm font-bold text-primary">
+              <div className="mt-3 flex min-h-12 items-center justify-center gap-3 border border-primary bg-primary/[0.03] px-5 py-3 text-center text-sm font-bold text-primary">
                 <Truck className="size-5" aria-hidden="true" />
                 {t('deliveryNotice')}
               </div>
             </section>
 
-            <form id="checkout-form" onSubmit={handleQuote} onChange={invalidateQuote} className="space-y-9">
+            <form id="checkout-form" onSubmit={handleQuote} onChange={invalidateQuote} className="space-y-10 sm:space-y-12">
               <section aria-labelledby="shipping-title">
-                <h2 id="shipping-title" className="text-xl font-bold">{t('shippingTitle')}</h2>
-                <div className="mt-4 bg-card p-5 shadow-sm sm:p-6">
-                  <p className="mb-4 text-xs font-bold uppercase tracking-wide text-muted-foreground">{t('recipientTitle')}</p>
+                <h2 id="shipping-title" className="text-xl font-bold text-foreground">{t('shippingTitle')}</h2>
+                <div className="mt-5 bg-card p-4 sm:p-5">
+                  <p className="mb-4 text-[11px] font-bold uppercase tracking-wide text-muted-foreground">{t('recipientTitle')}</p>
                   {errorMessage ? <div className="mb-5 rounded-lg bg-destructive/10 p-4 text-sm font-semibold text-destructive" role="alert">{errorMessage}</div> : null}
-                  <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="grid gap-x-4 gap-y-4 sm:grid-cols-2">
                     <CheckoutInput id="fullName" name="fullName" label={t('fullName')} autoComplete="name" defaultValue={profileName} required />
                     <CheckoutInput id="phone" name="phone" type="tel" label={t('phone')} autoComplete="tel" defaultValue={profilePhone} pattern="(?:0|\+84)[0-9]{9,10}" required />
                     <CheckoutSelect id="province" label={t('province')} value={province?.id ?? ''} onChange={(id) => {
@@ -195,9 +233,10 @@ export function CheckoutView() {
               </section>
 
               <section aria-labelledby="delivery-title">
-                <h2 id="delivery-title" className="text-xl font-bold">{t('deliveryMethodTitle')}</h2>
-                <div className="mt-4 bg-card p-4 shadow-sm">
-                  <div className="flex items-center gap-3 bg-blush px-4 py-4 font-bold text-primary">
+                <h2 id="delivery-title" className="text-xl font-bold text-foreground">{t('deliveryMethodTitle')}</h2>
+                <div className="mt-5 bg-card p-4">
+                  <p className="mb-4 text-[11px] font-bold uppercase tracking-wide text-muted-foreground">{t('deliveryMethodTitle')}</p>
+                  <div className="flex min-h-14 items-center gap-3 border-b border-primary/60 bg-blush px-4 py-3 text-sm font-bold text-primary">
                     <span className="size-4 rounded-full border-4 border-primary bg-card" aria-hidden="true" />
                     {t('standardDelivery')}
                   </div>
@@ -214,45 +253,87 @@ export function CheckoutView() {
                 </div>
               </section>
 
-              <section aria-labelledby="payment-title">
-                <h2 id="payment-title" className="text-xl font-bold">{t('paymentTitle')}</h2>
-                <div className="mt-4 bg-card p-4 shadow-sm">
-                  <div className="flex items-start gap-3 bg-blush px-4 py-4">
-                    <span className="mt-1 size-4 shrink-0 rounded-full border-4 border-primary bg-card" aria-hidden="true" />
-                    <CreditCard className="mt-0.5 size-5 shrink-0 text-primary" aria-hidden="true" />
-                    <div>
-                      <p className="font-bold text-primary">{t('vnpayLabel')}</p>
-                      <p className="mt-1 text-sm text-muted-foreground">{t('vnpayDescription')}</p>
+              <section aria-labelledby="invoice-title">
+                <h2 id="invoice-title" className="text-xl font-bold text-foreground">{t('invoiceTitle')}</h2>
+                <div className="mt-5 bg-card p-4">
+                  <label className="flex min-h-14 cursor-pointer items-center gap-3 px-1 text-sm font-bold text-primary">
+                    <input
+                      type="checkbox"
+                      checked={invoiceRequested}
+                      onChange={(event) => setInvoiceRequested(event.target.checked)}
+                      className="peer sr-only"
+                    />
+                    <span className="relative h-6 w-11 shrink-0 rounded-full border border-primary bg-card transition-colors peer-checked:bg-primary after:absolute after:left-0.5 after:top-0.5 after:size-[18px] after:rounded-full after:bg-primary after:transition-transform peer-checked:after:translate-x-5 peer-checked:after:bg-card" aria-hidden="true" />
+                    <ReceiptText className="size-5" aria-hidden="true" />
+                    {t('invoiceRequest')}
+                  </label>
+                  {invoiceRequested ? (
+                    <div className="mt-3 border-t border-border pt-4">
+                      <CheckoutInput
+                        id="invoiceEmail"
+                        name="invoiceEmail"
+                        type="email"
+                        label={t('invoiceEmail')}
+                        defaultValue={profileEmail}
+                        placeholder={t('invoiceEmailPlaceholder')}
+                        autoComplete="email"
+                        required
+                      />
+                      <p className="mt-2 text-xs leading-5 text-muted-foreground">{t('invoiceNote')}</p>
                     </div>
-                  </div>
+                  ) : null}
+                </div>
+              </section>
+
+              <section aria-labelledby="payment-title">
+                <h2 id="payment-title" className="text-xl font-bold text-foreground">{t('paymentTitle')}</h2>
+                <div className="mt-5 bg-card p-4">
+                  <label className={`flex min-h-16 cursor-pointer items-start gap-3 border-b border-primary/60 px-4 py-4 transition-colors ${paymentMethod === 'COD' ? 'bg-blush' : 'hover:bg-blush/55'}`}>
+                    <input type="radio" name="paymentMethod" value="COD" checked={paymentMethod === 'COD'} onChange={() => setPaymentMethod('COD')} className="peer sr-only" />
+                    <span className={`mt-1 size-5 shrink-0 rounded-full border border-primary ${paymentMethod === 'COD' ? 'border-[5px] bg-card' : 'bg-card'}`} aria-hidden="true" />
+                    <Banknote className="mt-0.5 size-5 shrink-0 text-primary" aria-hidden="true" />
+                    <div>
+                      <p className="font-bold text-primary">{t('codLabel')}</p>
+                      <p className="mt-1 text-sm text-muted-foreground">{t('codDescription')}</p>
+                    </div>
+                  </label>
+                  <label className={`flex min-h-16 cursor-pointer items-start gap-3 border-b border-primary/60 px-4 py-4 transition-colors ${paymentMethod === 'VIETQR' ? 'bg-blush' : 'hover:bg-blush/55'}`}>
+                    <input type="radio" name="paymentMethod" value="VIETQR" checked={paymentMethod === 'VIETQR'} onChange={() => setPaymentMethod('VIETQR')} className="peer sr-only" />
+                    <span className={`mt-1 size-5 shrink-0 rounded-full border border-primary ${paymentMethod === 'VIETQR' ? 'border-[5px] bg-card' : 'bg-card'}`} aria-hidden="true" />
+                    <QrCode className="mt-0.5 size-5 shrink-0 text-primary" aria-hidden="true" />
+                    <div>
+                      <p className="font-bold text-primary">{t('vietqrLabel')}</p>
+                      <p className="mt-1 text-sm text-muted-foreground">{t('vietqrDescription')}</p>
+                    </div>
+                  </label>
                 </div>
               </section>
             </form>
           </div>
 
-          <aside className="space-y-5 lg:sticky lg:top-28">
-            <section className="bg-card p-5 shadow-sm sm:p-6" aria-labelledby="order-items-title">
-              <h2 id="order-items-title" className="text-lg font-bold">{t('orderItemsTitle')}</h2>
-              <ul className="mt-5 space-y-5">
+          <aside className="min-w-0 space-y-5 lg:sticky lg:top-28">
+            <section className="bg-card p-4 sm:p-5 lg:min-h-[510px]" aria-labelledby="order-items-title">
+              <h2 id="order-items-title" className="text-base font-bold text-foreground">{t('orderItemsTitle')}</h2>
+              <ul className="mt-6 space-y-6">
                 {cart.items.map((item) => (
                   <li key={item.id} className="flex items-center gap-4">
-                    <div className="relative size-20 shrink-0 bg-background">
+                    <div className="relative h-24 w-16 shrink-0">
                       {item.product.image ? <Image src={item.product.image} alt={item.product.name} fill sizes="80px" className="object-contain p-1" /> : <span className="flex h-full items-center justify-center text-2xl">🍦</span>}
-                      <span className="absolute -right-2 -top-2 flex size-6 items-center justify-center rounded-full bg-blush text-xs font-bold text-primary">{item.quantity}</span>
+                      <span className="absolute -right-2 top-0 flex size-6 items-center justify-center rounded-full bg-blush text-xs font-bold text-primary">{item.quantity}</span>
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="font-bold text-foreground">{item.product.name}</p>
-                      <p className="mt-1 text-xs text-muted-foreground">{t('quantity', { count: item.quantity })}</p>
+                      <p className="line-clamp-2 font-bold leading-5 text-foreground">{item.product.name}</p>
+                      <p className="mt-1 text-xs uppercase text-muted-foreground">{item.variantName ?? t('quantity', { count: item.quantity })}</p>
                     </div>
-                    <span className="shrink-0 text-sm font-bold">{fCurrencyVND(item.lineTotal)}</span>
+                    <span className="shrink-0 text-sm font-semibold">{fCurrencyVND(item.lineTotal)}</span>
                   </li>
                 ))}
               </ul>
             </section>
 
-            <section className="bg-card p-5 shadow-sm sm:p-6" aria-labelledby="summary-title">
+            <section className="bg-card p-4 sm:p-5 lg:py-10" aria-labelledby="summary-title">
               <h2 id="summary-title" className="sr-only">{t('summaryTitle')}</h2>
-              <dl className="space-y-3 text-sm">
+              <dl className="space-y-2 text-sm text-primary">
                 <SummaryRow label={t('subtotal')} value={fCurrencyVND(subtotal)} />
                 <SummaryRow label={t('shippingFee')} value={shippingFee === null ? t('notCalculated') : fCurrencyVND(shippingFee)} />
                 <SummaryRow label={t('discount')} value={fCurrencyVND(Number(prepared?.quote.summary.discount ?? 0))} />
@@ -263,11 +344,17 @@ export function CheckoutView() {
                 form={prepared ? undefined : 'checkout-form'}
                 onClick={prepared ? () => void handlePayment() : undefined}
                 disabled={busy || !cart.valid}
-                className="mt-5 flex h-12 w-full items-center justify-center bg-primary px-6 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary-dark disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground"
+                className="mt-4 flex h-12 w-full items-center justify-center bg-primary px-6 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary-dark focus-visible:outline-offset-2 disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground"
               >
-                {step === 'quoting' ? t('quoting') : step === 'redirecting' ? t('redirecting') : prepared ? t('payWithVnpay') : t('checkShipping')}
+                {step === 'quoting'
+                  ? t('quoting')
+                  : step === 'redirecting'
+                    ? t(paymentMethod === 'COD' ? 'placingCodOrder' : 'redirectingToQr')
+                    : prepared
+                      ? t(paymentMethod === 'COD' ? 'placeCodOrder' : 'payWithQr')
+                      : t('checkShipping')}
               </button>
-              <p className="mt-4 text-center text-xs leading-5 text-muted-foreground">
+              <p className="mt-3 text-center text-xs leading-5 text-muted-foreground">
                 {t.rich('termsAgreement', { policy: (chunks) => <Link href="/policies" className="font-semibold text-primary underline underline-offset-2">{chunks}</Link> })}
               </p>
             </section>
@@ -278,20 +365,34 @@ export function CheckoutView() {
   );
 }
 
+function buildOrderNotes(
+  customerNote: string | undefined,
+  paymentMethod: CheckoutPaymentMethod,
+  invoiceRequested: boolean,
+  invoiceEmail: string,
+): string {
+  return [
+    customerNote,
+    `Phương thức thanh toán: ${paymentMethod}`,
+    `Yêu cầu xuất hóa đơn điện tử: ${invoiceRequested ? 'Có' : 'Không'}`,
+    invoiceRequested && invoiceEmail ? `Email nhận hóa đơn: ${invoiceEmail}` : undefined,
+  ].filter((line): line is string => Boolean(line)).join('\n');
+}
+
 function SummaryRow({ label, value, emphasized = false }: { label: string; value: string; emphasized?: boolean }) {
   return (
-    <div className={`flex items-center justify-between gap-4 ${emphasized ? 'border-t border-border pt-3 text-base font-bold' : ''}`}>
+    <div className={`flex items-center justify-between gap-4 ${emphasized ? 'pt-1 text-base font-bold' : ''}`}>
       <dt>{label}</dt>
-      <dd className={emphasized ? 'text-primary' : 'font-semibold'}>{value}</dd>
+      <dd className={emphasized ? 'font-bold text-primary' : 'font-semibold'}>{value}</dd>
     </div>
   );
 }
 
-function CheckoutInput({ id, label, className, ...props }: InputHTMLAttributes<HTMLInputElement> & { id: string; label: string }) {
+function CheckoutInput({ id, label, className, required, ...props }: InputHTMLAttributes<HTMLInputElement> & { id: string; label: string }) {
   return (
     <label htmlFor={id} className={`block bg-blush px-3 pt-2 ${className ?? ''}`}>
-      <span className="block text-xs font-bold text-primary">{label}</span>
-      <input id={id} className="h-10 w-full border-0 border-b border-primary bg-transparent text-base text-foreground outline-none placeholder:text-muted-foreground focus:ring-0" {...props} />
+      <span className="block text-xs font-bold text-primary">{label}{required ? ' *' : ''}</span>
+      <input id={id} required={required} className="h-10 w-full border-0 border-b border-primary bg-transparent text-base text-foreground outline-none placeholder:text-muted-foreground focus:ring-0" {...props} />
     </label>
   );
 }

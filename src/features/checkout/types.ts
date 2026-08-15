@@ -24,6 +24,7 @@ export type ShippingZone = 'INNER_CITY' | 'OUTER_CITY';
 export type FulfillmentType = 'DIRECT' | 'DEALER';
 export type PaymentStatus = 'PENDING' | 'PAID' | 'FAILED';
 export type MingoOrderStatus = 'NEW' | 'DELIVERING' | 'DELIVERED' | 'CANCELLED';
+export type CheckoutPaymentMethod = 'COD' | 'VIETQR';
 
 export interface DealerView {
   id: string;
@@ -66,6 +67,7 @@ export interface CheckoutRequestInput {
   provinceCode: string;
   districtCode: string;
   notes?: string;
+  paymentMethod: CheckoutPaymentMethod;
 }
 
 export interface OrderItemView {
@@ -119,7 +121,7 @@ export interface CreateOrderResult {
   paymentStatus: PaymentStatus;
   orderStatus: MingoOrderStatus;
   expires_at: string;
-  paymentUrl: string;
+  paymentUrl?: string | null;
   summary: OrderSummaryView;
   shipping: ShippingQuoteView;
 }

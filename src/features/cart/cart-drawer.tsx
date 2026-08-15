@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useEffect } from "react";
+import { createPortal } from "react-dom";
 import { Minus, Plus, ShoppingBag, Trash2, X } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
@@ -29,12 +30,12 @@ export function CartDrawer() {
 
   if (!cart.isDrawerOpen) return null;
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-[70]" role="presentation">
       <button
         type="button"
         aria-label={t("close")}
-        className="absolute inset-0 bg-black/55 backdrop-blur-[2px]"
+        className="absolute inset-0 bg-black/45 backdrop-blur-sm"
         onClick={cart.closeDrawer}
       />
       <aside
@@ -229,6 +230,7 @@ export function CartDrawer() {
           </>
         )}
       </aside>
-    </div>
+    </div>,
+    document.body,
   );
 }

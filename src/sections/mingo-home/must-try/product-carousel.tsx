@@ -75,7 +75,7 @@ export function ProductCarousel({ products }: { products: ProductCardView[] }) {
                 </div>
               )}
             </div>
-            <h3 className="mt-4 font-sans text-base font-bold leading-6 text-[#563e2b] transition-colors group-hover:text-primary sm:mt-10 sm:text-[24px] sm:leading-7 lg:mt-12 lg:text-[32px] lg:leading-6">
+            <h3 className="mt-4 line-clamp-2 min-h-12 font-sans text-base font-bold leading-6 text-[#563e2b] transition-colors group-hover:text-primary sm:mt-10 sm:min-h-14 sm:text-[24px] sm:leading-7 lg:mt-12 lg:min-h-[4.5rem] lg:text-[32px] lg:leading-9">
               {product.name}
             </h3>
             {product.available ? (

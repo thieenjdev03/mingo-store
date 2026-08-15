@@ -61,9 +61,8 @@ export function ProductShowcaseGrid({ products, outOfStockLabel, contactLabel, u
             )}
           </div>
 
-          {/* min-h = 3 dòng (leading-tight 1.25 => 3.75em, co theo cỡ chữ mỗi breakpoint)
-              + line-clamp-3: tên luôn chiếm đúng khối 3 dòng nên hàng giá bên dưới KHÔNG nhảy. */}
-          <h2 className="mt-5 line-clamp-3 min-h-[3.75em] font-display text-xl font-bold leading-tight text-foreground transition-colors group-hover:text-primary sm:text-2xl">
+          {/* Giữ tên trong khối 2 dòng để hàng quy cách/giá luôn thẳng nhau. */}
+          <h2 className="mt-5 line-clamp-2 min-h-[2.5em] font-display text-xl font-bold leading-tight text-foreground transition-colors group-hover:text-primary sm:text-2xl">
             {product.name}
           </h2>
 

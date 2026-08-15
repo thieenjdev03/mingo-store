@@ -1,8 +1,8 @@
 'use client';
 
 import { useEffect, useState, type FormEvent } from 'react';
-import { LayoutGrid, LogOut, Mail, Package, ShoppingBag, type LucideIcon } from 'lucide-react';
-import { useTranslations } from 'next-intl';
+import { Coins, Gift, LayoutGrid, LogOut, Mail, Package, ShoppingBag, Sparkles, type LucideIcon } from 'lucide-react';
+import { useLocale, useTranslations } from 'next-intl';
 import { Link, useRouter } from '@/i18n/navigation';
 import { meControllerGetMe } from '@/lib/api/generated/me/me';
 import { getMyOrders } from '@/features/checkout/api';
@@ -12,9 +12,14 @@ import { CustomerAuthForm } from './customer-auth-form';
 import { OrderHistory, type MyOrder } from './order-history';
 import { toAccountView, type AccountView } from './types';
 import { MeltingIceCreamLoader } from '@/components/ui/melting-ice-cream-loader';
+import { fCurrencyVND } from '@/lib/format';
+
+const NON_REWARD_ORDER_STATUSES = new Set(['CANCELLED', 'FAILED', 'REFUNDED']);
+const VND_PER_POINT = 10;
 
 export function AccountPageView() {
   const t = useTranslations('account');
+  const locale = useLocale();
   const router = useRouter();
   // null = chưa biết (đang đọc localStorage sau mount), '' = không có token.
   const [token, setToken] = useState<string | null | ''>(null);
@@ -158,8 +163,18 @@ export function AccountPageView() {
     { label: t('address'), value: account.addressSummary ?? t('notProvided') },
   ];
 
+  const rewardOrders = (orders ?? []).filter(
+    (order) => order.paymentStatus === 'PAID' && !NON_REWARD_ORDER_STATUSES.has(order.status),
+  );
+  const eligibleSpend = rewardOrders.reduce((total, order) => {
+    const orderTotal = Number(order.summary.total);
+    return Number.isFinite(orderTotal) ? total + orderTotal : total;
+  }, 0);
+  const availablePoints = Math.floor(eligibleSpend / VND_PER_POINT);
+
   const navItems: Array<{ key: string; label: string; icon: LucideIcon; href: string | null; current: boolean }> = [
     { key: 'overview', label: t('nav.overview'), icon: LayoutGrid, href: null, current: true },
+    { key: 'rewards', label: t('nav.rewards'), icon: Gift, href: '#loyalty-points', current: false },
     { key: 'orders', label: t('nav.orders'), icon: Package, href: '/orders', current: false },
   ];
 
@@ -225,6 +240,51 @@ export function AccountPageView() {
                 <Mail className="size-4" aria-hidden="true" />
                 {account.email}
               </p>
+            </div>
+          </section>
+
+          <section
+            id="loyalty-points"
+            aria-labelledby="loyalty-points-title"
+            className="relative scroll-mt-28 overflow-hidden rounded-[28px] bg-primary px-6 py-7 text-primary-foreground shadow-[0_18px_50px_rgba(254,80,0,0.2)] sm:px-8 sm:py-9"
+          >
+            <span className="pointer-events-none absolute -right-16 -top-24 size-64 rounded-full border-[44px] border-white/10" aria-hidden="true" />
+            <span className="pointer-events-none absolute -bottom-16 right-32 size-32 rounded-full bg-white/8" aria-hidden="true" />
+
+            <div className="relative grid gap-7 sm:grid-cols-[minmax(0,1fr)_minmax(250px,0.72fr)] sm:items-end">
+              <div>
+                <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.16em] text-white/80">
+                  <Sparkles className="size-4" aria-hidden="true" />
+                  <h2 id="loyalty-points-title">{t('rewardsTitle')}</h2>
+                </div>
+                <p className="mt-5 text-sm font-semibold text-white/75">{t('availablePoints')}</p>
+                {orders === null ? (
+                  <div className="mt-2 h-14 w-40 animate-pulse rounded-xl bg-white/15" aria-label={t('rewardsLoading')} />
+                ) : (
+                  <p className="mt-1 font-display text-5xl font-extrabold leading-none sm:text-6xl">
+                    {availablePoints.toLocaleString(locale)}
+                    <span className="ml-2 text-lg font-bold text-white/75">{t('pointsUnit')}</span>
+                  </p>
+                )}
+                <p className="mt-4 max-w-md text-sm leading-6 text-white/75">{t('pointsRule')}</p>
+              </div>
+
+              <dl className="grid grid-cols-2 gap-3">
+                <div className="rounded-2xl border border-white/20 bg-white/10 p-4 backdrop-blur-sm">
+                  <dt className="flex items-center gap-2 text-xs font-semibold text-white/70">
+                    <Coins className="size-4" aria-hidden="true" />
+                    {t('eligibleSpend')}
+                  </dt>
+                  <dd className="mt-3 text-lg font-bold text-white">{fCurrencyVND(eligibleSpend)}</dd>
+                </div>
+                <div className="rounded-2xl border border-white/20 bg-white/10 p-4 backdrop-blur-sm">
+                  <dt className="flex items-center gap-2 text-xs font-semibold text-white/70">
+                    <Package className="size-4" aria-hidden="true" />
+                    {t('eligibleOrders')}
+                  </dt>
+                  <dd className="mt-3 text-lg font-bold text-white">{rewardOrders.length}</dd>
+                </div>
+              </dl>
             </div>
           </section>
 

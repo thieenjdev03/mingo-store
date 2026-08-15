@@ -1,7 +1,8 @@
 'use client';
 
-import { useRef, useState, type FormEvent, type InputHTMLAttributes } from 'react';
+import { useRef, useState, type FormEvent, type InputHTMLAttributes, type ReactNode } from 'react';
 import { useTranslations } from 'next-intl';
+import { Link } from '@/i18n/navigation';
 import { useCareersControllerApply } from '@/lib/api/generated/careers/careers';
 import { ApiError } from '@/lib/api/fetcher';
 
@@ -10,10 +11,14 @@ interface CareerApplicationFormProps {
   jobTitle: string;
 }
 
+const MAX_CV_BYTES = 5 * 1024 * 1024;
+
 export function CareerApplicationForm({ careerId, jobTitle }: CareerApplicationFormProps) {
   const t = useTranslations('careers.detail.form');
   const { trigger, isMutating } = useCareersControllerApply(careerId);
   const [submitted, setSubmitted] = useState(false);
+  const [acceptedPolicy, setAcceptedPolicy] = useState(false);
+  const [cvName, setCvName] = useState('');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -25,13 +30,23 @@ export function CareerApplicationForm({ careerId, jobTitle }: CareerApplicationF
       setErrorMessage(t('cvRequired'));
       return;
     }
+    if (cv.size > MAX_CV_BYTES) {
+      setErrorMessage(t('cvTooLarge'));
+      return;
+    }
+
     const data = new FormData(event.currentTarget);
+    const familyName = String(data.get('family_name') ?? '').trim();
+    const givenName = String(data.get('given_name') ?? '').trim();
+    const phone = String(data.get('phone') ?? '').trim();
+    const portfolio = String(data.get('portfolio') ?? '').trim();
+
     try {
       await trigger({
-        full_name: String(data.get('full_name') ?? ''),
-        email: String(data.get('email') ?? ''),
-        phone: String(data.get('phone') ?? ''),
-        cover_letter: String(data.get('cover_letter') ?? '') || undefined,
+        full_name: [familyName, givenName].filter(Boolean).join(' '),
+        email: String(data.get('email') ?? '').trim(),
+        phone: phone.startsWith('0') ? `+84${phone.slice(1)}` : phone,
+        cover_letter: portfolio ? `Portfolio / social profile: ${portfolio}` : undefined,
         cv,
       });
       setSubmitted(true);
@@ -42,64 +57,102 @@ export function CareerApplicationForm({ careerId, jobTitle }: CareerApplicationF
 
   if (submitted) {
     return (
-      <div id="apply-form" className="scroll-mt-24 rounded-xl bg-blush p-6 text-sm font-semibold leading-6 text-primary" role="status">
+      <div id="apply-form" className="scroll-mt-24 rounded-3xl border border-primary/25 bg-primary/5 p-7 text-sm font-semibold leading-6 text-primary" role="status">
         {t('successNote')}
       </div>
     );
   }
 
   return (
-    <form id="apply-form" onSubmit={handleSubmit} className="scroll-mt-24 space-y-5 rounded-xl bg-blush p-6 sm:p-8" noValidate>
-      <div>
-        <p className="text-sm font-bold uppercase tracking-[0.16em] text-primary">{t('eyebrow')}</p>
-        <h3 className="mt-2 text-xl font-bold text-foreground">{t('title', { title: jobTitle })}</h3>
-      </div>
-
+    <form
+      id="apply-form"
+      aria-label={t('title', { title: jobTitle })}
+      onSubmit={handleSubmit}
+      className="scroll-mt-24 rounded-3xl border border-foreground/15 p-5 sm:p-7 lg:p-9"
+    >
       {errorMessage ? (
-        <div className="rounded-lg bg-destructive/10 p-4 text-sm font-semibold text-destructive" role="alert">
+        <div className="mb-7 rounded-xl bg-destructive/10 p-4 text-sm font-semibold text-destructive" role="alert">
           {errorMessage}
         </div>
       ) : null}
 
-      <div className="grid gap-5 sm:grid-cols-2">
-        <FormInput id="full_name" name="full_name" label={t('fullName')} autoComplete="name" required />
-        <FormInput id="phone" name="phone" type="tel" label={t('phone')} autoComplete="tel" required />
+      <div className="space-y-5 sm:space-y-6">
+        <FormInput id="family_name" name="family_name" label={t('familyName')} placeholder={t('familyName')} autoComplete="family-name" required />
+        <FormInput id="given_name" name="given_name" label={t('givenName')} placeholder={t('givenName')} autoComplete="given-name" required />
+        <FormInput id="email" name="email" type="email" label={t('email')} placeholder={t('emailPlaceholder')} autoComplete="email" required />
+
+        <FormRow id="phone" label={t('phone')} required>
+          <div className="flex h-12 overflow-hidden rounded-full border border-border bg-card transition-[border-color,box-shadow] focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/15 sm:h-14">
+            <span className="flex shrink-0 items-center border-r border-border px-4 text-base text-muted-foreground">+84</span>
+            <input
+              id="phone"
+              name="phone"
+              type="tel"
+              autoComplete="tel-national"
+              placeholder={t('phonePlaceholder')}
+              required
+              className="min-w-0 flex-1 bg-transparent px-4 text-base text-foreground outline-none placeholder:text-muted-foreground/45"
+            />
+          </div>
+        </FormRow>
+
+        <div className="my-8 border-t border-foreground/25" />
+
+        <FormRow id="cv" label={t('cv')} required align="start">
+          <div>
+            <label className="inline-flex h-10 cursor-pointer items-center rounded-full border border-foreground/45 px-6 text-sm font-semibold text-foreground transition-colors hover:border-primary hover:text-primary">
+              <span>{t('chooseFile')}</span>
+              <input
+                ref={fileInputRef}
+                id="cv"
+                name="cv"
+                type="file"
+                accept=".pdf,.doc,.docx"
+                required
+                className="sr-only"
+                onChange={(event) => setCvName(event.target.files?.[0]?.name ?? '')}
+              />
+            </label>
+            {cvName ? <p className="mt-2 break-all text-sm font-semibold text-foreground">{cvName}</p> : null}
+            <p className="mt-3 text-xs leading-5 text-muted-foreground">{t('cvHint')}</p>
+          </div>
+        </FormRow>
+
+        <FormInput
+          id="portfolio"
+          name="portfolio"
+          type="url"
+          label={t('portfolio')}
+          placeholder={t('portfolioPlaceholder')}
+          autoComplete="url"
+          labelAlign="start"
+        />
       </div>
-      <FormInput id="email" name="email" type="email" label={t('email')} autoComplete="email" required />
 
-      <label htmlFor="cover_letter" className="block">
-        <span className="mb-2 block text-sm font-bold text-foreground">{t('coverLetter')}</span>
-        <textarea
-          id="cover_letter"
-          name="cover_letter"
-          rows={4}
-          className="w-full rounded-lg border border-border bg-background px-4 py-3 text-base outline-none transition-colors placeholder:text-muted-foreground/65 focus:border-primary focus:ring-2 focus:ring-primary/15"
-        />
-      </label>
-
-      <label htmlFor="cv" className="block">
-        <span className="mb-2 block text-sm font-bold text-foreground">
-          {t('cv')}<span aria-hidden="true"> *</span>
-        </span>
+      <label className="mt-10 flex cursor-pointer items-start gap-4 text-sm leading-6 text-muted-foreground">
         <input
-          ref={fileInputRef}
-          id="cv"
-          name="cv"
-          type="file"
-          accept=".pdf,.doc,.docx"
+          type="checkbox"
           required
-          className="block w-full text-sm text-foreground file:mr-4 file:rounded-full file:border-0 file:bg-primary file:px-4 file:py-2 file:text-sm file:font-bold file:text-primary-foreground file:transition-colors hover:file:bg-primary-dark"
+          checked={acceptedPolicy}
+          onChange={(event) => setAcceptedPolicy(event.target.checked)}
+          className="mt-1 size-5 shrink-0 appearance-none rounded border-2 border-foreground/45 bg-transparent checked:border-primary checked:bg-primary checked:bg-[linear-gradient(135deg,transparent_42%,white_42%,white_56%,transparent_56%)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
         />
-        <span className="mt-1 block text-xs text-muted-foreground">{t('cvHint')}</span>
+        <span>
+          {t.rich('privacyAgreement', {
+            policy: (chunks) => <Link href="/policies" className="font-semibold text-primary underline underline-offset-4">{chunks}</Link>,
+          })}
+        </span>
       </label>
 
-      <button
-        type="submit"
-        disabled={isMutating}
-        className="flex h-12 w-full items-center justify-center rounded-lg bg-primary px-6 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary-dark disabled:cursor-wait disabled:opacity-60 sm:w-auto"
-      >
-        {isMutating ? t('submitting') : t('submit')}
-      </button>
+      <div className="mt-10 flex justify-end">
+        <button
+          type="submit"
+          disabled={isMutating || !acceptedPolicy}
+          className="flex h-12 min-w-48 items-center justify-center rounded-full bg-primary px-8 text-sm font-bold uppercase text-primary-foreground transition-colors hover:bg-primary-dark disabled:cursor-not-allowed disabled:bg-muted-foreground/70 disabled:text-white sm:h-14"
+        >
+          {isMutating ? t('submitting') : t('submit')}
+        </button>
+      </div>
     </form>
   );
 }
@@ -110,20 +163,40 @@ function errorMessageFromApiError(error: ApiError): string {
   return Array.isArray(body.message) ? body.message.join(', ') : body.message;
 }
 
+interface FormRowProps {
+  id: string;
+  label: string;
+  required?: boolean;
+  align?: 'center' | 'start';
+  children: ReactNode;
+}
+
+function FormRow({ id, label, required, align = 'center', children }: FormRowProps) {
+  return (
+    <div className={`grid gap-2 sm:grid-cols-[170px_minmax(0,1fr)] sm:gap-5 ${align === 'start' ? 'sm:items-start' : 'sm:items-center'}`}>
+      <label htmlFor={id} className="text-base font-medium leading-6 text-muted-foreground">
+        {label}{required ? <span className="text-destructive" aria-hidden="true"> *</span> : null}
+      </label>
+      {children}
+    </div>
+  );
+}
+
 interface FormInputProps extends InputHTMLAttributes<HTMLInputElement> {
   id: string;
   label: string;
+  labelAlign?: 'center' | 'start';
 }
 
-function FormInput({ id, label, className, ...props }: FormInputProps) {
+function FormInput({ id, label, labelAlign, className, required, ...props }: FormInputProps) {
   return (
-    <label htmlFor={id} className="block">
-      <span className="mb-2 block text-sm font-bold text-foreground">{label}</span>
+    <FormRow id={id} label={label} required={required} align={labelAlign}>
       <input
         id={id}
-        className={`h-12 w-full rounded-lg border border-border bg-background px-4 text-base outline-none transition-colors placeholder:text-muted-foreground/65 focus:border-primary focus:ring-2 focus:ring-primary/15 ${className ?? ''}`}
+        required={required}
+        className={`h-12 w-full rounded-full border border-border bg-card px-5 text-base text-foreground outline-none transition-[border-color,box-shadow] placeholder:text-muted-foreground/45 focus:border-primary focus:ring-2 focus:ring-primary/15 sm:h-14 ${className ?? ''}`}
         {...props}
       />
-    </label>
+    </FormRow>
   );
 }
