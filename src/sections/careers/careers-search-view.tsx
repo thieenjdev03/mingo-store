@@ -106,7 +106,7 @@ function FilterGroup({ title, name, values, selected }: { title: string; name: s
 
 function JobCard({ job, applyLabel }: { job: CareerView; applyLabel: string }) {
   return (
-    <article className="rounded-xl border border-foreground/15 bg-card px-6 py-6 sm:px-9 sm:py-7">
+    <article className="rounded-xl border border-foreground/15 px-6 py-6 sm:px-9 sm:py-7">
       <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
         <div className="max-w-2xl">
           <h2 className="text-xl font-bold text-foreground sm:text-2xl">

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, type FormEvent } from 'react';
-import { Coins, Gift, LayoutGrid, LogOut, Mail, Package, ShoppingBag, Sparkles, type LucideIcon } from 'lucide-react';
+import { Gift, LayoutGrid, LogOut, Mail, Package, ShoppingBag, type LucideIcon } from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
 import { Link, useRouter } from '@/i18n/navigation';
 import { meControllerGetMe } from '@/lib/api/generated/me/me';
@@ -12,10 +12,11 @@ import { CustomerAuthForm } from './customer-auth-form';
 import { OrderHistory, type MyOrder } from './order-history';
 import { toAccountView, type AccountView } from './types';
 import { MeltingIceCreamLoader } from '@/components/ui/melting-ice-cream-loader';
-import { fCurrencyVND } from '@/lib/format';
 
 const NON_REWARD_ORDER_STATUSES = new Set(['CANCELLED', 'FAILED', 'REFUNDED']);
 const VND_PER_POINT = 10;
+const REWARD_START_POINTS = 1_000;
+const REWARD_TARGET_POINTS = 1_500;
 
 export function AccountPageView() {
   const t = useTranslations('account');
@@ -171,6 +172,8 @@ export function AccountPageView() {
     return Number.isFinite(orderTotal) ? total + orderTotal : total;
   }, 0);
   const availablePoints = Math.floor(eligibleSpend / VND_PER_POINT);
+  const pointsUntilReward = Math.max(REWARD_TARGET_POINTS - availablePoints, 0);
+  const rewardProgress = Math.min((availablePoints / REWARD_TARGET_POINTS) * 100, 100);
 
   const navItems: Array<{ key: string; label: string; icon: LucideIcon; href: string | null; current: boolean }> = [
     { key: 'overview', label: t('nav.overview'), icon: LayoutGrid, href: null, current: true },
@@ -246,45 +249,62 @@ export function AccountPageView() {
           <section
             id="loyalty-points"
             aria-labelledby="loyalty-points-title"
-            className="relative scroll-mt-28 overflow-hidden rounded-[28px] bg-primary px-6 py-7 text-primary-foreground shadow-[0_18px_50px_rgba(254,80,0,0.2)] sm:px-8 sm:py-9"
+            className="relative scroll-mt-28 overflow-hidden rounded-[28px] border border-border/70 bg-card px-6 py-8 shadow-[0_16px_45px_rgba(35,31,28,0.09)] sm:px-9 sm:py-10 lg:px-10"
           >
-            <span className="pointer-events-none absolute -right-16 -top-24 size-64 rounded-full border-[44px] border-white/10" aria-hidden="true" />
-            <span className="pointer-events-none absolute -bottom-16 right-32 size-32 rounded-full bg-white/8" aria-hidden="true" />
+            <span className="pointer-events-none absolute -right-32 -top-40 size-80 rounded-full bg-primary/[0.035]" aria-hidden="true" />
 
-            <div className="relative grid gap-7 sm:grid-cols-[minmax(0,1fr)_minmax(250px,0.72fr)] sm:items-end">
-              <div>
-                <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.16em] text-white/80">
-                  <Sparkles className="size-4" aria-hidden="true" />
-                  <h2 id="loyalty-points-title">{t('rewardsTitle')}</h2>
+            <div className="relative grid gap-9 lg:grid-cols-[minmax(230px,0.75fr)_minmax(0,2fr)] lg:items-center lg:gap-12">
+              <div className="lg:border-r lg:border-border lg:pr-10">
+                <div className="flex items-center gap-4">
+                  <span className="size-11 shrink-0 rounded-full bg-primary shadow-[0_8px_18px_rgba(254,80,0,0.2)] sm:size-12" aria-hidden="true" />
+                  <h2 id="loyalty-points-title" className="text-xs font-bold uppercase tracking-[0.18em] text-muted-foreground sm:text-sm">
+                    {t('availablePoints')}
+                  </h2>
                 </div>
-                <p className="mt-5 text-sm font-semibold text-white/75">{t('availablePoints')}</p>
                 {orders === null ? (
-                  <div className="mt-2 h-14 w-40 animate-pulse rounded-xl bg-white/15" aria-label={t('rewardsLoading')} />
+                  <div className="mt-7 h-14 w-44 animate-pulse rounded-xl bg-muted" aria-label={t('rewardsLoading')} />
                 ) : (
-                  <p className="mt-1 font-display text-5xl font-extrabold leading-none sm:text-6xl">
+                  <p className="mt-7 font-display text-5xl font-extrabold leading-none text-primary sm:text-6xl">
                     {availablePoints.toLocaleString(locale)}
-                    <span className="ml-2 text-lg font-bold text-white/75">{t('pointsUnit')}</span>
+                    <span className="ml-2 text-xl font-semibold sm:text-2xl">{t('pointsUnit')}</span>
                   </p>
                 )}
-                <p className="mt-4 max-w-md text-sm leading-6 text-white/75">{t('pointsRule')}</p>
               </div>
 
-              <dl className="grid grid-cols-2 gap-3">
-                <div className="rounded-2xl border border-white/20 bg-white/10 p-4 backdrop-blur-sm">
-                  <dt className="flex items-center gap-2 text-xs font-semibold text-white/70">
-                    <Coins className="size-4" aria-hidden="true" />
-                    {t('eligibleSpend')}
-                  </dt>
-                  <dd className="mt-3 text-lg font-bold text-white">{fCurrencyVND(eligibleSpend)}</dd>
+              <div>
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between sm:gap-6">
+                  <p className="font-display text-2xl font-extrabold text-foreground sm:text-3xl">
+                    {pointsUntilReward > 0 ? t('almostThere') : t('rewardsTitle')}
+                  </p>
+                  <p className="text-sm font-bold text-primary sm:text-right sm:text-base">
+                    {pointsUntilReward > 0
+                      ? t('pointsToNext', { count: pointsUntilReward.toLocaleString(locale) })
+                      : t('rewardUnlocked')}
+                  </p>
                 </div>
-                <div className="rounded-2xl border border-white/20 bg-white/10 p-4 backdrop-blur-sm">
-                  <dt className="flex items-center gap-2 text-xs font-semibold text-white/70">
-                    <Package className="size-4" aria-hidden="true" />
-                    {t('eligibleOrders')}
-                  </dt>
-                  <dd className="mt-3 text-lg font-bold text-white">{rewardOrders.length}</dd>
+
+                <div
+                  className="mt-6 h-4 overflow-hidden rounded-full bg-muted sm:h-5"
+                  role="progressbar"
+                  aria-label={t('rewardsTitle')}
+                  aria-valuemin={0}
+                  aria-valuemax={REWARD_TARGET_POINTS}
+                  aria-valuenow={Math.min(availablePoints, REWARD_TARGET_POINTS)}
+                  aria-valuetext={pointsUntilReward > 0
+                    ? t('pointsToNext', { count: pointsUntilReward.toLocaleString(locale) })
+                    : t('rewardUnlocked')}
+                >
+                  <div
+                    className="h-full rounded-full bg-primary transition-[width] duration-700 ease-out motion-reduce:transition-none"
+                    style={{ width: orders === null ? '0%' : `${rewardProgress}%` }}
+                  />
                 </div>
-              </dl>
+
+                <div className="mt-3 flex items-center justify-between text-xs font-bold text-muted-foreground sm:text-sm">
+                  <span>{REWARD_START_POINTS.toLocaleString(locale)} {t('pointsUnit')}</span>
+                  <span>{REWARD_TARGET_POINTS.toLocaleString(locale)} {t('pointsUnit')}</span>
+                </div>
+              </div>
             </div>
           </section>
 

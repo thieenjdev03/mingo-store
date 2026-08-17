@@ -14,14 +14,9 @@ import { getApiErrorMessage } from '@/lib/api/error-message';
 import { fCurrencyVND } from '@/lib/format';
 import { MeltingIceCreamLoader } from '@/components/ui/melting-ice-cream-loader';
 import { provinces, type Province } from '@/lib/vn-address';
-import { createCheckoutOrder, quoteCheckout, quoteShipping, upsertShippingAddress } from './api';
+import { createCheckoutOrder, quoteShipping, upsertShippingAddress } from './api';
 import { getShippingAreas, type ShippingAreaOption } from './shipping-locations';
-import type { CheckoutPaymentMethod, CheckoutQuoteView, CheckoutRequestInput, ShippingAddressInput, ShippingQuoteView } from './types';
-
-interface PreparedCheckout {
-  request: CheckoutRequestInput;
-  quote: CheckoutQuoteView;
-}
+import type { CheckoutPaymentMethod, CheckoutRequestInput, ShippingAddressInput, ShippingQuoteView } from './types';
 
 type Step = 'checking-auth' | 'form' | 'quoting' | 'redirecting' | 'completed';
 
@@ -40,7 +35,6 @@ export function CheckoutView() {
   const [province, setProvince] = useState<Province | null>(null);
   const [area, setArea] = useState<ShippingAreaOption | null>(null);
   const [shippingQuote, setShippingQuote] = useState<ShippingQuoteView | null>(null);
-  const [prepared, setPrepared] = useState<PreparedCheckout | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const areaOptions = useMemo(() => getShippingAreas(province), [province]);
@@ -62,19 +56,36 @@ export function CheckoutView() {
   }, []);
 
   function invalidateQuote() {
-    setPrepared(null);
     setShippingQuote(null);
     setErrorMessage(null);
   }
 
-  async function handleQuote(event: FormEvent<HTMLFormElement>) {
+  /** Validate phía client trước khi gọi API. Trả message lỗi (đã i18n) hoặc null nếu hợp lệ. */
+  function validateCheckout(form: FormData): string | null {
+    const fullName = String(form.get('fullName') ?? '').trim();
+    const phone = String(form.get('phone') ?? '').trim();
+    const addressLine = String(form.get('addressLine') ?? '').trim();
+    const invoiceEmail = String(form.get('invoiceEmail') ?? '').trim();
+    if (!fullName) return t('nameRequired');
+    if (!/^(?:0|\+84)\d{9,10}$/.test(phone)) return t('phoneInvalid');
+    if (!province || !area) return t('addressRequired');
+    if (!addressLine) return t('addressLineRequired');
+    if (invoiceRequested && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(invoiceEmail)) return t('invoiceEmailInvalid');
+    return null;
+  }
+
+  // Flow 1 click: validate -> quote khu vực (serviceable) -> quote đơn -> tạo đơn/redirect.
+  // Phí ship cố định (env) nên không còn bước bấm riêng để "xem phí giao hàng".
+  async function handleCheckout(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!province || !area) {
-      setErrorMessage(t('addressRequired'));
+    const form = new FormData(event.currentTarget);
+    const validationError = validateCheckout(form);
+    if (validationError) {
+      setErrorMessage(validationError);
       return;
     }
+    if (!province || !area) return; // validateCheckout đã chặn; dòng này để TS narrow type.
 
-    const form = new FormData(event.currentTarget);
     const customerNote = String(form.get('note') ?? '').trim() || undefined;
     const invoiceEmail = String(form.get('invoiceEmail') ?? '').trim();
     const address: ShippingAddressInput = {
@@ -93,12 +104,12 @@ export function CheckoutView() {
 
     setStep('quoting');
     setErrorMessage(null);
-    setPrepared(null);
     try {
       const shipping = await quoteShipping({ province_code: province.id, district_code: area.id });
       setShippingQuote(shipping);
       if (!shipping.serviceable) {
         setErrorMessage(shipping.reason ?? t('unsupportedArea'));
+        setStep('form');
         return;
       }
 
@@ -111,22 +122,10 @@ export function CheckoutView() {
         notes: buildOrderNotes(customerNote, paymentMethod, invoiceRequested, invoiceEmail),
         paymentMethod,
       };
-      setPrepared({ request, quote: await quoteCheckout(request, locale) });
-    } catch (error) {
-      setErrorMessage(getApiErrorMessage(error, t('genericError')));
-      await cart.refresh();
-    } finally {
-      setStep('form');
-    }
-  }
-
-  async function handlePayment() {
-    if (!prepared) return;
-    setStep('redirecting');
-    setErrorMessage(null);
-    try {
-      const result = await createCheckoutOrder(prepared.request, locale);
-      if (prepared.request.paymentMethod === 'COD') {
+      // Bỏ qua /checkout/quote — tạo đơn thẳng. Backend tự validate tồn kho/giá ở create-order.
+      setStep('redirecting');
+      const result = await createCheckoutOrder(request, locale);
+      if (paymentMethod === 'COD') {
         setCompletedOrderCode(result.orderCode);
         setStep('completed');
         notifyCartUpdated();
@@ -135,7 +134,6 @@ export function CheckoutView() {
       if (!result.paymentUrl) {
         setErrorMessage(t('qrUnavailable'));
         setStep('form');
-        setPrepared(null);
         await cart.refresh();
         return;
       }
@@ -143,7 +141,6 @@ export function CheckoutView() {
     } catch (error) {
       setErrorMessage(getApiErrorMessage(error, t('genericError')));
       setStep('form');
-      setPrepared(null);
       await cart.refresh();
     }
   }
@@ -180,35 +177,39 @@ export function CheckoutView() {
     );
   }
 
-  const subtotal = prepared?.quote.subtotal ?? cart.subtotal;
-  const shippingFee = prepared?.quote.shippingFee ?? null;
-  const total = prepared?.quote.total ?? cart.subtotal;
+  const subtotal = cart.subtotal;
+  const productDiscount = 0; // Không còn /checkout/quote — giảm giá SP do backend áp lúc tạo đơn.
+  // Phí vận chuyển lấy từ env NEXT_PUBLIC_SHIPPING_FEE; chưa cấu hình -> mặc định 0đ.
+  const shippingFee = Number(process.env.NEXT_PUBLIC_SHIPPING_FEE) || 0;
+  const voucherDiscount = 0; // Chưa có tính năng voucher — hiển thị 0đ theo design.
+  const total = subtotal - productDiscount - voucherDiscount + shippingFee;
   const busy = step === 'quoting' || step === 'redirecting';
 
   return (
     <div className="min-h-screen bg-ivory py-14 sm:py-20 lg:py-24">
       <div className="mx-auto max-w-[1180px] px-5 sm:px-8">
-        <div className="grid items-start gap-12 lg:grid-cols-2 lg:gap-6 xl:gap-8">
+        <div className="grid items-start gap-12 lg:grid-cols-[minmax(0,6fr)_minmax(0,4fr)] lg:gap-6 xl:gap-8">
           <div className="min-w-0 space-y-10 sm:space-y-12">
             <h1 className="font-display text-4xl font-bold leading-none text-foreground sm:text-5xl">{t('title')}</h1>
 
             <section aria-labelledby="loyalty-title">
               <h2 id="loyalty-title" className="text-xl font-bold text-foreground">{t('loyaltyTitle')}</h2>
-              <div className="mt-5 flex min-h-12 items-center gap-3 bg-card px-4 py-3 text-sm font-semibold sm:px-5">
-                <CircleUserRound className="size-5 shrink-0" aria-hidden="true" />
-                {userId ? (
-                  <p>{t('memberCheckout')}</p>
-                ) : (
+              {userId ? (
+                <></>
+              ) : (
+                <div className="mt-5 flex min-h-12 items-center gap-3 bg-card px-4 py-3 text-sm font-semibold sm:px-5">
+                  <CircleUserRound className="size-5 shrink-0" aria-hidden="true" />
+
                   <p><Link href="/login" className="font-bold text-primary underline underline-offset-2">{t('signIn')}</Link> {t('guestCheckout')}</p>
-                )}
-              </div>
-              <div className="mt-3 flex min-h-12 items-center justify-center gap-3 border border-primary bg-primary/[0.03] px-5 py-3 text-center text-sm font-bold text-primary">
+                </div>
+              )}
+              <div className="mt-3 flex min-h-12 items-center justify-center gap-3 border border-primary bg-primary/[0.03] px-5 py-3 text-center text-sm text-primary">
                 <Truck className="size-5" aria-hidden="true" />
                 {t('deliveryNotice')}
               </div>
             </section>
 
-            <form id="checkout-form" onSubmit={handleQuote} onChange={invalidateQuote} className="space-y-10 sm:space-y-12">
+            <form id="checkout-form" onSubmit={handleCheckout} onChange={invalidateQuote} className="space-y-10 sm:space-y-12">
               <section aria-labelledby="shipping-title">
                 <h2 id="shipping-title" className="text-xl font-bold text-foreground">{t('shippingTitle')}</h2>
                 <div className="mt-5 bg-card p-4 sm:p-5">
@@ -323,7 +324,8 @@ export function CheckoutView() {
                     </div>
                     <div className="min-w-0 flex-1">
                       <p className="line-clamp-2 font-bold leading-5 text-foreground">{item.product.name}</p>
-                      <p className="mt-1 text-xs uppercase text-muted-foreground">{item.variantName ?? t('quantity', { count: item.quantity })}</p>
+                      {item.variantName ? <p className="mt-1 text-xs font-semibold uppercase text-foreground/70">{item.variantName}</p> : null}
+                      <p className="mt-1 text-xs uppercase text-muted-foreground">{t('quantity', { count: item.quantity })}</p>
                     </div>
                     <span className="shrink-0 text-sm font-semibold">{fCurrencyVND(item.lineTotal)}</span>
                   </li>
@@ -335,27 +337,42 @@ export function CheckoutView() {
               <h2 id="summary-title" className="sr-only">{t('summaryTitle')}</h2>
               <dl className="space-y-2 text-sm text-primary">
                 <SummaryRow label={t('subtotal')} value={fCurrencyVND(subtotal)} />
-                <SummaryRow label={t('shippingFee')} value={shippingFee === null ? t('notCalculated') : fCurrencyVND(shippingFee)} />
-                <SummaryRow label={t('discount')} value={fCurrencyVND(Number(prepared?.quote.summary.discount ?? 0))} />
+                <SummaryRow label={t('discount')} value={fCurrencyVND(productDiscount)} />
+                <SummaryRow label={t('shippingFee')} value={fCurrencyVND(shippingFee)} />
+                <SummaryRow label={t('voucherDiscount')} value={fCurrencyVND(voucherDiscount)} />
                 <SummaryRow label={t('total')} value={fCurrencyVND(total)} emphasized />
               </dl>
               <button
-                type={prepared ? 'button' : 'submit'}
-                form={prepared ? undefined : 'checkout-form'}
-                onClick={prepared ? () => void handlePayment() : undefined}
+                type="submit"
+                form="checkout-form"
                 disabled={busy || !cart.valid}
                 className="mt-4 flex h-12 w-full items-center justify-center bg-primary px-6 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary-dark focus-visible:outline-offset-2 disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground"
               >
                 {step === 'quoting'
-                  ? t('quoting')
+                  ? t('submitting')
                   : step === 'redirecting'
                     ? t(paymentMethod === 'COD' ? 'placingCodOrder' : 'redirectingToQr')
-                    : prepared
-                      ? t(paymentMethod === 'COD' ? 'placeCodOrder' : 'payWithQr')
-                      : t('checkShipping')}
+                    : t(paymentMethod === 'COD' ? 'placeCodOrder' : 'payWithQr')}
               </button>
               <p className="mt-3 text-center text-xs leading-5 text-muted-foreground">
-                {t.rich('termsAgreement', { policy: (chunks) => <Link href="/policies" className="font-semibold text-primary underline underline-offset-2">{chunks}</Link> })}
+                {t.rich('termsAgreement', {
+                  privacy: (chunks) => (
+                    <Link
+                      href="/policies?policy=chinh-sach-bao-mat-thong-tin"
+                      className="font-semibold text-primary underline decoration-primary/50 underline-offset-2 transition-colors hover:text-primary-dark focus-visible:rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+                    >
+                      {chunks}
+                    </Link>
+                  ),
+                  terms: (chunks) => (
+                    <Link
+                      href="/policies?policy=dieu-khoan-su-dung"
+                      className="font-semibold text-primary underline decoration-primary/50 underline-offset-2 transition-colors hover:text-primary-dark focus-visible:rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+                    >
+                      {chunks}
+                    </Link>
+                  ),
+                })}
               </p>
             </section>
           </aside>
@@ -388,21 +405,27 @@ function SummaryRow({ label, value, emphasized = false }: { label: string; value
   );
 }
 
-function CheckoutInput({ id, label, className, required, ...props }: InputHTMLAttributes<HTMLInputElement> & { id: string; label: string }) {
+function CheckoutInput({ id, label, className, required, disabled, ...props }: InputHTMLAttributes<HTMLInputElement> & { id: string; label: string }) {
   return (
-    <label htmlFor={id} className={`block bg-blush px-3 pt-2 ${className ?? ''}`}>
-      <span className="block text-xs font-bold text-primary">{label}{required ? ' *' : ''}</span>
-      <input id={id} required={required} className="h-10 w-full border-0 border-b border-primary bg-transparent text-base text-foreground outline-none placeholder:text-muted-foreground focus:ring-0" {...props} />
+    <label htmlFor={id} className={`block px-3 pt-2 ${disabled ? 'bg-muted/60' : 'bg-blush'} ${className ?? ''}`}>
+      <span className={`block text-xs font-bold ${disabled ? 'text-muted-foreground' : 'text-primary'}`}>{label}{required ? ' *' : ''}</span>
+      <input
+        id={id}
+        required={required}
+        disabled={disabled}
+        className={`h-10 w-full border-0 border-b bg-transparent text-base outline-none focus:ring-0 ${disabled ? 'cursor-not-allowed border-muted-foreground/30 text-muted-foreground placeholder:text-muted-foreground/60' : 'border-primary text-foreground placeholder:text-muted-foreground'}`}
+        {...props}
+      />
     </label>
   );
 }
 
 function CheckoutSelect({ id, label, value, onChange, placeholder, options, disabled }: { id: string; label: string; value: string; onChange: (value: string) => void; placeholder: string; options: ShippingAreaOption[]; disabled?: boolean }) {
   return (
-    <div className="bg-blush px-3 pt-2">
-      <label htmlFor={id} className="block text-xs font-bold text-primary">{label}</label>
+    <div className={`px-3 pt-2 ${disabled ? 'bg-muted/60' : 'bg-blush'}`}>
+      <label htmlFor={id} className={`block text-xs font-bold ${disabled ? 'text-muted-foreground' : 'text-primary'}`}>{label}</label>
       <Select value={value || undefined} onValueChange={onChange} disabled={disabled} required>
-        <SelectTrigger id={id} className="h-10 rounded-none border-0 border-b border-primary bg-transparent px-0 shadow-none focus:ring-0"><SelectValue placeholder={placeholder} /></SelectTrigger>
+        <SelectTrigger id={id} className={`h-10 rounded-none border-0 border-b bg-transparent px-0 shadow-none focus:ring-0 disabled:cursor-not-allowed disabled:opacity-100 ${disabled ? 'border-muted-foreground/30 text-muted-foreground' : 'border-primary'}`}><SelectValue placeholder={placeholder} /></SelectTrigger>
         <SelectContent>
           {options.map((option) => <SelectItem key={option.id} value={option.id}>{option.name}</SelectItem>)}
         </SelectContent>

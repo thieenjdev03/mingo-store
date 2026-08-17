@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import { cn } from '@/lib/utils';
 import { SelectField, type SelectOption } from '@/components/ui/select';
 
 type NativeSelectProps = Omit<
@@ -51,7 +52,9 @@ export function NativeSelect({
       disabled={disabled}
       size="sm"
       fitContent={fitContent}
-      className={className}
+      // Bo góc khớp Input admin (rounded-md). Không dùng rounded-xl mặc định của SelectTrigger
+      // vì --radius-xl (1.5rem) trên field h-10 sẽ ra hình viên thuốc.
+      className={cn('rounded-md', className)}
       aria-label={ariaLabel}
       aria-describedby={ariaDescribedBy}
       aria-invalid={ariaInvalid === true || ariaInvalid === 'true'}

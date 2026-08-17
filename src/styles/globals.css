@@ -53,7 +53,7 @@
   --secondary: var(--mingo-blue);
   --secondary-foreground: var(--mingo-white);
   --muted: #e6e3d3;
-  --muted-foreground: #666558;
+  --muted-foreground: #808080;
   --accent: var(--mingo-blush);
   --accent-foreground: var(--mingo-brown);
   --border: #e4beb1;
@@ -85,7 +85,7 @@
   --card-foreground: #563e2b;
   --primary: #fe5000;
   --muted: #ebe8e4;
-  --muted-foreground: #77695e;
+  --muted-foreground: #808080;
   --border: #d8cdc4;
   --ring: #fe5000;
 }

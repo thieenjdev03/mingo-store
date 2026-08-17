@@ -104,8 +104,15 @@ export function PurchasePanel({ product }: { product: ProductDetailView }) {
                   >
                     {selected ? <span className="size-2.5 rounded-full bg-[#563e2b]" /> : null}
                   </span>
-                  <span className="truncate text-[16px] font-bold uppercase leading-6 lg:text-[18px]">
-                    {variant.label}
+                  <span className="flex min-w-0 flex-col">
+                    <span className="truncate text-[16px] font-bold uppercase leading-6 lg:text-[18px]">
+                      {variant.label}
+                    </span>
+                    {variant.packLabel ? (
+                      <span className="truncate text-[13px] font-medium leading-5 text-[#563e2b]/60">
+                        {variant.packLabel}
+                      </span>
+                    ) : null}
                   </span>
                 </span>
                 {!variant.inStock ? (

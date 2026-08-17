@@ -83,9 +83,18 @@ export async function SiteFooter() {
       </div>
 
       <div className="border-t border-[#563e2b]">
-        <p className="mx-auto max-w-[1200px] px-5 py-[21px] text-[12px] leading-[22px] text-black sm:px-8 lg:text-[14px] xl:px-0">
-          Hồng Tân Phát Co.,Ltd.
-        </p>
+        <div className="mx-auto flex max-w-[1200px] flex-col items-start gap-4 px-5 py-[21px] sm:flex-row sm:items-center sm:justify-between sm:px-8 xl:px-0">
+          <p className="text-[12px] leading-[22px] text-black lg:text-[14px]">
+            Hồng Tân Phát Co.,Ltd.
+          </p>
+          <Image
+            src="/assets/mingo/bo-cong-thuong.png"
+            alt="Đã thông báo Bộ Công Thương"
+            width={130}
+            height={66}
+            className="h-auto w-[130px] shrink-0 self-start sm:self-auto"
+          />
+        </div>
       </div>
     </footer>
   );

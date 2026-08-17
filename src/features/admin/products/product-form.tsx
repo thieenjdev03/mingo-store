@@ -27,7 +27,7 @@ import { getProductForEdit, createProduct, updateProduct } from './api';
 interface VariantRow {
   size_id: string;
   sku: string;
-  price: number;
+  price: string;
   stock: number;
 }
 
@@ -64,6 +64,9 @@ const sanitizePreviewHtml = (html: string) =>
     .replace(/<style[\s\S]*?<\/style>/gi, '')
     .replace(/\s+(?:href|src)\s*=\s*(?:"\s*javascript:[^"]*"|'\s*javascript:[^']*'|javascript:[^\s>]+)/gi, '')
     .replace(/\s+on[a-z]+\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]+)/gi, '');
+
+/** Giữ lại chữ số để field giá cho nhập tự do (không stepper), rỗng khi chưa nhập. */
+const onlyDigits = (value: string) => value.replace(/[^\d]/g, '');
 
 interface ProductPreviewProps {
   name: string;
@@ -135,7 +138,7 @@ function ProductPreview({
                 const sizeName = (sizeOptions.find((size) => size.id === variant.size_id)?.name ?? variant.sku) || `Biến thể ${index + 1}`;
                 return (
                   <span key={`${variant.sku}-${index}`} className="rounded-full border border-border px-2.5 py-1 text-xs text-muted-foreground">
-                    {sizeName} · {fCurrencyVND(variant.price || price)} · còn {variant.stock}
+                    {sizeName} · {fCurrencyVND(Number(variant.price) || price)} · còn {variant.stock}
                   </span>
                 );
               })}
@@ -179,7 +182,7 @@ export function ProductForm({ open, onOpenChange, productId, onSaved }: ProductF
   const [usageVi, setUsageVi] = useState(''); const [usageEn, setUsageEn] = useState('');
   const [descVi, setDescVi] = useState(''); const [descEn, setDescEn] = useState('');
   const [notesVi, setNotesVi] = useState(''); const [notesEn, setNotesEn] = useState('');
-  const [price, setPrice] = useState(0);
+  const [price, setPrice] = useState('');
   const [salePrice, setSalePrice] = useState('');
   const [stock, setStock] = useState(0);
   const [sku, setSku] = useState('');
@@ -239,7 +242,7 @@ export function ProductForm({ open, onOpenChange, productId, onSaved }: ProductF
       setUsageVi(editData.usage_instructions.vi); setUsageEn(editData.usage_instructions.en);
       setDescVi(editData.description.vi); setDescEn(editData.description.en);
       setNotesVi(editData.notes.vi); setNotesEn(editData.notes.en);
-      setPrice(Number(editData.base.price) || 0);
+      setPrice(editData.base.price != null ? String(editData.base.price) : '');
       setSalePrice(editData.base.sale_price != null ? String(editData.base.sale_price) : '');
       setStock(editData.base.stock_quantity ?? 0);
       setSku(editData.base.sku ?? '');
@@ -253,7 +256,7 @@ export function ProductForm({ open, onOpenChange, productId, onSaved }: ProductF
         (editData.base.variants ?? []).map((v) => ({
           size_id: v.size_id ?? v.size?.id ?? '',
           sku: v.sku,
-          price: Number(v.price) || 0,
+          price: v.price != null ? String(v.price) : '',
           stock: Number(v.stock) || 0,
         })),
       );
@@ -261,7 +264,7 @@ export function ProductForm({ open, onOpenChange, productId, onSaved }: ProductF
       setNameEnEdited(false);
       setNameVi(''); setNameEn(''); setSlugVi(''); setSlugEn('');
       setShortVi(''); setShortEn(''); setUsageVi(''); setUsageEn(''); setDescVi(''); setDescEn(''); setNotesVi(''); setNotesEn('');
-      setPrice(0); setSalePrice(''); setStock(0); setSku(''); setCategoryId(''); setBrandId('');
+      setPrice(''); setSalePrice(''); setStock(0); setSku(''); setCategoryId(''); setBrandId('');
       setImages([]); setStatus('active'); setIsFeatured(false); setEnableSaleTag(false);
       setVariants([]);
     }
@@ -289,12 +292,16 @@ export function ProductForm({ open, onOpenChange, productId, onSaved }: ProductF
       fail('Không tạo được slug từ tên sản phẩm — nhập slug thủ công.');
       return;
     }
-    if (!price || price <= 0) {
+    if (!price.trim() || Number(price) <= 0) {
       fail('Giá phải lớn hơn 0.');
       return;
     }
-    if (salePrice && (Number(salePrice) <= 0 || Number(salePrice) >= price)) {
+    if (salePrice && (Number(salePrice) <= 0 || Number(salePrice) >= Number(price))) {
       fail('Giá khuyến mãi phải lớn hơn 0 và nhỏ hơn giá gốc.');
+      return;
+    }
+    if (variants.some((v) => !v.price.trim() || Number(v.price) <= 0)) {
+      fail('Giá của mỗi biến thể phải lớn hơn 0.');
       return;
     }
     if (variants.some((v) => !v.size_id || !v.sku.trim())) {
@@ -363,7 +370,7 @@ export function ProductForm({ open, onOpenChange, productId, onSaved }: ProductF
       open={open}
       onOpenChange={onOpenChange}
       title={productId ? 'Sửa sản phẩm' : 'Thêm sản phẩm'}
-      className="max-w-3xl"
+      className="max-w-5xl"
       footer={
         <>
           <Button
@@ -386,7 +393,7 @@ export function ProductForm({ open, onOpenChange, productId, onSaved }: ProductF
         <ProductPreview
           name={lang === 'en' ? nameEn || nameVi : nameVi || nameEn}
           images={images}
-          price={price}
+          price={Number(price) || 0}
           salePrice={salePrice}
           status={status}
           variants={variants}
@@ -430,7 +437,7 @@ export function ProductForm({ open, onOpenChange, productId, onSaved }: ProductF
 
             {lang === 'vi' ? (
               <div className="flex flex-col gap-4">
-                <Field id="nameVi" label="Tên sản phẩm">
+                <Field id="nameVi" label="Tên sản phẩm" required>
                   <Input id="nameVi" value={nameVi} onChange={(e) => changeNameVi(e.target.value)} />
                 </Field>
                 <Field id="slugVi" label="Slug" required={false} hint="Bỏ trống để tự sinh từ tên.">
@@ -481,8 +488,8 @@ export function ProductForm({ open, onOpenChange, productId, onSaved }: ProductF
             <MultiImageUpload value={images} onChange={setImages} folder="products" />
           </Field>
           <div className="grid gap-4 sm:grid-cols-3">
-            <Field id="price" label="Giá (VND)"><Input id="price" type="number" min={0} value={price} onChange={(e) => setPrice(Number(e.target.value))} /></Field>
-            <Field id="sale" label="Giá KM" required={false}><Input id="sale" type="number" min={0} value={salePrice} onChange={(e) => setSalePrice(e.target.value)} /></Field>
+            <Field id="price" label="Giá (VND)" required><Input id="price" type="text" inputMode="numeric" placeholder="Nhập giá" value={price} onChange={(e) => setPrice(onlyDigits(e.target.value))} /></Field>
+            <Field id="sale" label="Giá KM" required={false}><Input id="sale" type="text" inputMode="numeric" placeholder="Nhập giá KM" value={salePrice} onChange={(e) => setSalePrice(onlyDigits(e.target.value))} /></Field>
             <Field
               id="stock"
               label="Tồn kho"
@@ -553,7 +560,7 @@ export function ProductForm({ open, onOpenChange, productId, onSaved }: ProductF
                 variant="outline"
                 size="sm"
                 disabled={availableSizes.length === 0}
-                onClick={() => setVariants((prev) => [...prev, { size_id: '', sku: '', price: price || 0, stock: 0 }])}
+                onClick={() => setVariants((prev) => [...prev, { size_id: '', sku: '', price: price, stock: 0 }])}
               >
                 <Plus className="size-4" /> Thêm biến thể
               </Button>
@@ -591,9 +598,9 @@ export function ProductForm({ open, onOpenChange, productId, onSaved }: ProductF
                           onChange={(e) => setVariants((prev) => prev.map((x, idx) => (idx === i ? { ...x, sku: e.target.value } : x)))}
                         />
                         <Input
-                          type="number" min={0} placeholder="Giá" aria-label="Giá"
+                          type="text" inputMode="numeric" placeholder="Giá" aria-label="Giá"
                           value={v.price}
-                          onChange={(e) => setVariants((prev) => prev.map((x, idx) => (idx === i ? { ...x, price: Number(e.target.value) } : x)))}
+                          onChange={(e) => setVariants((prev) => prev.map((x, idx) => (idx === i ? { ...x, price: onlyDigits(e.target.value) } : x)))}
                         />
                         <Input
                           type="number" min={0} placeholder="Tồn" aria-label="Tồn"

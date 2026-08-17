@@ -5,12 +5,14 @@
  */
 import type { ProductResponseDto, ProductVariantResponseDto } from '@/lib/api/generated/ecomAPI.schemas';
 import { resolveLocalized, type Locale } from '@/types/localized';
-import type { ProductDetailApiDto } from './api';
+import type { ProductDetailApiDto, SizeMeta } from './api';
 
 export interface ProductVariantView {
   sku: string;
-  /** "24 Cây/Thùng" */
+  /** Nhãn chính = tên quy cách, vd "Cây 65gr". */
   label: string;
+  /** Nhãn phụ số lượng đóng thùng, vd "Thùng 30 cây". Null khi thiếu packQty. */
+  packLabel: string | null;
   price: number;
   stock: number;
   inStock: boolean;
@@ -81,6 +83,16 @@ export function packagingLabel(size: {
   return size.name;
 }
 
+/**
+ * Nhãn phụ số lượng đóng thùng cho PDP, vd "Thùng 30 cây". Khối lượng đã nằm trong
+ * tên quy cách ("Cây 65gr") nên nhãn phụ chỉ mô tả quy cách đóng thùng. Null khi thiếu packQty.
+ */
+export function packagingCartonLabel(size: Pick<SizeMeta, 'packQty' | 'unit'>): string | null {
+  if (size.packQty == null || size.packQty <= 0) return null;
+  const unit = size.unit?.trim();
+  return `Thùng ${size.packQty}${unit ? ` ${unit}` : ''}`;
+}
+
 /** Quy tắc giá hiệu lực THỐNG NHẤT toàn site: variant.price ?? sale_price ?? price */
 export function getEffectivePrice(product: Pick<ProductResponseDto, 'price' | 'sale_price'>, variant?: ProductVariantResponseDto | null): number {
   if (variant?.price != null) return Number(variant.price);
@@ -128,15 +140,29 @@ export function toProductCardView(p: ProductResponseDto, locale: Locale): Produc
   };
 }
 
-export function toProductDetailView(p: ProductResponseDto, locale: Locale): ProductDetailView {
-  const variants: ProductVariantView[] = (p.variants ?? []).map((v) => ({
-    sku: v.sku,
-    // Trục variant = quy cách đóng gói: ưu tiên nhãn từ size, fallback tên variant (mockup chưa có size).
-    label: v.size ? packagingLabel(v.size) : resolveLocalized(v.name, locale),
-    price: getEffectivePrice(p, v),
-    stock: v.stock,
-    inStock: v.stock > 0,
-  }));
+export function toProductDetailView(
+  p: ProductResponseDto,
+  locale: Locale,
+  sizeMetaById?: Map<string, SizeMeta>,
+): ProductDetailView {
+  const variants: ProductVariantView[] = (p.variants ?? []).map((v) => {
+    // Trục variant = quy cách đóng gói. Nhãn chính = tên quy cách ("Cây 65gr"); nhãn phụ = SL đóng thùng.
+    // Thuộc tính đầy đủ fetch qua /sizes vì API sản phẩm chỉ nhúng {id, name}.
+    const meta = v.size?.id ? sizeMetaById?.get(v.size.id) : undefined;
+    const label = meta
+      ? meta.name
+      : v.size
+        ? packagingLabel(v.size)
+        : resolveLocalized(v.name, locale);
+    return {
+      sku: v.sku,
+      label,
+      packLabel: meta ? packagingCartonLabel(meta) : null,
+      price: getEffectivePrice(p, v),
+      stock: v.stock,
+      inStock: v.stock > 0,
+    };
+  });
 
   return {
     ...toProductCardView(p, locale),

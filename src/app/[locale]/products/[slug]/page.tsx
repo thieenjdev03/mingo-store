@@ -9,7 +9,7 @@ import { fWeight } from '@/lib/format';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { PurchasePanel } from '@/features/product/purchase-panel';
 import { MustTrySection } from '@/sections/mingo-home/must-try/must-try-section';
-import { getAllProducts, getProductBySlug, getProductsByCategory } from '@/features/product/api';
+import { getAllProducts, getProductBySlug, getProductsByCategory, getSizeMetaById } from '@/features/product/api';
 import { getMockupBySlug, MOCKUP_CATALOG, toMockupProductDto } from '@/features/product/mockup-catalog';
 import { isPublicCatalogProduct, toProductCardView, toProductDetailView } from '@/features/product/types';
 import { routing } from '@/i18n/routing';
@@ -86,7 +86,9 @@ export default async function ProductDetailPage({
   // Backend chưa seed sản phẩm -> fallback sang mockup catalog để PDP (kèm mô tả HTML) vẫn hiển thị.
   const apiProduct = await resolveProduct(slug, safeLocale);
   if (!apiProduct || !isPublicCatalogProduct(apiProduct)) notFound();
-  const product = toProductDetailView(apiProduct, safeLocale);
+  // Thuộc tính quy cách đầy đủ để dựng nhãn "24 cây / thùng, cây 60 gr" — API sản phẩm chỉ nhúng {id, name}.
+  const sizeMetaById = apiProduct.variants?.length ? await getSizeMetaById() : undefined;
+  const product = toProductDetailView(apiProduct, safeLocale, sizeMetaById);
 
   // "Gợi ý cho bạn": sản phẩm cùng category với sản phẩm đang xem (loại chính nó), tối đa 8.
   const suggestions = product.categoryId

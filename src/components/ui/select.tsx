@@ -30,7 +30,8 @@ export function SelectTrigger({
       )}
       {...props}
     >
-      {children}
+      {/* Bọc value trong ô co giãn + truncate để placeholder/nhãn dài không đẩy chevron ra ngoài. */}
+      <span className="min-w-0 flex-1 truncate text-left">{children}</span>
       <SelectPrimitive.Icon asChild>
         <ChevronDownIcon className="size-4 transition-transform duration-200 group-data-[state=open]:rotate-180" />
       </SelectPrimitive.Icon>
