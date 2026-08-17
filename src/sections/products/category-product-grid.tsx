@@ -1,6 +1,6 @@
-import Image from 'next/image';
 import { Link } from '@/i18n/navigation';
 import { fCurrencyVND } from '@/lib/format';
+import { ProgressiveImage } from '@/components/ui/progressive-image';
 
 export interface CategoryProductCard {
   id: string;
@@ -26,10 +26,12 @@ export function CategoryProductGrid({ products }: { products: CategoryProductCar
         <Link key={product.id} href={`/products/${product.slug}`} className="group block">
           <div className="relative mx-auto aspect-[3/4] w-full max-w-[280px]">
             {product.image ? (
-              <Image
+              <ProgressiveImage
                 src={product.image}
                 alt={product.name}
                 fill
+                loading="lazy"
+                quality={70}
                 sizes="(max-width: 640px) 45vw, (max-width: 1024px) 45vw, 280px"
                 className="object-contain transition-transform duration-300 motion-reduce:transition-none group-hover:-translate-y-2 group-hover:scale-[1.03]"
               />

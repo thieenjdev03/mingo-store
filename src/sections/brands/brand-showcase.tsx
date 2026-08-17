@@ -1,8 +1,8 @@
 import type { ReactNode } from 'react';
-import Image from 'next/image';
 import { Link } from '@/i18n/navigation';
 import { Button } from '@/components/ui/button';
 import { fetchNavBrands, localNavBrands } from '@/features/catalog/nav-data';
+import { ProgressiveImage } from '@/components/ui/progressive-image';
 
 interface BrandShowcaseProps {
   /** Nhãn phụ phía trên tiêu đề (vd "our heritage"). */
@@ -54,7 +54,15 @@ export async function BrandShowcase({
               className="relative mx-auto flex h-28 w-full max-w-[280px] items-center justify-center transition-transform hover:scale-105 sm:h-36 lg:h-44"
             >
               {brand.logoUrl ? (
-                <Image src={brand.logoUrl} alt={brand.name} fill sizes="(max-width: 640px) 45vw, 280px" className="object-contain" />
+                <ProgressiveImage
+                  src={brand.logoUrl}
+                  alt={brand.name}
+                  fill
+                  loading="lazy"
+                  quality={70}
+                  sizes="(max-width: 639px) calc(50vw - 36px), (max-width: 1023px) 30vw, 280px"
+                  className="object-contain"
+                />
               ) : (
                 <span className="font-display text-4xl italic font-bold text-foreground sm:text-5xl">{brand.name}</span>
               )}

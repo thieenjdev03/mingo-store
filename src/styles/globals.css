@@ -1,5 +1,26 @@
 @import 'tailwindcss';
 
+@keyframes mingo-image-shimmer {
+  0% { background-position: 180% 0; }
+  100% { background-position: -80% 0; }
+}
+
+.mingo-image-skeleton {
+  background-image: linear-gradient(
+    105deg,
+    color-mix(in srgb, var(--muted) 72%, transparent) 18%,
+    color-mix(in srgb, var(--primary) 12%, var(--card)) 42%,
+    color-mix(in srgb, var(--muted) 72%, transparent) 66%
+  );
+  background-position: 180% 0;
+  background-size: 220% 100%;
+  animation: mingo-image-shimmer 1.35s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mingo-image-skeleton { animation: none; }
+}
+
 /* ============================================================
    MINGO DESIGN TOKENS — "Vibrant Creamery"
    Nguồn: DESIGN.md (design system chính thức). Không sửa giá trị ở nơi khác.

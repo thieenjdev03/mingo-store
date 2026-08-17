@@ -1,7 +1,7 @@
-import Image from 'next/image';
 import { Link } from '@/i18n/navigation';
 import { fCurrencyVND } from '@/lib/format';
 import type { ProductCardView } from './types';
+import { ProgressiveImage } from '@/components/ui/progressive-image';
 import { getTranslations } from 'next-intl/server';
 
 export async function RelatedProducts({
@@ -24,10 +24,12 @@ export async function RelatedProducts({
           <Link key={product.id} href={`/products/${product.slug}`} className="group min-w-0 text-[#563e2b]">
             <div className="relative aspect-[3/4] w-full">
               {product.image ? (
-                <Image
+                <ProgressiveImage
                   src={product.image}
                   alt={product.name}
                   fill
+                  loading="lazy"
+                  quality={70}
                   sizes="(max-width: 1023px) 45vw, 282px"
                   className="object-contain transition-transform duration-300 group-hover:-translate-y-2"
                 />

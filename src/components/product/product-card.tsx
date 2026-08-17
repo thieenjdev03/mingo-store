@@ -1,6 +1,6 @@
-import Image from 'next/image';
 import { Link } from '@/i18n/navigation';
 import type { ProductCardView } from '@/features/product/types';
+import { ProgressiveImage } from '@/components/ui/progressive-image';
 
 export interface ProductCardProps {
   product: ProductCardView;
@@ -12,7 +12,7 @@ export function ProductCard({ product }: ProductCardProps) {
     <Link href={`/products/${product.slug}`} className="group block text-center">
       <div className="relative mx-auto aspect-[3/5] w-full max-w-56 transition-transform duration-200 group-hover:scale-105">
         {product.image ? (
-          <Image src={product.image} alt={product.name} fill className="object-contain" sizes="(max-width: 768px) 50vw, 260px" />
+          <ProgressiveImage src={product.image} alt={product.name} fill loading="lazy" quality={70} className="object-contain" sizes="(max-width: 768px) 50vw, 260px" />
         ) : (
           <div className="flex h-full items-center justify-center rounded-lg bg-muted text-muted-foreground">🍦</div>
         )}

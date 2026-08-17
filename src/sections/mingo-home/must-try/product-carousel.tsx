@@ -1,12 +1,12 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import Image from 'next/image';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Link } from '@/i18n/navigation';
 import type { ProductCardView } from '@/features/product/types';
 import { fCurrencyVND } from '@/lib/format';
 import { useTranslations } from 'next-intl';
+import { ProgressiveImage } from '@/components/ui/progressive-image';
 
 export function ProductCarousel({ products }: { products: ProductCardView[] }) {
   const t = useTranslations('product');
@@ -62,10 +62,12 @@ export function ProductCarousel({ products }: { products: ProductCardView[] }) {
           >
             <div className="relative mx-auto h-[210px] w-full sm:h-[390px] lg:h-[376px]">
               {product.image ? (
-                <Image
+                <ProgressiveImage
                   src={product.image}
                   alt={product.name}
                   fill
+                  loading="lazy"
+                  quality={70}
                   sizes="(max-width: 640px) 45vw, (max-width: 1024px) 48vw, 282px"
                   className="object-contain transition-transform duration-300 motion-reduce:transition-none group-hover:-translate-y-2 group-hover:scale-[1.02]"
                 />
