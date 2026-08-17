@@ -19,6 +19,8 @@ import { brandsKey, listBrands } from '@/features/admin/brands/api';
 import { listSizes } from '@/features/admin/sizes/api';
 import { packagingLabel } from '@/features/product/types';
 import { fCurrencyVND } from '@/lib/format';
+import { ApiError } from '@/lib/api/fetcher';
+import { getApiErrorMessage } from '@/lib/api/error-message';
 import type { CreateProductDtoStatus } from '@/lib/api/generated/ecomAPI.schemas';
 import { getProductForEdit, createProduct, updateProduct } from './api';
 
@@ -265,30 +267,55 @@ export function ProductForm({ open, onOpenChange, productId, onSaved }: ProductF
     }
   }, [open, productId, editData]);
 
+  const fail = (message: string) => {
+    // Thoát chế độ xem trước để dải lỗi ở đầu form luôn hiển thị.
+    setPreviewOpen(false);
+    setError(message);
+  };
+
   const onSubmit = async () => {
-    if (!nameVi.trim() && !nameEn.trim()) {
-      setError('Cần nhập tên sản phẩm (ít nhất một ngôn ngữ).');
+    // Validate các field backend bắt buộc (CreateProductDto: name, slug, price;
+    // ProductVariantDto: name, sku, price, stock) trước khi gọi API để báo lỗi sớm.
+    const nm = { vi: nameVi.trim() || nameEn.trim(), en: nameEn.trim() || nameVi.trim() };
+    if (!nm.vi && !nm.en) {
+      fail('Cần nhập tên sản phẩm (ít nhất một ngôn ngữ).');
+      return;
+    }
+    const slug = {
+      vi: slugVi.trim() || slugify(nm.vi),
+      en: slugEn.trim() || slugify(nm.en),
+    };
+    if (!slug.vi && !slug.en) {
+      fail('Không tạo được slug từ tên sản phẩm — nhập slug thủ công.');
       return;
     }
     if (!price || price <= 0) {
-      setError('Giá phải lớn hơn 0.');
+      fail('Giá phải lớn hơn 0.');
+      return;
+    }
+    if (salePrice && (Number(salePrice) <= 0 || Number(salePrice) >= price)) {
+      fail('Giá khuyến mãi phải lớn hơn 0 và nhỏ hơn giá gốc.');
       return;
     }
     if (variants.some((v) => !v.size_id || !v.sku.trim())) {
-      setError('Mỗi biến thể cần chọn quy cách và nhập SKU.');
+      fail('Mỗi biến thể cần chọn quy cách và nhập SKU.');
       return;
     }
+    if (variants.some((v) => Number(v.price) < 0 || Number(v.stock) < 0)) {
+      fail('Giá và tồn kho của biến thể không được âm.');
+      return;
+    }
+    setError(null);
     setSaving(true);
     try {
-      const loc = (vi: string, en: string) => ({ vi: vi || en, en: en || vi });
-      const nm = loc(nameVi.trim(), nameEn.trim());
       const variantPayload = variants.map((v) => {
         const sizeName = sizeOptions.find((s) => s.id === v.size_id)?.name ?? v.sku;
         return { name: { vi: sizeName, en: sizeName }, sku: v.sku.trim(), price: Number(v.price) || 0, stock: Number(v.stock) || 0, size_id: v.size_id };
       });
+      const loc = (vi: string, en: string) => ({ vi: vi || en, en: en || vi });
       const payload = {
         name: nm,
-        slug: loc(slugVi.trim() || slugify(nm.vi), slugEn.trim() || slugify(nm.en)),
+        slug,
         short_description: loc(shortVi.trim(), shortEn.trim()),
         usage_instructions: loc(usageVi.trim(), usageEn.trim()),
         description: descVi || descEn ? loc(descVi.trim(), descEn.trim()) : undefined,
@@ -297,8 +324,9 @@ export function ProductForm({ open, onOpenChange, productId, onSaved }: ProductF
         sale_price: salePrice ? Number(salePrice) : undefined,
         images,
         variants: variantPayload.length > 0 ? variantPayload : undefined,
-        // Có biến thể => tồn kho sản phẩm là tổng tồn các quy cách; không thì lấy tồn nhập tay.
-        stock_quantity: hasVariants ? variantStockTotal : Number(stock) || 0,
+        // Có biến thể => tồn kho do từng quy cách quản lý; backend từ chối nếu gửi kèm
+        // stock_quantity ("Product with variants should not have stock_quantity set").
+        stock_quantity: hasVariants ? undefined : Number(stock) || 0,
         // Có biến thể => SKU quản lý theo từng biến thể, không gửi SKU sản phẩm gốc.
         sku: hasVariants ? undefined : sku.trim() || undefined,
         category_id: categoryId || undefined,
@@ -316,8 +344,15 @@ export function ProductForm({ open, onOpenChange, productId, onSaved }: ProductF
       }
       onOpenChange(false);
       onSaved();
-    } catch {
-      toast({ title: 'Lưu thất bại', tone: 'error' });
+    } catch (err) {
+      // Hiển thị đúng lỗi backend trả về (NestJS ValidationPipe: message string | string[]).
+      const duplicateSku =
+        err instanceof ApiError && err.status === 409
+          ? 'SKU hoặc slug đã tồn tại — kiểm tra lại SKU sản phẩm/biến thể và slug.'
+          : null;
+      const message = duplicateSku ?? getApiErrorMessage(err, 'Lưu sản phẩm thất bại. Vui lòng thử lại.');
+      fail(message);
+      toast({ title: message, tone: 'error' });
     } finally {
       setSaving(false);
     }
@@ -363,6 +398,14 @@ export function ProductForm({ open, onOpenChange, productId, onSaved }: ProductF
         />
       ) : (
         <div className="flex flex-col gap-4">
+          {error ? (
+            <div
+              role="alert"
+              className="rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm font-medium text-destructive"
+            >
+              {error}
+            </div>
+          ) : null}
           {/* Nội dung song ngữ dạng tab — ưu tiên Tiếng Việt; mở tab EN khi cần dịch. */}
           <div className="rounded-md border border-border p-3">
             <p className="mb-3 rounded-md bg-muted/40 px-3 py-2 text-xs leading-relaxed text-muted-foreground">
@@ -481,7 +524,7 @@ export function ProductForm({ open, onOpenChange, productId, onSaved }: ProductF
                 ))}
               </NativeSelect>
             </Field>
-            <Field id="status" label="Trạng thái" required={false} error={error ?? undefined}>
+            <Field id="status" label="Trạng thái" required={false}>
               <NativeSelect id="status" value={status} onChange={(e) => setStatus(e.target.value as CreateProductDtoStatus)}>
                 {STATUSES.map((s) => (<option key={s.value} value={s.value}>{s.label}</option>))}
               </NativeSelect>
@@ -520,37 +563,50 @@ export function ProductForm({ open, onOpenChange, productId, onSaved }: ProductF
                 Chưa có biến thể — sản phẩm bán theo giá/tồn chung ở trên. Thêm biến thể nếu bán nhiều quy cách (24 cây/thùng, Hộp 250ml…).
               </p>
             ) : (
-              <div className="flex flex-col gap-2">
-                {variants.map((v, i) => (
-                  <div key={i} className="grid grid-cols-[1fr_1fr_auto_auto_auto] items-center gap-2">
-                    <NativeSelect
-                      value={v.size_id}
-                      onChange={(e) => setVariants((prev) => prev.map((x, idx) => (idx === i ? { ...x, size_id: e.target.value } : x)))}
-                      aria-label="Quy cách"
-                    >
-                      <option value="">— Quy cách —</option>
-                      {sizeOptionsForRow(v.size_id).map((s) => (<option key={s.id} value={s.id}>{packagingLabel(s)}</option>))}
-                    </NativeSelect>
-                    <Input
-                      placeholder="SKU"
-                      value={v.sku}
-                      onChange={(e) => setVariants((prev) => prev.map((x, idx) => (idx === i ? { ...x, sku: e.target.value } : x)))}
-                    />
-                    <Input
-                      type="number" min={0} placeholder="Giá" className="w-24"
-                      value={v.price}
-                      onChange={(e) => setVariants((prev) => prev.map((x, idx) => (idx === i ? { ...x, price: Number(e.target.value) } : x)))}
-                    />
-                    <Input
-                      type="number" min={0} placeholder="Tồn" className="w-20"
-                      value={v.stock}
-                      onChange={(e) => setVariants((prev) => prev.map((x, idx) => (idx === i ? { ...x, stock: Number(e.target.value) } : x)))}
-                    />
-                    <Button variant="ghost" size="icon" aria-label="Xoá biến thể" onClick={() => setVariants((prev) => prev.filter((_, idx) => idx !== i))}>
-                      <Trash2 className="size-4 text-destructive" />
-                    </Button>
+              <div className="overflow-x-auto">
+                <div className="min-w-[520px]">
+                  {/* Tiêu đề cột — căn theo cùng grid template với các dòng biến thể bên dưới. */}
+                  <div className="grid grid-cols-[1fr_1fr_6rem_5rem_2.25rem] items-center gap-2 border-b border-border px-1 pb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                    <span>Quy cách</span>
+                    <span>SKU</span>
+                    <span>Giá (VND)</span>
+                    <span>Tồn</span>
+                    <span className="sr-only">Xoá</span>
                   </div>
-                ))}
+                  <div className="flex flex-col gap-2 pt-2">
+                    {variants.map((v, i) => (
+                      <div key={i} className="grid grid-cols-[1fr_1fr_6rem_5rem_2.25rem] items-center gap-2">
+                        <NativeSelect
+                          value={v.size_id}
+                          onChange={(e) => setVariants((prev) => prev.map((x, idx) => (idx === i ? { ...x, size_id: e.target.value } : x)))}
+                          aria-label="Quy cách"
+                        >
+                          <option value="">— Quy cách —</option>
+                          {sizeOptionsForRow(v.size_id).map((s) => (<option key={s.id} value={s.id}>{packagingLabel(s)}</option>))}
+                        </NativeSelect>
+                        <Input
+                          placeholder="SKU"
+                          aria-label="SKU"
+                          value={v.sku}
+                          onChange={(e) => setVariants((prev) => prev.map((x, idx) => (idx === i ? { ...x, sku: e.target.value } : x)))}
+                        />
+                        <Input
+                          type="number" min={0} placeholder="Giá" aria-label="Giá"
+                          value={v.price}
+                          onChange={(e) => setVariants((prev) => prev.map((x, idx) => (idx === i ? { ...x, price: Number(e.target.value) } : x)))}
+                        />
+                        <Input
+                          type="number" min={0} placeholder="Tồn" aria-label="Tồn"
+                          value={v.stock}
+                          onChange={(e) => setVariants((prev) => prev.map((x, idx) => (idx === i ? { ...x, stock: Number(e.target.value) } : x)))}
+                        />
+                        <Button variant="ghost" size="icon" aria-label="Xoá biến thể" onClick={() => setVariants((prev) => prev.filter((_, idx) => idx !== i))}>
+                          <Trash2 className="size-4 text-destructive" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </div>
             )}
             {sizeOptions.length === 0 ? (
