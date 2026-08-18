@@ -14,7 +14,9 @@ interface CategorySection {
   products: ProductCardView[];
 }
 
-export const revalidate = 300;
+// TODO(cache): bật lại sau khi test xong
+// export const revalidate = 300;
+export const revalidate = 0;
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const { locale } = await params;

@@ -14,7 +14,9 @@ export async function getBrandBySlug(slug: string): Promise<BrandDto | null> {
     return await customFetch<BrandDto>({
       url: `/brands/slug/${encodeURIComponent(slug)}`,
       method: 'GET',
-      next: { revalidate: 300 },
+      // TODO(cache): bật lại sau khi test xong
+      // next: { revalidate: 300 },
+      cache: 'no-store',
     });
   } catch (error) {
     if (error instanceof ApiError && error.status === 404) return null;
@@ -28,7 +30,9 @@ export async function getStorefrontBrands(): Promise<StorefrontBrand[]> {
     url: '/brands',
     method: 'GET',
     params: { active: true },
-    next: { revalidate: 300 },
+    // TODO(cache): bật lại sau khi test xong
+    // next: { revalidate: 300 },
+    cache: 'no-store',
   });
 
   return (brands ?? [])

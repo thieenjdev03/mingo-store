@@ -10,8 +10,11 @@ import { JsonLd } from '@/components/seo/json-ld';
 import { absoluteUrl, localizedPath, pageMetadata, seoDescription, toSeoLocale } from '@/lib/seo';
 import { getStorefrontHome } from '@/features/home/api';
 
-export const revalidate = 300;
-export const dynamic = 'force-static';
+// TODO(cache): bật lại sau khi test xong
+// export const revalidate = 300;
+export const revalidate = 0;
+// TODO(cache): bật lại sau khi test xong
+// export const dynamic = 'force-static';
 
 export async function generateStaticParams() {
   const home = await getStorefrontHome('vi').catch(() => ({ heroes: [], sections: [] }));

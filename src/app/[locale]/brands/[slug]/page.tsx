@@ -25,8 +25,11 @@ const BRAND_BANNER_COLORS = [
   '#F1BC72',
 ] as const;
 
-export const revalidate = 300;
-export const dynamic = 'force-static';
+// TODO(cache): bật lại sau khi test xong
+// export const revalidate = 300;
+export const revalidate = 0;
+// TODO(cache): bật lại sau khi test xong
+// export const dynamic = 'force-static';
 
 export async function generateStaticParams() {
   const apiBrands = await fetchNavBrands().catch(() => []);

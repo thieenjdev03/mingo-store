@@ -41,7 +41,9 @@ export async function getSizeMetaById(): Promise<Map<string, SizeMeta>> {
   const sizes = await customFetch<SizeApiDto[]>({
     url: '/sizes',
     method: 'GET',
-    next: { revalidate: 300 },
+    // TODO(cache): bật lại sau khi test xong
+    // next: { revalidate: 300 },
+    cache: 'no-store',
   }).catch(() => [] as SizeApiDto[]);
   return new Map(
     sizes.map((s) => [
@@ -65,7 +67,7 @@ export async function getSizeMetaById(): Promise<Map<string, SizeMeta>> {
  */
 
 export function getProducts(params?: ProductsControllerFindAllParams): Promise<ProductListDto> {
-  return customFetch<ProductListDto>({ url: '/products', method: 'GET', params, next: { revalidate: 300 } });
+  return customFetch<ProductListDto>({ url: '/products', method: 'GET', params, cache: 'no-store' /* TODO(cache): bật lại sau khi test xong: next: { revalidate: 300 } */ });
 }
 
 /** Fetch the complete product list for catalog pages that do not expose pagination controls. */
@@ -110,7 +112,9 @@ export async function getProductBySlug(slug: string, locale: string): Promise<Pr
       url: `/products/slug/${encodeURIComponent(slug)}`,
       method: 'GET',
       params: { locale },
-      next: { revalidate: 300 },
+      // TODO(cache): bật lại sau khi test xong
+      // next: { revalidate: 300 },
+      cache: 'no-store',
     });
   } catch (error) {
     if (error instanceof ApiError && error.status === 404) return null;
@@ -147,7 +151,9 @@ export async function getCollectionCatalog(
     url: '/collections',
     method: 'GET',
     params: { limit: 100, locale },
-    next: { revalidate: 300 },
+    // TODO(cache): bật lại sau khi test xong
+    // next: { revalidate: 300 },
+    cache: 'no-store',
   });
   const collection = collections.items.find(
     (item) => item.slug === slug && item.is_active !== false,
@@ -161,7 +167,9 @@ export async function getCollectionCatalog(
       url: `/collections/${encodeURIComponent(collection.id)}/products`,
       method: 'GET',
       params: { limit: 100, locale, ...(cursor ? { cursor } : {}) },
-      next: { revalidate: 300 },
+      // TODO(cache): bật lại sau khi test xong
+      // next: { revalidate: 300 },
+      cache: 'no-store',
     });
     products.push(...page.items);
     cursor = page.nextCursor ?? undefined;

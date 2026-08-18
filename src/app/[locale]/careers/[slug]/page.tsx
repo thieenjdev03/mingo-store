@@ -9,8 +9,11 @@ import { CareerApplicationForm } from '@/features/careers/application-form';
 import { JsonLd } from '@/components/seo/json-ld';
 import { absoluteUrl, localizedPath, pageMetadata, seoDescription, toSeoLocale } from '@/lib/seo';
 
-export const revalidate = 300;
-export const dynamic = 'force-static';
+// TODO(cache): bật lại sau khi test xong
+// export const revalidate = 300;
+export const revalidate = 0;
+// TODO(cache): bật lại sau khi test xong
+// export const dynamic = 'force-static';
 
 export async function generateStaticParams() {
   const careers = await getCareers({ status: 'published', limit: 100 })

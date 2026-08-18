@@ -536,5 +536,11 @@
     "variants": "Danh sách biến thể",
     "skuLabel": "SKU: {sku}",
     "availableCount": "{count} sản phẩm"
+  },
+  "categories": {
+    "defaultIntro": "Khám phá các sản phẩm {name} của Mingo Ice Cream — hương vị, quy cách và tình trạng hàng được cập nhật trực tiếp từ nhà sản xuất."
+  },
+  "common": {
+    "loading": "Đang tải…"
   }
 }

@@ -540,5 +540,11 @@
     "variants": "Variants",
     "skuLabel": "SKU: {sku}",
     "availableCount": "{count} items"
+  },
+  "categories": {
+    "defaultIntro": "Explore {name} products from Mingo Ice Cream — flavours, pack sizes and availability updated directly by the manufacturer."
+  },
+  "common": {
+    "loading": "Loading…"
   }
 }

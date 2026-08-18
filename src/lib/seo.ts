@@ -1,8 +1,19 @@
 import type { Metadata } from 'next';
 
+/**
+ * Domain canonical duy nhất của storefront. Mọi URL tuyệt đối (canonical, og:url,
+ * sitemap, JSON-LD) phải đi qua đây — không hardcode domain ở bất kỳ file nào khác.
+ * Fallback là domain thương hiệu, KHÔNG phải alias *.vercel.app, để bản build thiếu
+ * env vẫn không tự khai mình là bản sao của domain vercel.
+ */
 export const SITE_URL = new URL(
-  process.env.NEXT_PUBLIC_SITE_URL ?? 'https://mingo-store.vercel.app',
+  process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/+$/, '') || 'https://mingocream.hongtanphat.com',
 );
+
+/** Domain production thật — dùng để robots.ts chặn index trên preview/alias. */
+export const PRODUCTION_ORIGIN = 'https://mingocream.hongtanphat.com';
+
+export const IS_PRODUCTION_HOST = SITE_URL.origin === PRODUCTION_ORIGIN;
 
 export const SITE_NAME = 'Mingo Ice Cream';
 export const DEFAULT_OG_IMAGE = '/assets/mingo/home/hero-background.jpg';
@@ -73,8 +84,8 @@ export function pageMetadata({
     alternates: {
       canonical: canonicalPath,
       languages: {
-        vi: viPath,
-        en: enPath,
+        'vi-VN': viPath,
+        'en-US': enPath,
         'x-default': viPath,
       },
     },

@@ -45,7 +45,9 @@ export async function fetchNavBrands(): Promise<BrandNavItem[]> {
     url: '/brands',
     method: 'GET',
     params: { active: true },
-    next: { revalidate: 300 },
+    // TODO(cache): bật lại sau khi test xong
+    // next: { revalidate: 300 },
+    cache: 'no-store',
   });
 
   return (brands ?? [])
@@ -66,7 +68,9 @@ export async function fetchNavCategories(): Promise<CategoryNavItem[]> {
   const categories = await customFetch<RawCategory[]>({
     url: '/categories/active',
     method: 'GET',
-    next: { revalidate: 300 },
+    // TODO(cache): bật lại sau khi test xong
+    // next: { revalidate: 300 },
+    cache: 'no-store',
   });
 
   return (categories ?? [])

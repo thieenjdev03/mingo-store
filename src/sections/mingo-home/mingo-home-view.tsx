@@ -1,23 +1,19 @@
 import { getTranslations } from 'next-intl/server';
 import type { Locale } from '@/types/localized';
 import { getStorefrontHome } from '@/features/home/api';
-import { getMockupBySlug, toMockupProductDto } from '@/features/product/mockup-catalog';
-import { toProductCardView, type ProductCardView } from '@/features/product/types';
 import { HeroCarousel } from './hero/hero-carousel';
 import { MustTrySection } from './must-try/must-try-section';
 import { BrandShowcase } from '@/sections/brands/brand-showcase';
 
 export async function MingoHomeView({ locale }: { locale: Locale }) {
-  const [home, tHome, tProducts, tBrands] = await Promise.all([
+  const [home, tProducts, tBrands] = await Promise.all([
     getStorefrontHome(locale).catch(() => ({ heroes: [], sections: [] })),
-    getTranslations('home'),
     getTranslations('products'),
     getTranslations('pages.brands'),
   ]);
 
   const { heroes, sections } = home;
   const viewAllLabel = tProducts('viewAll');
-  const fallbackProducts = makeFallbackProducts(locale);
 
   return (
     <>
@@ -33,35 +29,18 @@ export async function MingoHomeView({ locale }: { locale: Locale }) {
         aboutCta={tBrands('joy.aboutCta')}
         headingLevel="h2"
       />
-      {sections.length > 0 ? (
-        sections.map((section) => (
-          <MustTrySection
-            key={section.id}
-            title={section.title}
-            products={section.products}
-            href={`/collections/${section.slug}`}
-            viewAllLabel={viewAllLabel}
-          />
-        ))
-      ) : (
-        <MustTrySection title={tHome('mustTry')} products={fallbackProducts} />
-      )}
+      {/* Không có collection nào từ API -> KHÔNG render khối sản phẩm mockup thay thế.
+          Mockup có giá cứng (vd Matcha Red Bean 35.000đ) khác giá thật ở category/PDP,
+          nên fallback đó vừa tạo sản phẩm trùng vừa làm giá mâu thuẫn giữa các trang. */}
+      {sections.map((section) => (
+        <MustTrySection
+          key={section.id}
+          title={section.title}
+          products={section.products}
+          href={`/collections/${section.slug}`}
+          viewAllLabel={viewAllLabel}
+        />
+      ))}
     </>
-  );
-}
-
-function makeFallbackProducts(locale: Locale): ProductCardView[] {
-  return ['creme-caramel', 'matcha-red-bean', 'creme-caramel', 'matcha-red-bean'].flatMap(
-    (slug, index) => {
-      const product = getMockupBySlug(slug);
-      if (!product) return [];
-      const card = toProductCardView(toMockupProductDto(product, locale), locale);
-      return [{
-        ...card,
-        id: `${card.id}-${index}`,
-        name: slug === 'creme-caramel' ? 'Creme Caramel' : 'Matcha Red Bean',
-        spec: locale === 'vi' ? '100ml | 24 cây | thùng' : '100ml | 24 bars | carton',
-      }];
-    },
   );
 }

@@ -3,13 +3,14 @@ import { fetchNavBrands, fetchNavCategories, localNavBrands, localNavCategories 
 import { getStorefrontHome } from '@/features/home/api';
 import { getCareers } from '@/features/careers/api';
 import { getAllProducts } from '@/features/product/api';
-import { MOCKUP_CATALOG } from '@/features/product/mockup-catalog';
 import { absoluteUrl, localizedPath } from '@/lib/seo';
 
-export const revalidate = 3600;
+// TODO(cache): bật lại sau khi test xong
+// export const revalidate = 3600;
+export const revalidate = 0;
 
+/** Trang tĩnh luôn có mặt kể cả khi backend chết. */
 const STATIC_PATHS = [
-  '/',
   '/products',
   '/brands',
   '/about',
@@ -20,25 +21,39 @@ const STATIC_PATHS = [
   '/careers',
 ];
 
+type ChangeFrequency = MetadataRoute.Sitemap[number]['changeFrequency'];
+
+/**
+ * Sinh 2 entry (vi + en) cho một pathname, mỗi entry tự khai đủ cặp hreflang.
+ * hreflang dùng mã đầy đủ vi-VN / en-US cho khớp với thẻ <link> trong <head>.
+ */
 function localizedEntries(
   pathname: string,
-  changeFrequency: MetadataRoute.Sitemap[number]['changeFrequency'],
+  changeFrequency: ChangeFrequency,
   priority: number,
+  lastModified: Date = new Date(),
 ): MetadataRoute.Sitemap {
+  const languages = {
+    'vi-VN': absoluteUrl(localizedPath('vi', pathname)),
+    'en-US': absoluteUrl(localizedPath('en', pathname)),
+  };
   return (['vi', 'en'] as const).map((locale) => ({
     url: absoluteUrl(localizedPath(locale, pathname)),
+    lastModified,
     changeFrequency,
     priority,
-    alternates: {
-      languages: {
-        vi: absoluteUrl(localizedPath('vi', pathname)),
-        en: absoluteUrl(localizedPath('en', pathname)),
-      },
-    },
+    alternates: { languages },
   }));
 }
 
+function toDate(value: string | null | undefined): Date {
+  const parsed = value ? new Date(value) : null;
+  return parsed && !Number.isNaN(parsed.getTime()) ? parsed : new Date();
+}
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  // Mọi nguồn đều .catch() riêng: backend chết -> sitemap rút gọn còn trang tĩnh,
+  // không được throw làm sập build.
   const [apiProducts, apiBrands, apiCategories, home, careers] = await Promise.all([
     getAllProducts({ locale: 'vi', status: 'active' }).catch(() => []),
     fetchNavBrands().catch(() => []),
@@ -47,19 +62,22 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     getCareers({ status: 'published', limit: 100 }).then((response) => response.items).catch(() => []),
   ]);
 
-  const productSlugs = new Set([
-    ...apiProducts.map((product) => product.slug),
-    ...MOCKUP_CATALOG.map((product) => product.slug),
-  ]);
   const brands = apiBrands.length > 0 ? apiBrands : localNavBrands();
   const categories = apiCategories.length > 0 ? apiCategories : localNavCategories('vi');
 
+  // Sản phẩm chỉ lấy từ API. MOCKUP_CATALOG vẫn render được ở PDP nhưng cố tình
+  // KHÔNG vào sitemap — không quảng cáo sản phẩm giả cho Google.
+  const products = new Map(apiProducts.map((product) => [product.slug, product]));
+
   return [
-    ...STATIC_PATHS.flatMap((pathname) => localizedEntries(pathname, pathname === '/' ? 'daily' : 'weekly', pathname === '/' ? 1 : 0.8)),
-    ...Array.from(productSlugs).flatMap((slug) => localizedEntries(`/products/${slug}`, 'weekly', 0.8)),
-    ...brands.flatMap((brand) => localizedEntries(`/brands/${brand.slug}`, 'weekly', 0.7)),
-    ...categories.flatMap((category) => localizedEntries(`/categories/${category.slug}`, 'weekly', 0.7)),
-    ...home.sections.flatMap((collection) => localizedEntries(`/collections/${collection.slug}`, 'weekly', 0.7)),
-    ...careers.flatMap((career) => localizedEntries(`/careers/${career.slug}`, 'weekly', 0.6)),
+    ...localizedEntries('/', 'daily', 1),
+    ...STATIC_PATHS.flatMap((pathname) => localizedEntries(pathname, 'monthly', 0.5)),
+    ...categories.flatMap((category) => localizedEntries(`/categories/${category.slug}`, 'weekly', 0.8)),
+    ...brands.flatMap((brand) => localizedEntries(`/brands/${brand.slug}`, 'weekly', 0.8)),
+    ...home.sections.flatMap((collection) => localizedEntries(`/collections/${collection.slug}`, 'weekly', 0.8)),
+    ...Array.from(products.values()).flatMap((product) =>
+      localizedEntries(`/products/${product.slug}`, 'weekly', 0.7, toDate(product.updated_at)),
+    ),
+    ...careers.flatMap((career) => localizedEntries(`/careers/${career.slug}`, 'monthly', 0.5)),
   ];
 }

@@ -109,6 +109,10 @@ function toTileCardView(tile: HomepageProductTileDto): ProductCardView {
   };
 }
 
+function dedupeById<T extends { id: string }>(items: T[]): T[] {
+  return Array.from(new Map(items.map((item) => [item.id, item])).values());
+}
+
 export function toHomeSectionsView(
   sections: HomepageSectionDto[],
 ): HomeCollectionView[] {
@@ -120,7 +124,9 @@ export function toHomeSectionsView(
       description: section.description ?? null,
       homepageSection: section.homepage_section ?? '',
       productCount: section.product_count,
-      products: section.products.filter(isPublicCatalogProduct).map(toTileCardView),
+      // Dedupe theo id: phòng vệ trước việc backend trả cùng một sản phẩm nhiều lần
+      // trong một collection (đã thấy sản phẩm lặp trên trang chủ).
+      products: dedupeById(section.products.filter(isPublicCatalogProduct)).map(toTileCardView),
     }))
     // Backend lọc `homepage_section IS NOT NULL`, nhưng admin "gỡ khỏi trang chủ"
     // lưu chuỗi rỗng => phòng thủ ở đây, và bỏ khối không có sản phẩm để hiển thị.

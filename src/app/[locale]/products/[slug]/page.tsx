@@ -40,12 +40,16 @@ import {
   seoDescription,
   toSeoLocale,
 } from "@/lib/seo";
+import { buildProductOffers } from "@/lib/seo-offers";
 
 const richHtmlClass =
   "space-y-2 [&_a]:text-primary [&_a]:underline [&_li]:ml-5 [&_ol]:list-decimal [&_table]:w-full [&_table]:border-collapse [&_td]:border [&_td]:border-border [&_td]:p-2 [&_th]:border [&_th]:border-border [&_th]:p-2 [&_ul]:list-disc";
 
-export const revalidate = 300;
-export const dynamic = "force-static";
+// TODO(cache): bật lại sau khi test xong
+// export const revalidate = 300;
+export const revalidate = 0;
+// TODO(cache): bật lại sau khi test xong
+// export const dynamic = "force-static";
 
 export async function generateStaticParams() {
   const apiProducts = await getAllProducts({
@@ -55,7 +59,6 @@ export async function generateStaticParams() {
   return Array.from(
     new Set([
       ...apiProducts.map((product) => product.slug),
-      ...MOCKUP_CATALOG.map((product) => product.slug),
     ]),
   ).map((slug) => ({ slug }));
 }
@@ -147,6 +150,14 @@ export default async function ProductDetailPage({
   const productUrl = absoluteUrl(
     localizedPath(safeLocale, `/products/${product.slug}`),
   );
+  const offers = buildProductOffers({
+    url: productUrl,
+    price: product.price,
+    priceOnRequest: product.priceOnRequest,
+    available: product.available,
+    variantPrices: product.variants.map((variant) => variant.price),
+  });
+
   const productSchema: Record<string, unknown> = {
     "@context": "https://schema.org",
     "@type": "Product",
@@ -164,52 +175,30 @@ export default async function ProductDetailPage({
       ? { "@type": "Brand", name: product.brandName }
       : { "@type": "Brand", name: "Mingo" },
     category: product.categoryName ?? undefined,
-    offers:
-      !product.priceOnRequest && product.price > 0
-        ? {
-            "@type": "Offer",
-            url: productUrl,
-            priceCurrency: "VND",
-            price: product.price,
-            availability: product.available
-              ? "https://schema.org/InStock"
-              : "https://schema.org/OutOfStock",
-            itemCondition: "https://schema.org/NewCondition",
-          }
-        : undefined,
+    offers,
   };
+  // Trang chủ → Sản phẩm → [Category] → Sản phẩm hiện tại. Position đánh lại theo
+  // mảng thực tế để không hụt số khi thiếu category.
+  const breadcrumbItems = [
+    { name: safeLocale === "vi" ? "Trang chủ" : "Home", item: absoluteUrl(localizedPath(safeLocale, "/")) },
+    { name: safeLocale === "vi" ? "Sản phẩm" : "Products", item: absoluteUrl(localizedPath(safeLocale, "/products")) },
+    ...(product.categoryName && product.categorySlug
+      ? [{
+          name: product.categoryName,
+          item: absoluteUrl(localizedPath(safeLocale, `/categories/${product.categorySlug}`)),
+        }]
+      : []),
+    { name: product.name, item: productUrl },
+  ];
   const breadcrumbSchema = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
-    itemListElement: [
-      {
-        "@type": "ListItem",
-        position: 1,
-        name: safeLocale === "vi" ? "Sản phẩm" : "Products",
-        item: absoluteUrl(localizedPath(safeLocale, "/products")),
-      },
-      ...(product.categoryName && product.categorySlug
-        ? [
-            {
-              "@type": "ListItem",
-              position: 2,
-              name: product.categoryName,
-              item: absoluteUrl(
-                localizedPath(
-                  safeLocale,
-                  `/categories/${product.categorySlug}`,
-                ),
-              ),
-            },
-          ]
-        : []),
-      {
-        "@type": "ListItem",
-        position: product.categoryName ? 3 : 2,
-        name: product.name,
-        item: productUrl,
-      },
-    ],
+    itemListElement: breadcrumbItems.map((entry, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      name: entry.name,
+      item: entry.item,
+    })),
   };
 
   return (

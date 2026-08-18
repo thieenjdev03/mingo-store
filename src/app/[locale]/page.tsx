@@ -4,7 +4,9 @@ import { MingoHomeView } from '@/sections/mingo-home/mingo-home-view';
 import type { Locale } from '@/types/localized';
 import { pageMetadata, SEO_COPY, toSeoLocale } from '@/lib/seo';
 
-export const revalidate = 300;
+// TODO(cache): bật lại sau khi test xong
+// export const revalidate = 300;
+export const revalidate = 0;
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const { locale } = await params;

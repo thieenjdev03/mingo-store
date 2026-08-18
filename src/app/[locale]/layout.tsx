@@ -73,6 +73,19 @@ export default async function LocaleLayout({
             },
           }}
         />
+        {/* WebSite: không khai SearchAction vì storefront chưa có route tìm kiếm
+            nhận query param — khai bừa sẽ bị Google báo lỗi. */}
+        <JsonLd
+          data={{
+            '@context': 'https://schema.org',
+            '@type': 'WebSite',
+            '@id': `${absoluteUrl('/')}#website`,
+            name: SITE_NAME,
+            url: absoluteUrl('/'),
+            inLanguage: locale === 'en' ? 'en-US' : 'vi-VN',
+            publisher: { '@id': `${absoluteUrl('/')}#organization` },
+          }}
+        />
         <NextIntlClientProvider>
           <CartProvider>
             <SiteHeader />

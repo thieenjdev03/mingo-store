@@ -12,9 +12,9 @@ import type {
  * chỉ call site là viết tay. Client component thì dùng thẳng generated hooks.
  */
 export function getCareers(params?: CareersControllerFindAllParams): Promise<CareerListDto> {
-  return customFetch<CareerListDto>({ url: '/careers', method: 'GET', params, next: { revalidate: 300 } });
+  return customFetch<CareerListDto>({ url: '/careers', method: 'GET', params, cache: 'no-store' /* TODO(cache): bật lại sau khi test xong: next: { revalidate: 300 } */ });
 }
 
 export function getCareerBySlug(slug: string): Promise<CareerDto> {
-  return customFetch<CareerDto>({ url: `/careers/${encodeURIComponent(slug)}`, method: 'GET', next: { revalidate: 300 } });
+  return customFetch<CareerDto>({ url: `/careers/${encodeURIComponent(slug)}`, method: 'GET', cache: 'no-store' /* TODO(cache): bật lại sau khi test xong: next: { revalidate: 300 } */ });
 }
