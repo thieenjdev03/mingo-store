@@ -1,37 +1,66 @@
-import type { Metadata } from 'next';
-import Image from 'next/image';
-import { notFound } from 'next/navigation';
-import { ChevronRight } from 'lucide-react';
-import { setRequestLocale, getTranslations } from 'next-intl/server';
-import { hasLocale } from 'next-intl';
-import { Chip } from '@/components/ui/chip';
-import { fWeight } from '@/lib/format';
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import { PurchasePanel } from '@/features/product/purchase-panel';
-import { MustTrySection } from '@/sections/mingo-home/must-try/must-try-section';
-import { getAllProducts, getProductBySlug, getProductsByCategory, getSizeMetaById } from '@/features/product/api';
-import { getMockupBySlug, MOCKUP_CATALOG, toMockupProductDto } from '@/features/product/mockup-catalog';
-import { isPublicCatalogProduct, toProductCardView, toProductDetailView } from '@/features/product/types';
-import { routing } from '@/i18n/routing';
-import { Link } from '@/i18n/navigation';
-import { JsonLd } from '@/components/seo/json-ld';
-import { absoluteUrl, localizedPath, pageMetadata, seoDescription, toSeoLocale } from '@/lib/seo';
+import type { Metadata } from "next";
+import { notFound } from "next/navigation";
+import { ChevronRight } from "lucide-react";
+import { setRequestLocale, getTranslations } from "next-intl/server";
+import { hasLocale } from "next-intl";
+import { Chip } from "@/components/ui/chip";
+import { fWeight } from "@/lib/format";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import { PurchasePanel } from "@/features/product/purchase-panel";
+import { ProductImageGallery } from "@/features/product/product-image-gallery";
+import { MustTrySection } from "@/sections/mingo-home/must-try/must-try-section";
+import {
+  getAllProducts,
+  getProductBySlug,
+  getProductsByCategory,
+  getSizeMetaById,
+} from "@/features/product/api";
+import {
+  getMockupBySlug,
+  MOCKUP_CATALOG,
+  toMockupProductDto,
+} from "@/features/product/mockup-catalog";
+import {
+  isPublicCatalogProduct,
+  toProductCardView,
+  toProductDetailView,
+} from "@/features/product/types";
+import { routing } from "@/i18n/routing";
+import { Link } from "@/i18n/navigation";
+import { JsonLd } from "@/components/seo/json-ld";
+import {
+  absoluteUrl,
+  localizedPath,
+  pageMetadata,
+  seoDescription,
+  toSeoLocale,
+} from "@/lib/seo";
 
 const richHtmlClass =
-  'space-y-2 [&_a]:text-primary [&_a]:underline [&_li]:ml-5 [&_ol]:list-decimal [&_table]:w-full [&_table]:border-collapse [&_td]:border [&_td]:border-border [&_td]:p-2 [&_th]:border [&_th]:border-border [&_th]:p-2 [&_ul]:list-disc';
+  "space-y-2 [&_a]:text-primary [&_a]:underline [&_li]:ml-5 [&_ol]:list-decimal [&_table]:w-full [&_table]:border-collapse [&_td]:border [&_td]:border-border [&_td]:p-2 [&_th]:border [&_th]:border-border [&_th]:p-2 [&_ul]:list-disc";
 
 export const revalidate = 300;
-export const dynamic = 'force-static';
+export const dynamic = "force-static";
 
 export async function generateStaticParams() {
-  const apiProducts = await getAllProducts({ locale: 'vi', status: 'active' }).catch(() => []);
-  return Array.from(new Set([
-    ...apiProducts.map((product) => product.slug),
-    ...MOCKUP_CATALOG.map((product) => product.slug),
-  ])).map((slug) => ({ slug }));
+  const apiProducts = await getAllProducts({
+    locale: "vi",
+    status: "active",
+  }).catch(() => []);
+  return Array.from(
+    new Set([
+      ...apiProducts.map((product) => product.slug),
+      ...MOCKUP_CATALOG.map((product) => product.slug),
+    ]),
+  ).map((slug) => ({ slug }));
 }
 
-async function resolveProduct(slug: string, locale: 'vi' | 'en') {
+async function resolveProduct(slug: string, locale: "vi" | "en") {
   const mockup = getMockupBySlug(slug);
   return (
     (await getProductBySlug(slug, locale).catch(() => null)) ??
@@ -51,19 +80,29 @@ export async function generateMetadata({
     return pageMetadata({
       locale: seoLocale,
       pathname: `/products/${slug}`,
-      title: seoLocale === 'vi' ? 'Sản phẩm kem | Mingo Ice Cream' : 'Ice cream product | Mingo Ice Cream',
-      description: seoLocale === 'vi' ? 'Khám phá sản phẩm kem Mingo Ice Cream.' : 'Discover this Mingo Ice Cream product.',
+      title:
+        seoLocale === "vi"
+          ? "Sản phẩm kem | Mingo Ice Cream"
+          : "Ice cream product | Mingo Ice Cream",
+      description:
+        seoLocale === "vi"
+          ? "Khám phá sản phẩm kem Mingo Ice Cream."
+          : "Discover this Mingo Ice Cream product.",
     });
   }
 
   const product = toProductDetailView(apiProduct, seoLocale);
-  const fallbackDescription = seoLocale === 'vi'
-    ? `Khám phá ${product.name} của Mingo Ice Cream, thông tin sản phẩm, quy cách và tình trạng hàng.`
-    : `Discover ${product.name} from Mingo Ice Cream, including product details, pack size and availability.`;
+  const fallbackDescription =
+    seoLocale === "vi"
+      ? `Khám phá ${product.name} của Mingo Ice Cream, thông tin sản phẩm, quy cách và tình trạng hàng.`
+      : `Discover ${product.name} from Mingo Ice Cream, including product details, pack size and availability.`;
   return pageMetadata({
     locale: seoLocale,
     pathname: `/products/${product.slug}`,
-    title: seoLocale === 'vi' ? `${product.name} — Kem Mingo Ice Cream` : `${product.name} — Mingo Ice Cream`,
+    title:
+      seoLocale === "vi"
+        ? `${product.name} — Kem Mingo Ice Cream`
+        : `${product.name} — Mingo Ice Cream`,
     description: seoDescription(product.descriptionHtml, fallbackDescription),
     image: product.image,
   });
@@ -80,8 +119,10 @@ export default async function ProductDetailPage({
 }) {
   const { locale, slug } = await params;
   setRequestLocale(locale);
-  const safeLocale = hasLocale(routing.locales, locale) ? locale : routing.defaultLocale;
-  const t = await getTranslations('product');
+  const safeLocale = hasLocale(routing.locales, locale)
+    ? locale
+    : routing.defaultLocale;
+  const t = await getTranslations("product");
 
   // Backend chưa seed sản phẩm -> fallback sang mockup catalog để PDP (kèm mô tả HTML) vẫn hiển thị.
   const apiProduct = await resolveProduct(slug, safeLocale);
@@ -92,53 +133,78 @@ export default async function ProductDetailPage({
 
   // "Gợi ý cho bạn": sản phẩm cùng category với sản phẩm đang xem (loại chính nó), tối đa 8.
   const suggestions = product.categoryId
-    ? (await getProductsByCategory(product.categoryId, safeLocale).catch(() => []))
-        .filter((item) => item.id !== product.id && item.status === 'active')
+    ? (
+        await getProductsByCategory(product.categoryId, safeLocale).catch(
+          () => [],
+        )
+      )
+        .filter((item) => item.id !== product.id && item.status === "active")
         .slice(0, 8)
         .map((item) => toProductCardView(item, safeLocale))
     : [];
 
   const breadcrumbCollection = product.collectionName ?? product.categoryName;
-  const productUrl = absoluteUrl(localizedPath(safeLocale, `/products/${product.slug}`));
+  const productUrl = absoluteUrl(
+    localizedPath(safeLocale, `/products/${product.slug}`),
+  );
   const productSchema: Record<string, unknown> = {
-    '@context': 'https://schema.org',
-    '@type': 'Product',
-    '@id': `${productUrl}#product`,
+    "@context": "https://schema.org",
+    "@type": "Product",
+    "@id": `${productUrl}#product`,
     name: product.name,
     url: productUrl,
-    image: product.images.length > 0 ? product.images.map((image) => absoluteUrl(image)) : undefined,
+    image:
+      product.images.length > 0
+        ? product.images.map((image) => absoluteUrl(image))
+        : undefined,
     description: seoDescription(product.descriptionHtml, product.name),
     sku: product.variants[0]?.sku ?? undefined,
     gtin: product.barcode ?? undefined,
-    brand: product.brandName ? { '@type': 'Brand', name: product.brandName } : { '@type': 'Brand', name: 'Mingo' },
+    brand: product.brandName
+      ? { "@type": "Brand", name: product.brandName }
+      : { "@type": "Brand", name: "Mingo" },
     category: product.categoryName ?? undefined,
-    offers: !product.priceOnRequest && product.price > 0 ? {
-      '@type': 'Offer',
-      url: productUrl,
-      priceCurrency: 'VND',
-      price: product.price,
-      availability: product.available ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
-      itemCondition: 'https://schema.org/NewCondition',
-    } : undefined,
+    offers:
+      !product.priceOnRequest && product.price > 0
+        ? {
+            "@type": "Offer",
+            url: productUrl,
+            priceCurrency: "VND",
+            price: product.price,
+            availability: product.available
+              ? "https://schema.org/InStock"
+              : "https://schema.org/OutOfStock",
+            itemCondition: "https://schema.org/NewCondition",
+          }
+        : undefined,
   };
   const breadcrumbSchema = {
-    '@context': 'https://schema.org',
-    '@type': 'BreadcrumbList',
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
     itemListElement: [
       {
-        '@type': 'ListItem',
+        "@type": "ListItem",
         position: 1,
-        name: safeLocale === 'vi' ? 'Sản phẩm' : 'Products',
-        item: absoluteUrl(localizedPath(safeLocale, '/products')),
+        name: safeLocale === "vi" ? "Sản phẩm" : "Products",
+        item: absoluteUrl(localizedPath(safeLocale, "/products")),
       },
-      ...(product.categoryName && product.categorySlug ? [{
-        '@type': 'ListItem',
-        position: 2,
-        name: product.categoryName,
-        item: absoluteUrl(localizedPath(safeLocale, `/categories/${product.categorySlug}`)),
-      }] : []),
+      ...(product.categoryName && product.categorySlug
+        ? [
+            {
+              "@type": "ListItem",
+              position: 2,
+              name: product.categoryName,
+              item: absoluteUrl(
+                localizedPath(
+                  safeLocale,
+                  `/categories/${product.categorySlug}`,
+                ),
+              ),
+            },
+          ]
+        : []),
       {
-        '@type': 'ListItem',
+        "@type": "ListItem",
         position: product.categoryName ? 3 : 2,
         name: product.name,
         item: productUrl,
@@ -151,7 +217,9 @@ export default async function ProductDetailPage({
       <JsonLd data={productSchema} />
       <JsonLd data={breadcrumbSchema} />
       <nav className="no-scrollbar flex h-[48px] items-center gap-2 overflow-x-auto px-4 text-[12px] font-bold text-primary lg:h-[100px] lg:px-[max(2rem,calc((100vw-1200px)/2))] lg:text-[18px]">
-        <Link href="/products" className="shrink-0">Products</Link>
+        <Link href="/products" className="shrink-0">
+          Products
+        </Link>
         <ChevronRight className="size-4 shrink-0" strokeWidth={1.5} />
         {breadcrumbCollection ? (
           <>
@@ -163,15 +231,10 @@ export default async function ProductDetailPage({
       </nav>
 
       <main className="mx-auto w-full max-w-[1200px] lg:grid lg:grid-cols-[588px_588px] lg:gap-6 lg:pt-[39px]">
-        <div className="relative flex h-[450px] w-full items-center justify-center overflow-hidden bg-[radial-gradient(circle_at_center,#fff1e8_0%,rgba(255,241,232,0)_70%)] lg:aspect-[3/4] lg:h-auto lg:bg-none">
-          {product.image ? (
-            <div className="relative h-[376px] w-[282px] lg:size-full">
-              <Image src={product.image} alt={product.name} fill sizes="(max-width: 1023px) 282px, 588px" className="object-contain" priority />
-            </div>
-          ) : (
-            <div className="flex h-full items-center justify-center rounded-xl bg-muted text-6xl">🍦</div>
-          )}
-        </div>
+        <ProductImageGallery
+          images={product.images}
+          productName={product.name}
+        />
 
         <div className="px-4 pb-4 pt-8 lg:px-0 lg:pb-0 lg:pt-[102px]">
           {breadcrumbCollection ? (
@@ -183,20 +246,38 @@ export default async function ProductDetailPage({
             {product.name}
           </h1>
           <div className="mt-4 flex flex-wrap gap-2 lg:mt-[30px] lg:gap-[25px]">
-            {product.brandName && <Chip className="rounded-l-none text-primary">{product.brandName}</Chip>}
-            {product.collectionName && <Chip className="rounded-l-none text-primary">{product.collectionName}</Chip>}
-            {product.categoryName && <Chip className="rounded-l-none text-primary">{product.categoryName}</Chip>}
-            {product.weightGrams != null ? <Chip className="rounded-l-none text-primary">{product.weightGrams} g</Chip> : null}
+            {product.brandName && (
+              <Chip className="rounded-l-none text-primary">
+                {product.brandName}
+              </Chip>
+            )}
+            {product.collectionName && (
+              <Chip className="rounded-l-none text-primary">
+                {product.collectionName}
+              </Chip>
+            )}
+            {product.categoryName && (
+              <Chip className="rounded-l-none text-primary">
+                {product.categoryName}
+              </Chip>
+            )}
+            {product.weightGrams != null ? (
+              <Chip className="rounded-l-none text-primary">
+                {product.weightGrams} g
+              </Chip>
+            ) : null}
             {product.weightGrams == null && product.weightKg != null ? (
-              <Chip className="rounded-l-none text-primary">{fWeight(product.weightKg)}</Chip>
+              <Chip className="rounded-l-none text-primary">
+                {fWeight(product.weightKg)}
+              </Chip>
             ) : null}
           </div>
 
           {!product.descriptionHtml ? (
             <p className="mt-5 max-w-2xl text-sm leading-7 text-muted-foreground lg:text-base">
-              {safeLocale === 'vi'
-                ? `${product.name} là sản phẩm thuộc dòng ${product.categoryName ?? 'kem Mingo'}, với thông tin quy cách và tình trạng hàng được cập nhật trực tiếp tại Mingo Ice Cream.`
-                : `${product.name} is part of the ${product.categoryName ?? 'Mingo ice cream'} range. Pack sizes and availability are updated directly by Mingo Ice Cream.`}
+              {safeLocale === "vi"
+                ? `${product.name} là sản phẩm thuộc dòng ${product.categoryName ?? "kem Mingo"}, với thông tin quy cách và tình trạng hàng được cập nhật trực tiếp tại Mingo Ice Cream.`
+                : `${product.name} is part of the ${product.categoryName ?? "Mingo ice cream"} range. Pack sizes and availability are updated directly by Mingo Ice Cream.`}
             </p>
           ) : null}
 
@@ -204,53 +285,78 @@ export default async function ProductDetailPage({
             <PurchasePanel product={product} />
           </div>
 
-          <Accordion type="single" collapsible defaultValue="description" className="mt-4 lg:mt-[30px]">
-            <AccordionItem value="description" className="border-b border-[#563e2b]">
+          <Accordion
+            type="single"
+            collapsible
+            defaultValue="description"
+            className="mt-4 lg:mt-[30px]"
+          >
+            <AccordionItem
+              value="description"
+              className="border-b border-[#563e2b]"
+            >
               <AccordionTrigger className="py-4 text-[16px] leading-6 lg:py-[15px] lg:text-[24px]">
-                {t('description')}
+                {t("description")}
               </AccordionTrigger>
               <AccordionContent>
                 {product.descriptionHtml ? (
-                  <div className={richHtmlClass} dangerouslySetInnerHTML={{ __html: product.descriptionHtml }} />
+                  <div
+                    className={richHtmlClass}
+                    dangerouslySetInnerHTML={{
+                      __html: product.descriptionHtml,
+                    }}
+                  />
                 ) : (
-                  t('notProvided')
+                  t("notProvided")
                 )}
               </AccordionContent>
             </AccordionItem>
-            <AccordionItem value="ingredients" className="border-b border-[#563e2b]">
+            <AccordionItem
+              value="ingredients"
+              className="border-b border-[#563e2b]"
+            >
               <AccordionTrigger className="py-4 text-[16px] leading-6 lg:py-[15px] lg:text-[24px]">
-                {t('ingredients')}
+                {t("ingredients")}
               </AccordionTrigger>
               <AccordionContent>
                 {product.allergensHtml ? (
-                  <div className={richHtmlClass} dangerouslySetInnerHTML={{ __html: product.allergensHtml }} />
+                  <div
+                    className={richHtmlClass}
+                    dangerouslySetInnerHTML={{ __html: product.allergensHtml }}
+                  />
                 ) : null}
-                {!product.allergensHtml ? t('notProvided') : null}
+                {!product.allergensHtml ? t("notProvided") : null}
               </AccordionContent>
             </AccordionItem>
             <AccordionItem value="usage" className="border-b border-[#563e2b]">
               <AccordionTrigger className="py-4 text-[16px] leading-6 lg:py-[15px] lg:text-[24px]">
-                {t('usage')}
+                {t("usage")}
               </AccordionTrigger>
               <AccordionContent>
                 {product.usageHtml ? (
-                  <div className={richHtmlClass} dangerouslySetInnerHTML={{ __html: product.usageHtml }} />
+                  <div
+                    className={richHtmlClass}
+                    dangerouslySetInnerHTML={{ __html: product.usageHtml }}
+                  />
                 ) : (
-                  t('notProvided')
+                  t("notProvided")
                 )}
               </AccordionContent>
             </AccordionItem>
             <AccordionItem value="notes" className="border-b border-[#563e2b]">
               <AccordionTrigger className="py-4 text-[16px] leading-6 lg:py-[15px] lg:text-[24px]">
-                {t('notes')}
+                {t("notes")}
               </AccordionTrigger>
               <AccordionContent>
                 {product.notesHtml ? (
-                  <div className={richHtmlClass} dangerouslySetInnerHTML={{ __html: product.notesHtml }} />
+                  <div
+                    className={richHtmlClass}
+                    dangerouslySetInnerHTML={{ __html: product.notesHtml }}
+                  />
                 ) : product.barcode ? (
                   product.barcode
                 ) : (
-                  t('notProvided')
+                  t("notProvided")
                 )}
               </AccordionContent>
             </AccordionItem>
@@ -259,7 +365,7 @@ export default async function ProductDetailPage({
       </main>
 
       <MustTrySection
-        title={t('suggestions')}
+        title={t("suggestions")}
         titleAlign="center"
         products={suggestions}
       />

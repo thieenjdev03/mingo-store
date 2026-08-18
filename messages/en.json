@@ -515,6 +515,11 @@
     "continueShopping": "Continue shopping"
   },
   "product": {
+    "imageGallery": "Product image gallery",
+    "imageNumber": "Image {number}",
+    "selectImage": "View product image {number}",
+    "previousImage": "Previous image",
+    "nextImage": "Next image",
     "addToCart": "Add to cart",
     "outOfStock": "Out of stock",
     "temporarilyOutOfStock": "Temporarily out of stock",

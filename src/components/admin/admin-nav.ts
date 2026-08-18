@@ -54,6 +54,7 @@ export const ADMIN_NAV: AdminNavGroup[] = [
   {
     heading: 'Nội dung',
     items: [
+      { label: 'Thư viện ảnh', href: '/admin/media-library', icon: Images },
       { label: 'Banner trang chủ', href: '/admin/homepage-banners', icon: Images },
       { label: 'Chính sách', href: '/admin/policies', icon: FileText },
     ],

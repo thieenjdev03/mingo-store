@@ -511,6 +511,11 @@
     "continueShopping": "Tiếp tục mua sắm"
   },
   "product": {
+    "imageGallery": "Thư viện ảnh sản phẩm",
+    "imageNumber": "Ảnh {number}",
+    "selectImage": "Xem ảnh sản phẩm số {number}",
+    "previousImage": "Ảnh trước",
+    "nextImage": "Ảnh tiếp theo",
     "addToCart": "Thêm vào giỏ hàng",
     "outOfStock": "Hết hàng",
     "temporarilyOutOfStock": "Tạm hết hàng",

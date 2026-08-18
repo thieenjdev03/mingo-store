@@ -145,6 +145,7 @@ export function toProductDetailView(
   locale: Locale,
   sizeMetaById?: Map<string, SizeMeta>,
 ): ProductDetailView {
+  const images = [...new Set(p.images.filter((image) => image.trim().length > 0))];
   const variants: ProductVariantView[] = (p.variants ?? []).map((v) => {
     // Trục variant = quy cách đóng gói. Nhãn chính = tên quy cách ("Cây 65gr"); nhãn phụ = SL đóng thùng.
     // Thuộc tính đầy đủ fetch qua /sizes vì API sản phẩm chỉ nhúng {id, name}.
@@ -166,7 +167,7 @@ export function toProductDetailView(
 
   return {
     ...toProductCardView(p, locale),
-    images: p.images,
+    images,
     variants,
     // Backend đã sanitize HTML; giữ markup để hiển thị đúng nội dung quản trị nhập.
     descriptionHtml: resolveLocalized(p.description, locale) || null,
