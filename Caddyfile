@@ -1,0 +1,8 @@
+# Caddy tự xin & gia hạn cert Let's Encrypt, chỉ cần DNS A record trỏ về VPS.
+{$SITE_DOMAIN} {
+	reverse_proxy web:3001
+}
+
+{$API_DOMAIN} {
+	reverse_proxy api:3000
+}

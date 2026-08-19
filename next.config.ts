@@ -4,6 +4,7 @@ import createNextIntlPlugin from 'next-intl/plugin';
 const withNextIntl = createNextIntlPlugin();
 
 const nextConfig: NextConfig = {
+  output: 'standalone', // build ra .next/standalone cho Docker
   outputFileTracingRoot: process.cwd(),
   images: {
     formats: ['image/avif', 'image/webp'],
