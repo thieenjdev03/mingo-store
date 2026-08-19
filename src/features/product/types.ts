@@ -122,6 +122,8 @@ export function toProductCardView(p: ProductResponseDto, locale: Locale): Produc
   const hasVariants = Boolean(p.variants?.length);
   const isContactForPrice =
     (p as ProductDetailApiDto).is_contact_for_price === true ||
+    // Cờ "Nổi bật" (is_featured) được dùng làm cờ "LH báo giá" trong admin: bật => ẩn giá.
+    p.is_featured === true ||
     (p.price == null && (!hasVariants || (p.variants ?? []).every((variant) => variant.price == null)));
   const anyVariantInStock = p.variants?.some((variant) => Number(variant.stock) > 0) ?? false;
   return {
@@ -157,6 +159,8 @@ export function toProductDetailView(
   const hasVariants = (p.variants?.length ?? 0) > 0;
   const isContactForPrice =
     (p as ProductDetailApiDto).is_contact_for_price === true ||
+    // Cờ "Nổi bật" (is_featured) được dùng làm cờ "LH báo giá" trong admin: bật => ẩn giá.
+    p.is_featured === true ||
     (p.price == null && (!hasVariants || (p.variants ?? []).every((variant) => variant.price == null)));
   const variants: ProductVariantView[] = (p.variants ?? []).map((v) => {
     // Trục variant = quy cách đóng gói. Nhãn chính = tên quy cách ("Cây 65gr"); nhãn phụ = SL đóng thùng.

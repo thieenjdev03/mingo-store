@@ -205,6 +205,10 @@ export function ProductForm({ open, onOpenChange, productId, onSaved }: ProductF
   const variantStockTotal = variants.reduce((sum, v) => sum + (Number(v.stock) || 0), 0);
   const effectiveStock = hasVariants ? variantStockTotal : stock;
 
+  // Giá sản phẩm chỉ bắt buộc với sản phẩm đơn không báo giá. Khi có biến thể (giá quản lý theo
+  // từng quy cách) HOẶC bật "LH Báo Giá" (isFeatured => storefront ẩn giá) thì giá gốc là tuỳ chọn.
+  const priceRequired = !hasVariants && !isFeatured;
+
   // Quy cách phù hợp với danh mục sản phẩm: quy cách dùng chung (không gắn danh mục)
   // + quy cách gắn đúng danh mục đang chọn. Quy cách của danh mục khác bị loại khỏi dropdown.
   const availableSizes = sizeOptions.filter(
@@ -292,11 +296,15 @@ export function ProductForm({ open, onOpenChange, productId, onSaved }: ProductF
       fail('Không tạo được slug từ tên sản phẩm — nhập slug thủ công.');
       return;
     }
-    if (!price.trim() || Number(price) <= 0) {
+    if (priceRequired && (!price.trim() || Number(price) <= 0)) {
       fail('Giá phải lớn hơn 0.');
       return;
     }
-    if (salePrice && (Number(salePrice) <= 0 || Number(salePrice) >= Number(price))) {
+    if (price.trim() && Number(price) <= 0) {
+      fail('Giá phải lớn hơn 0.');
+      return;
+    }
+    if (salePrice && Number(price) > 0 && (Number(salePrice) <= 0 || Number(salePrice) >= Number(price))) {
       fail('Giá khuyến mãi phải lớn hơn 0 và nhỏ hơn giá gốc.');
       return;
     }
@@ -319,6 +327,15 @@ export function ProductForm({ open, onOpenChange, productId, onSaved }: ProductF
         const sizeName = sizeOptions.find((s) => s.id === v.size_id)?.name ?? v.sku;
         return { name: { vi: sizeName, en: sizeName }, sku: v.sku.trim(), price: Number(v.price) || 0, stock: Number(v.stock) || 0, size_id: v.size_id };
       });
+      // Backend yêu cầu CreateProductDto.price (number). Khi bỏ trống giá gốc (có biến thể / LH báo giá),
+      // dùng giá biến thể nhỏ nhất làm giá đại diện, nếu không có thì 0.
+      const enteredPrice = Number(price) || 0;
+      const minVariantPrice = variantPayload
+        .map((v) => v.price)
+        .filter((p) => p > 0)
+        .reduce((min, p) => (p < min ? p : min), Infinity);
+      const priceToSend =
+        enteredPrice > 0 ? enteredPrice : Number.isFinite(minVariantPrice) ? minVariantPrice : 0;
       const loc = (vi: string, en: string) => ({ vi: vi || en, en: en || vi });
       const payload = {
         name: nm,
@@ -327,7 +344,7 @@ export function ProductForm({ open, onOpenChange, productId, onSaved }: ProductF
         usage_instructions: loc(usageVi.trim(), usageEn.trim()),
         description: descVi || descEn ? loc(descVi.trim(), descEn.trim()) : undefined,
         notes: loc(notesVi.trim(), notesEn.trim()),
-        price: Number(price),
+        price: priceToSend,
         sale_price: salePrice ? Number(salePrice) : undefined,
         images,
         variants: variantPayload.length > 0 ? variantPayload : undefined,
@@ -488,7 +505,14 @@ export function ProductForm({ open, onOpenChange, productId, onSaved }: ProductF
             <MultiImageUpload value={images} onChange={setImages} folder="products" />
           </Field>
           <div className="grid gap-4 sm:grid-cols-3">
-            <Field id="price" label="Giá (VND)" required><Input id="price" type="text" inputMode="numeric" placeholder="Nhập giá" value={price} onChange={(e) => setPrice(onlyDigits(e.target.value))} /></Field>
+            <Field
+              id="price"
+              label="Giá (VND)"
+              required={priceRequired}
+              hint={priceRequired ? undefined : hasVariants ? 'Có biến thể — giá quản lý theo từng quy cách, giá gốc tuỳ chọn.' : 'Đang bật LH Báo Giá — giá gốc tuỳ chọn (storefront ẩn giá).'}
+            >
+              <Input id="price" type="text" inputMode="numeric" placeholder={priceRequired ? 'Nhập giá' : 'Tuỳ chọn'} value={price} onChange={(e) => setPrice(onlyDigits(e.target.value))} />
+            </Field>
             <Field id="sale" label="Giá KM" required={false}><Input id="sale" type="text" inputMode="numeric" placeholder="Nhập giá KM" value={salePrice} onChange={(e) => setSalePrice(onlyDigits(e.target.value))} /></Field>
             <Field
               id="stock"

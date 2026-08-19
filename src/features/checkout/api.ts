@@ -1,8 +1,3 @@
-import type {
-  CheckoutQuoteDto,
-  CheckoutShippingAddressDto,
-  CreateCheckoutOrderDto,
-} from '@/lib/api/generated/ecomAPI.schemas';
 import { customFetch } from '@/lib/api/fetcher';
 import { getOrCreateCartToken } from '@/features/cart/cart-token';
 import type {
@@ -17,6 +12,30 @@ import type {
   ShippingQuoteView,
   VnpayReturnState,
 } from './types';
+
+/**
+ * DTO body cho các endpoint `/checkout/*` và địa chỉ giao hàng. Các endpoint này ra đời
+ * sau lần `api:gen` gần nhất nên KHÔNG có trong generated schemas — hand-type ở đây theo đúng
+ * convention "consumed hand-typed via customFetch" (xem CLAUDE.md). Field snake_case khớp backend.
+ */
+interface CheckoutShippingAddressDto {
+  recipient_name: string;
+  recipient_phone: string;
+  province: string;
+  district: string;
+  ward?: string;
+  street_line_1: string;
+}
+
+interface CreateCheckoutOrderDto {
+  shipping_address_id?: string;
+  shipping_address?: CheckoutShippingAddressDto;
+  province_code?: string;
+  district_code?: string;
+  notes?: string;
+}
+
+type CheckoutQuoteDto = CreateCheckoutOrderDto;
 
 interface CheckoutOrderDtoWithOptions extends CreateCheckoutOrderDto {
   payment_method: CheckoutPaymentMethod;
