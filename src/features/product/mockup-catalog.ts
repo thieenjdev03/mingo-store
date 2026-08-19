@@ -544,7 +544,9 @@ export function toMockupProductDto(mockup: MockupProduct, locale: Locale): Produ
     barcode: null,
     tags: [],
     status: 'active',
-    is_featured: true,
+    is_featured: false,
+    // Mock/fallback: hiển thị giá bình thường, không phải sản phẩm "LH báo giá".
+    is_contact_for_price: false,
     enable_sale_tag: false,
     meta_title: null,
     meta_description: null,
