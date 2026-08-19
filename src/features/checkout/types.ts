@@ -22,8 +22,8 @@ export interface CreateCheckoutOrderDto {
 
 export type ShippingZone = 'INNER_CITY' | 'OUTER_CITY';
 export type FulfillmentType = 'DIRECT' | 'DEALER';
-export type PaymentStatus = 'PENDING' | 'PAID' | 'FAILED';
-export type MingoOrderStatus = 'NEW' | 'DELIVERING' | 'DELIVERED' | 'CANCELLED';
+export type PaymentStatus = 'PENDING' | 'PENDING_MANUAL_APPROVAL' | 'PAID' | 'FAILED';
+export type MingoOrderStatus = 'NEW' | 'PENDING_PAYMENT' | 'DELIVERING' | 'DELIVERED' | 'CANCELLED';
 export type CheckoutPaymentMethod = 'COD' | 'VIETQR';
 
 export interface DealerView {
@@ -132,15 +132,40 @@ export interface CheckoutQuoteView {
   };
 }
 
+/** TẦNG 1 — response hiện tại của `/checkout/create-order`. */
+export interface CreateCheckoutOrderResponseDto {
+  order: {
+    id: string;
+    orderNumber: string;
+    status: MingoOrderStatus | string;
+    paymentMethod: CheckoutPaymentMethod | string;
+    summary: OrderSummaryView;
+  };
+  payment: {
+    method: CheckoutPaymentMethod | string;
+    status: PaymentStatus | string;
+  };
+}
+
+/** TẦNG 2 — dữ liệu đơn tối thiểu để điều hướng UI sau khi tạo đơn. */
 export interface CreateOrderResult {
   orderId: string;
   orderCode: string;
-  paymentStatus: PaymentStatus;
-  orderStatus: MingoOrderStatus;
-  expires_at: string;
-  paymentUrl?: string | null;
+  paymentMethod: CheckoutPaymentMethod | string;
+  paymentStatus: PaymentStatus | string;
+  orderStatus: MingoOrderStatus | string;
   summary: OrderSummaryView;
-  shipping: ShippingQuoteView;
+}
+
+export function toCreateOrderResult(response: CreateCheckoutOrderResponseDto): CreateOrderResult {
+  return {
+    orderId: response.order.id,
+    orderCode: response.order.orderNumber,
+    paymentMethod: response.payment.method,
+    paymentStatus: response.payment.status,
+    orderStatus: response.order.status,
+    summary: response.order.summary,
+  };
 }
 
 export interface OrderView {

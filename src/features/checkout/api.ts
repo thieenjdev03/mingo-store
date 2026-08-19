@@ -1,9 +1,11 @@
 import { customFetch } from '@/lib/api/fetcher';
 import { getOrCreateCartToken } from '@/features/cart/cart-token';
+import { toCreateOrderResult } from './types';
 import type {
   CheckoutPaymentMethod,
   CheckoutQuoteView,
   CheckoutRequestInput,
+  CreateCheckoutOrderResponseDto,
   CreateOrderResult,
   OrderView,
   ShippingAddressInput,
@@ -109,7 +111,7 @@ export function quoteCheckout(
   });
 }
 
-export function createCheckoutOrder(
+export async function createCheckoutOrder(
   input: CheckoutRequestInput,
   locale: string,
 ): Promise<CreateOrderResult> {
@@ -117,13 +119,14 @@ export function createCheckoutOrder(
     ...toCheckoutDto(input),
     payment_method: input.paymentMethod,
   };
-  return customFetch<CreateOrderResult>({
+  const response = await customFetch<CreateCheckoutOrderResponseDto>({
     url: '/checkout/create-order',
     method: 'POST',
     params: { locale },
     headers: cartHeaders(),
     data: dto,
   });
+  return toCreateOrderResult(response);
 }
 
 export function getVnpayReturnState(

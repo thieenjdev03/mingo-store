@@ -79,21 +79,21 @@ export async function SiteFooter() {
             ))}
           </div>
           <p className="mt-4 text-[14px] font-bold uppercase text-black lg:text-[16px]">{t('tagline')}</p>
+            <Image
+            src="/assets/mingo/bo-cong-thuong.png"
+            alt="Đã thông báo Bộ Công Thương"
+            width={300}
+            height={150}
+            className="mt-4 h-auto w-[300px] shrink-0"
+          />
         </div>
       </div>
 
       <div className="border-t border-[#563e2b]">
-        <div className="mx-auto flex max-w-[1200px] flex-col items-start gap-4 px-5 py-[21px] sm:flex-row sm:items-center sm:justify-between sm:px-8 xl:px-0">
+        <div className="mx-auto max-w-[1200px] px-5 py-[21px] sm:px-8 xl:px-0">
           <p className="text-[12px] leading-[22px] text-black lg:text-[14px]">
             Hồng Tân Phát Co.,Ltd.
           </p>
-          <Image
-            src="/assets/mingo/bo-cong-thuong.png"
-            alt="Đã thông báo Bộ Công Thương"
-            width={130}
-            height={66}
-            className="h-auto w-[130px] shrink-0 self-start sm:self-auto"
-          />
         </div>
       </div>
     </footer>

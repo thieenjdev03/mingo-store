@@ -9,7 +9,8 @@ export interface AccountView {
   fullName: string;
   phoneNumber: string;
   country: string;
-  /** Tóm tắt địa chỉ mặc định/đầu tiên, nếu có — backend trả `addresses` nhưng chưa có DTO gõ kiểu riêng. */
+  profile: string;
+  /** Tóm tắt địa chỉ mặc định (hoặc đầu tiên), nếu có. */
   addressSummary: string | null;
   initials: string;
 }
@@ -19,6 +20,7 @@ interface AddressLike {
   ward?: string;
   district?: string;
   province?: string;
+  isDefault?: boolean;
 }
 
 export function toAccountView(user: UserResponseDto): AccountView {
@@ -26,10 +28,11 @@ export function toAccountView(user: UserResponseDto): AccountView {
   const lastName = user.lastName ?? '';
   const fullName = [firstName, lastName].filter(Boolean).join(' ') || user.email;
 
-  // Backend chưa có DTO gõ kiểu riêng cho address item — đọc mềm qua AddressLike.
-  const firstAddress = (user.addresses as AddressLike[] | undefined)?.[0];
-  const addressSummary = firstAddress
-    ? [firstAddress.streetLine1, firstAddress.ward, firstAddress.district, firstAddress.province]
+  // Backend chưa có DTO gõ kiểu riêng cho address item — ưu tiên đúng địa chỉ mặc định.
+  const addresses = (user.addresses as AddressLike[] | undefined) ?? [];
+  const defaultAddress = addresses.find((address) => address.isDefault) ?? addresses[0];
+  const addressSummary = defaultAddress
+    ? [defaultAddress.streetLine1, defaultAddress.ward, defaultAddress.district, defaultAddress.province]
         .filter(Boolean)
         .join(', ')
     : null;
@@ -48,6 +51,7 @@ export function toAccountView(user: UserResponseDto): AccountView {
     fullName,
     phoneNumber: user.phoneNumber ?? '',
     country: user.country ?? '',
+    profile: user.profile ?? '',
     addressSummary,
     initials,
   };

@@ -16,10 +16,14 @@ import {
   getOrder,
   updateOrder,
   changeOrderStatus,
+  formatOrderDateTime,
   formatOrderAddress,
+  getLatestTrackingStatus,
+  getTrackingChangedAt,
   isRedundantOrderNote,
   PAYMENT_STATUS_LABEL,
   paymentStatusTone,
+  sortTrackingHistory,
 } from './api';
 import { ORDER_STATUS_LABEL, orderStatusTone, selectableOrderStatuses, type OrderStatus } from './status';
 
@@ -42,10 +46,11 @@ export function OrderDetailDialog({ open, onOpenChange, orderId, onChanged }: Pr
   const [carrier, setCarrier] = useState('');
   const [internalNotes, setInternalNotes] = useState('');
   const [busy, setBusy] = useState(false);
+  const currentTrackingStatus = order ? getLatestTrackingStatus(order.tracking_history, order.status) : null;
 
   useEffect(() => {
     if (order) {
-      setToStatus('');
+      setToStatus(getLatestTrackingStatus(order.tracking_history, order.status));
       setStatusNote('');
       setTracking(order.trackingNumber ?? '');
       setCarrier(order.carrier ?? '');
@@ -54,7 +59,7 @@ export function OrderDetailDialog({ open, onOpenChange, orderId, onChanged }: Pr
   }, [order]);
 
   const applyStatus = async () => {
-    if (!order || !toStatus) return;
+    if (!order || !toStatus || toStatus === currentTrackingStatus) return;
     setBusy(true);
     try {
       await changeOrderStatus(order.id, { toStatus: toStatus as OrderStatus, note: statusNote || undefined });
@@ -107,7 +112,7 @@ export function OrderDetailDialog({ open, onOpenChange, orderId, onChanged }: Pr
                 {order.paymentMethod ? ` · ${order.paymentMethod}` : ''}
               </Badge>
             ) : null}
-            <span className="text-muted-foreground">{new Date(order.createdAt).toLocaleString('vi-VN')}</span>
+            <span className="text-muted-foreground">Tạo lúc {formatOrderDateTime(order.createdAt)}</span>
           </div>
 
           {order.status === 'PENDING_PAYMENT' && order.stockReserved === false ? (
@@ -153,7 +158,7 @@ export function OrderDetailDialog({ open, onOpenChange, orderId, onChanged }: Pr
               )}
               {order.paidAt ? (
                 <p className="mt-2 text-muted-foreground">
-                  Thanh toán lúc {new Date(order.paidAt).toLocaleString('vi-VN')}
+                  Thanh toán lúc {formatOrderDateTime(order.paidAt)}
                 </p>
               ) : null}
               {order.vnpayTransactionNo || order.vnpayTxnRef ? (
@@ -222,17 +227,21 @@ export function OrderDetailDialog({ open, onOpenChange, orderId, onChanged }: Pr
           {/* Lịch sử trạng thái — cột "kiểm tra đơn" quan trọng nhất, trước đây bỏ trống. */}
           {order.tracking_history && order.tracking_history.length > 0 ? (
             <div className="rounded-lg border border-border p-3">
-              <p className="mb-2 text-sm font-semibold">Lịch sử trạng thái</p>
-              <ol className="flex flex-col gap-2 text-sm">
-                {order.tracking_history.map((entry, index) => {
-                  const at = entry.changedAt || entry.at;
+              <p className="mb-3 text-sm font-semibold">Lịch sử trạng thái</p>
+              <ol className="relative flex flex-col gap-0 text-sm">
+                {sortTrackingHistory(order.tracking_history).map((entry, index) => {
+                  const at = getTrackingChangedAt(entry);
                   return (
-                    <li key={index} className="flex flex-wrap items-center gap-2 border-l-2 border-border pl-3">
-                      <Badge tone={orderStatusTone((entry.to_status ?? '') as OrderStatus)}>
-                        {ORDER_STATUS_LABEL[(entry.to_status ?? '') as OrderStatus] ?? entry.to_status}
-                      </Badge>
-                      {at ? <span className="text-muted-foreground">{new Date(at).toLocaleString('vi-VN')}</span> : null}
-                      {entry.note ? <span className="text-muted-foreground">— {entry.note}</span> : null}
+                    <li key={`${entry.to_status ?? 'status'}-${at ?? index}`} className="relative border-l-2 border-border py-2 pl-4 first:pt-0 last:pb-0">
+                      <span className={`absolute -left-[5px] size-2 rounded-full bg-primary ${index === 0 ? 'top-1' : 'top-3'}`} aria-hidden="true" />
+                      <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                        {entry.from_status ? <span className="text-xs text-muted-foreground">{ORDER_STATUS_LABEL[entry.from_status as OrderStatus] ?? entry.from_status} →</span> : null}
+                        <Badge tone={orderStatusTone((entry.to_status ?? '') as OrderStatus)}>
+                          {ORDER_STATUS_LABEL[(entry.to_status ?? '') as OrderStatus] ?? entry.to_status}
+                        </Badge>
+                        <time dateTime={at ?? undefined} className="text-xs font-medium tabular-nums text-muted-foreground">{formatOrderDateTime(at)}</time>
+                      </div>
+                      {entry.note ? <p className="mt-1 text-sm text-muted-foreground">{entry.note}</p> : null}
                     </li>
                   );
                 })}
@@ -245,13 +254,13 @@ export function OrderDetailDialog({ open, onOpenChange, orderId, onChanged }: Pr
             <p className="mb-2 text-sm font-semibold">Cập nhật trạng thái</p>
             <div className="flex flex-wrap items-end gap-2">
               <NativeSelect fitContent value={toStatus} onChange={(e) => setToStatus(e.target.value)}>
-                <option value="">— Chọn trạng thái —</option>
-                {selectableOrderStatuses(order.status).map((s) => (
+                {currentTrackingStatus ? <option value={currentTrackingStatus}>{ORDER_STATUS_LABEL[currentTrackingStatus]}</option> : <option value="">— Chọn trạng thái —</option>}
+                {selectableOrderStatuses(currentTrackingStatus ?? order.status).map((s) => (
                   <option key={s} value={s}>{ORDER_STATUS_LABEL[s]}</option>
                 ))}
               </NativeSelect>
               <Input placeholder="Ghi chú (tuỳ chọn)" value={statusNote} onChange={(e) => setStatusNote(e.target.value)} className="max-w-[220px]" />
-              <Button onClick={applyStatus} disabled={busy || !toStatus}>Áp dụng</Button>
+              <Button onClick={applyStatus} disabled={busy || !toStatus || toStatus === currentTrackingStatus}>Áp dụng</Button>
             </div>
           </div>
 

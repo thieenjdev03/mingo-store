@@ -1,11 +1,11 @@
 import type { Metadata } from 'next';
-import Image from 'next/image';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import { notFound } from 'next/navigation';
 import { Link } from '@/i18n/navigation';
 import { getCareerBySlug, getCareers } from '@/features/careers/api';
 import { toCareerView } from '@/features/careers/types';
 import { CareerApplicationForm } from '@/features/careers/application-form';
+import { CareersBannerMark } from '@/sections/careers/careers-banner-mark';
 import { JsonLd } from '@/components/seo/json-ld';
 import { absoluteUrl, localizedPath, pageMetadata, seoDescription, toSeoLocale } from '@/lib/seo';
 
@@ -67,19 +67,10 @@ export default async function CareerDetailPage({ params }: { params: Promise<{ l
         } : undefined,
         url: absoluteUrl(localizedPath(locale, `/careers/${job.slug}`)),
       }} />
-      <section className="relative isolate min-h-[340px] overflow-hidden bg-card sm:min-h-[410px]" aria-labelledby="career-title">
-        <div className="pointer-events-none absolute inset-y-0 right-0 -z-0 hidden w-[68%] sm:block" aria-hidden="true">
-          <Image
-            src="/assets/mingo/m-stroke-orange.png"
-            alt=""
-            fill
-            priority
-            sizes="68vw"
-            className="object-contain object-right"
-          />
-        </div>
-        <header className="relative z-10 mx-auto flex min-h-[340px] max-w-[1200px] items-center px-5 sm:min-h-[410px] sm:px-8">
-          <div className="max-w-[600px] sm:max-w-[55%]">
+      <section className="relative isolate min-h-[320px] overflow-hidden bg-card sm:min-h-[410px] lg:min-h-[468px]" aria-labelledby="career-title">
+        <CareersBannerMark />
+        <header className="relative z-10 mx-auto flex min-h-[320px] max-w-[1200px] items-center px-5 sm:min-h-[410px] sm:px-8 lg:min-h-[468px]">
+          <div className="max-w-[600px] sm:max-w-[52%]">
             <h1 id="career-title" className="font-display text-4xl font-bold uppercase leading-[1.05] text-primary sm:text-5xl lg:text-[56px]">
               {job.title}
             </h1>

@@ -14,11 +14,17 @@ import { getApiErrorMessage } from '@/lib/api/error-message';
 import { fCurrencyVND } from '@/lib/format';
 import { MeltingIceCreamLoader } from '@/components/ui/melting-ice-cream-loader';
 import { provinces, type Province } from '@/lib/vn-address';
+import { buildVietQrImageUrl, VIETQR_NOT_CONFIGURED } from '@/config/vietqr';
 import { createCheckoutOrder, getShippingAddresses, upsertShippingAddress } from './api';
 import { getShippingAreas, type ShippingAreaOption } from './shipping-locations';
 import type { CheckoutPaymentMethod, CheckoutRequestInput, SavedShippingAddress, ShippingAddressInput } from './types';
 
-type Step = 'checking-auth' | 'form' | 'submitting' | 'redirecting' | 'completed';
+type Step = 'checking-auth' | 'form' | 'submitting' | 'redirecting' | 'vietqr-payment' | 'completed';
+
+interface VietQrPaymentOrder {
+  orderCode: string;
+  total: number;
+}
 
 /** Phí vận chuyển cố định, công khai ở storefront qua biến môi trường. */
 const DEFAULT_SHIPPING_FEE = Number(process.env.NEXT_PUBLIC_SHIPPING_FEE) || 0;
@@ -41,6 +47,7 @@ export function CheckoutView() {
   const [paymentMethod, setPaymentMethod] = useState<CheckoutPaymentMethod>('VIETQR');
   const [invoiceRequested, setInvoiceRequested] = useState(false);
   const [completedOrderCode, setCompletedOrderCode] = useState<string | null>(null);
+  const [vietQrPaymentOrder, setVietQrPaymentOrder] = useState<VietQrPaymentOrder | null>(null);
   const [province, setProvince] = useState<Province | null>(null);
   const [area, setArea] = useState<ShippingAreaOption | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -119,7 +126,7 @@ export function CheckoutView() {
     return null;
   }
 
-  // Flow 1 click: validate -> lưu địa chỉ -> tạo đơn/redirect.
+  // Flow 1 click: validate -> lưu địa chỉ -> tạo đơn -> hiển thị bước thanh toán tương ứng.
   // Phí ship được cấu hình cố định bằng env nên không gọi /shipping/quote.
   async function handleCheckout(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -168,13 +175,13 @@ export function CheckoutView() {
         notifyCartUpdated();
         return;
       }
-      if (!result.paymentUrl) {
-        setErrorMessage(t('qrUnavailable'));
-        setStep('form');
-        await cart.refresh();
-        return;
-      }
-      window.location.assign(result.paymentUrl);
+      const backendTotal = Number(result.summary.total);
+      setVietQrPaymentOrder({
+        orderCode: result.orderCode,
+        total: Number.isFinite(backendTotal) ? backendTotal : 0,
+      });
+      setStep('vietqr-payment');
+      notifyCartUpdated();
     } catch (error) {
       setErrorMessage(getApiErrorMessage(error, t('genericError')));
       setStep('form');
@@ -196,6 +203,66 @@ export function CheckoutView() {
           <div className="mt-7 flex flex-col justify-center gap-3 sm:flex-row">
             {userId ? <Link href={`/orders/${completedOrderCode}`} className="inline-flex h-11 items-center justify-center border-2 border-primary px-6 text-sm font-bold text-primary">{t('viewOrder')}</Link> : null}
             <Link href="/products" className="inline-flex h-11 items-center justify-center bg-primary px-6 text-sm font-bold text-primary-foreground hover:bg-primary-dark">{t('continueShopping')}</Link>
+          </div>
+        </section>
+      </div>
+    );
+  }
+
+  if (step === 'vietqr-payment' && vietQrPaymentOrder) {
+    const qrImageUrl = !VIETQR_NOT_CONFIGURED
+      ? buildVietQrImageUrl(vietQrPaymentOrder.total, vietQrPaymentOrder.orderCode)
+      : null;
+
+    return (
+      <div className="min-h-screen bg-ivory py-16 sm:py-24">
+        <section className="mx-auto max-w-xl px-5 sm:px-8">
+          <div className="bg-card p-5 shadow-sm sm:p-8">
+            <div className="flex items-start gap-4 border-b border-border pb-5">
+              <span className="flex size-12 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+                <CheckCircle2 className="size-7" strokeWidth={1.75} aria-hidden="true" />
+              </span>
+              <div>
+                <p className="text-sm font-bold text-primary">{t('orderRecorded')}</p>
+                <h1 className="mt-1 font-display text-3xl font-bold text-foreground">{t('qrPaymentTitle')}</h1>
+                <p className="mt-2 text-sm leading-6 text-muted-foreground">{t('qrPaymentDescription', { orderNumber: vietQrPaymentOrder.orderCode })}</p>
+              </div>
+            </div>
+
+            <dl className="mt-6 grid grid-cols-2 gap-px bg-border text-sm">
+              <div className="bg-blush px-4 py-3">
+                <dt className="text-xs font-semibold text-muted-foreground">{t('orderNumberLabel')}</dt>
+                <dd className="mt-1 font-bold text-foreground">{vietQrPaymentOrder.orderCode}</dd>
+              </div>
+              <div className="bg-blush px-4 py-3 text-right">
+                <dt className="text-xs font-semibold text-muted-foreground">{t('amountToPay')}</dt>
+                <dd className="mt-1 text-base font-bold text-primary">{fCurrencyVND(vietQrPaymentOrder.total)}</dd>
+              </div>
+            </dl>
+
+            <div className="mt-6 border border-primary/30 bg-ivory p-5 text-center sm:p-7">
+              {qrImageUrl ? (
+                <img
+                  src={qrImageUrl}
+                  alt={t('qrAlt')}
+                  width={320}
+                  height={320}
+                  className="mx-auto h-auto w-full max-w-[320px] bg-card"
+                />
+              ) : (
+                <div className="mx-auto flex min-h-56 max-w-[320px] items-center justify-center bg-card px-6 text-sm leading-6 text-muted-foreground">
+                  {t('vietqrNotConfigured')}
+                </div>
+              )}
+              <p className="mt-5 text-sm font-semibold leading-6 text-foreground">{t('transferContentNote', { orderNumber: vietQrPaymentOrder.orderCode })}</p>
+            </div>
+
+            <p className="mt-5 border-l-2 border-primary bg-primary/[0.04] px-4 py-3 text-sm leading-6 text-muted-foreground">{t('manualVerificationNote')}</p>
+
+            <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:justify-center">
+              {userId ? <Link href={`/orders/${vietQrPaymentOrder.orderCode}`} className="inline-flex h-11 items-center justify-center border-2 border-primary px-6 text-sm font-bold text-primary">{t('viewOrder')}</Link> : null}
+              <Link href="/products" className="inline-flex h-11 items-center justify-center bg-primary px-6 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary-dark">{t('continueShopping')}</Link>
+            </div>
           </div>
         </section>
       </div>

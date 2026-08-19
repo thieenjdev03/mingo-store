@@ -11,13 +11,12 @@ import { getAccessToken, clearAccessToken } from '@/lib/auth/token';
 import { CustomerAuthForm } from './customer-auth-form';
 import { OrderHistory, type MyOrder } from './order-history';
 import { PointsSection } from '@/features/points/points-section';
+import { usePointsBalance } from '@/features/points/use-points-balance';
+import { FREE_ICE_CREAM_REWARD } from '@/config/free-ice-cream-reward';
 import { toAccountView, type AccountView } from './types';
 import { MeltingIceCreamLoader } from '@/components/ui/melting-ice-cream-loader';
 
-const NON_REWARD_ORDER_STATUSES = new Set(['CANCELLED', 'FAILED', 'REFUNDED']);
-const VND_PER_POINT = 10;
 const REWARD_START_POINTS = 1_000;
-const REWARD_TARGET_POINTS = 1_500;
 
 export function AccountPageView() {
   const t = useTranslations('account');
@@ -39,7 +38,9 @@ export function AccountPageView() {
     lastName: '',
     phoneNumber: '',
     country: '',
+    profile: '',
   });
+  const { balance: pointsBalance, isLoading: pointsLoading } = usePointsBalance(!!token);
 
   useEffect(() => {
     setToken(getAccessToken() ?? '');
@@ -90,6 +91,7 @@ export function AccountPageView() {
       lastName: account.lastName,
       phoneNumber: account.phoneNumber,
       country: account.country,
+      profile: account.profile,
     });
   }, [account]);
 
@@ -109,6 +111,7 @@ export function AccountPageView() {
       lastName: account.lastName,
       phoneNumber: account.phoneNumber,
       country: account.country,
+      profile: account.profile,
     });
     setProfileError(false);
     setProfileSaved(false);
@@ -127,6 +130,7 @@ export function AccountPageView() {
         lastName: profileDraft.lastName.trim(),
         phoneNumber: profileDraft.phoneNumber.trim(),
         country: profileDraft.country.trim(),
+        profile: profileDraft.profile.trim(),
       });
       setAccount(toAccountView(updated));
       setEditingProfile(false);
@@ -160,21 +164,21 @@ export function AccountPageView() {
   const accountDetails = [
     { label: t('email'), value: account.email },
     { label: t('phone'), value: account.phoneNumber || t('notProvided') },
-    { label: t('birthDate'), value: t('notProvided') },
     { label: t('country'), value: account.country || t('notProvided') },
+    { label: t('profileBio'), value: account.profile || t('notProvided') },
     { label: t('address'), value: account.addressSummary ?? t('notProvided') },
   ];
 
-  const rewardOrders = (orders ?? []).filter(
-    (order) => order.paymentStatus === 'PAID' && !NON_REWARD_ORDER_STATUSES.has(order.status),
-  );
-  const eligibleSpend = rewardOrders.reduce((total, order) => {
-    const orderTotal = Number(order.summary.total);
-    return Number.isFinite(orderTotal) ? total + orderTotal : total;
-  }, 0);
-  const availablePoints = Math.floor(eligibleSpend / VND_PER_POINT);
-  const pointsUntilReward = Math.max(REWARD_TARGET_POINTS - availablePoints, 0);
-  const rewardProgress = Math.min((availablePoints / REWARD_TARGET_POINTS) * 100, 100);
+  // Backend là nguồn dữ liệu duy nhất cho điểm: đã bao gồm quy tắc cộng/trừ và hoàn điểm.
+  const availablePoints = pointsBalance?.balance ?? 0;
+  const freeIceCreamRewardEnabled = FREE_ICE_CREAM_REWARD.isEnabled;
+  const rewardTargetPoints = FREE_ICE_CREAM_REWARD.targetPoints;
+  const pointsUntilReward = freeIceCreamRewardEnabled
+    ? Math.max(rewardTargetPoints - availablePoints, 0)
+    : Number.POSITIVE_INFINITY;
+  const rewardProgress = freeIceCreamRewardEnabled
+    ? Math.min((availablePoints / rewardTargetPoints) * 100, 100)
+    : 0;
 
   const navItems: Array<{ key: string; label: string; icon: LucideIcon; href: string | null; current: boolean }> = [
     { key: 'overview', label: t('nav.overview'), icon: LayoutGrid, href: null, current: true },
@@ -262,10 +266,10 @@ export function AccountPageView() {
                     {t('availablePoints')}
                   </h2>
                 </div>
-                {orders === null ? (
+                {pointsLoading && pointsBalance === null ? (
                   <div className="mt-7 h-14 w-44 animate-pulse rounded-xl bg-muted" aria-label={t('rewardsLoading')} />
                 ) : (
-                  <p className="mt-7 font-display text-5xl font-extrabold leading-none text-primary sm:text-6xl">
+                  <p className="mt-7 font-display text-2xl font-extrabold leading-none text-primary sm:text-3xl">
                     {availablePoints.toLocaleString(locale)}
                     <span className="ml-2 text-xl font-semibold sm:text-2xl">{t('pointsUnit')}</span>
                   </p>
@@ -275,36 +279,44 @@ export function AccountPageView() {
               <div>
                 <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between sm:gap-6">
                   <p className="font-display text-2xl font-extrabold text-foreground sm:text-3xl">
-                    {pointsUntilReward > 0 ? t('almostThere') : t('rewardsTitle')}
+                    {!freeIceCreamRewardEnabled
+                      ? t('rewardProgramEndedTitle')
+                      : pointsUntilReward > 0 ? t('almostThere') : t('rewardsTitle')}
                   </p>
                   <p className="text-sm font-bold text-primary sm:text-right sm:text-base">
-                    {pointsUntilReward > 0
+                    {!freeIceCreamRewardEnabled
+                      ? t('rewardProgramEndedDescription')
+                      : pointsUntilReward > 0
                       ? t('pointsToNext', { count: pointsUntilReward.toLocaleString(locale) })
                       : t('rewardUnlocked')}
                   </p>
                 </div>
 
-                <div
-                  className="mt-6 h-4 overflow-hidden rounded-full bg-muted sm:h-5"
-                  role="progressbar"
-                  aria-label={t('rewardsTitle')}
-                  aria-valuemin={0}
-                  aria-valuemax={REWARD_TARGET_POINTS}
-                  aria-valuenow={Math.min(availablePoints, REWARD_TARGET_POINTS)}
-                  aria-valuetext={pointsUntilReward > 0
-                    ? t('pointsToNext', { count: pointsUntilReward.toLocaleString(locale) })
-                    : t('rewardUnlocked')}
-                >
-                  <div
-                    className="h-full rounded-full bg-primary transition-[width] duration-700 ease-out motion-reduce:transition-none"
-                    style={{ width: orders === null ? '0%' : `${rewardProgress}%` }}
-                  />
-                </div>
+                {freeIceCreamRewardEnabled ? (
+                  <>
+                    <div
+                      className="mt-6 h-4 overflow-hidden rounded-full bg-muted sm:h-5"
+                      role="progressbar"
+                      aria-label={t('rewardsTitle')}
+                      aria-valuemin={0}
+                      aria-valuemax={rewardTargetPoints}
+                      aria-valuenow={Math.min(availablePoints, rewardTargetPoints)}
+                      aria-valuetext={pointsUntilReward > 0
+                        ? t('pointsToNext', { count: pointsUntilReward.toLocaleString(locale) })
+                        : t('rewardUnlocked')}
+                    >
+                      <div
+                        className="h-full rounded-full bg-primary transition-[width] duration-700 ease-out motion-reduce:transition-none"
+                        style={{ width: pointsBalance === null ? '0%' : `${rewardProgress}%` }}
+                      />
+                    </div>
 
-                <div className="mt-3 flex items-center justify-between text-xs font-bold text-muted-foreground sm:text-sm">
-                  <span>{REWARD_START_POINTS.toLocaleString(locale)} {t('pointsUnit')}</span>
-                  <span>{REWARD_TARGET_POINTS.toLocaleString(locale)} {t('pointsUnit')}</span>
-                </div>
+                    <div className="mt-3 flex items-center justify-between text-xs font-bold text-muted-foreground sm:text-sm">
+                      <span>{Math.min(REWARD_START_POINTS, rewardTargetPoints).toLocaleString(locale)} {t('pointsUnit')}</span>
+                      <span>{rewardTargetPoints.toLocaleString(locale)} {t('pointsUnit')}</span>
+                    </div>
+                  </>
+                ) : null}
               </div>
             </div>
           </section>
@@ -363,13 +375,25 @@ export function AccountPageView() {
                     </label>
                     <label className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
                       {t('country')}
-                      <input
-                        value={profileDraft.country}
+                      <select
+                        value={profileDraft.country || 'VN'}
                         onChange={(event) => setProfileDraft((current) => ({ ...current, country: event.target.value }))}
                         className="mt-2 h-11 w-full rounded-lg border border-border bg-background px-3 text-sm font-medium normal-case tracking-normal text-foreground outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
-                      />
+                      >
+                        <option value="VN">{t('countryVietnam')}</option>
+                      </select>
                     </label>
                   </div>
+                  <label className="block text-xs font-bold uppercase tracking-wide text-muted-foreground">
+                    {t('profileBio')}
+                    <textarea
+                      rows={3}
+                      value={profileDraft.profile}
+                      onChange={(event) => setProfileDraft((current) => ({ ...current, profile: event.target.value }))}
+                      placeholder={t('profileBioPlaceholder')}
+                      className="mt-2 w-full resize-y rounded-lg border border-border bg-background px-3 py-2 text-sm font-medium normal-case tracking-normal text-foreground outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
+                    />
+                  </label>
                   {profileError ? <p className="text-sm font-semibold text-destructive">{t('updateError')}</p> : null}
                   <div className="flex flex-wrap justify-end gap-3">
                     <button type="button" onClick={() => setEditingProfile(false)} disabled={savingProfile} className="rounded-full border border-border px-5 py-2.5 text-sm font-bold text-foreground transition hover:bg-background disabled:opacity-50">
@@ -393,7 +417,7 @@ export function AccountPageView() {
               {profileSaved && !editingProfile ? <p className="mt-4 text-sm font-semibold text-emerald-700">{t('updateSuccess')}</p> : null}
           </section>
 
-          {/* Điểm loyalty — balance + lịch sử tích/trừ điểm */}
+          {/* Lịch sử tích/trừ điểm; balance đã hiển thị ở overview phía trên. */}
           <PointsSection token={token} />
 
           {/* Lịch sử đơn hàng — dữ liệu thật từ /orders/my-orders */}
