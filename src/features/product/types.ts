@@ -57,6 +57,12 @@ export interface ProductDetailView extends ProductCardView {
   collectionName: string | null;
   collectionSlug: string | null;
   variants: ProductVariantView[];
+  /** Trạng thái dẫn xuất cho PDP; UI không phải đọc/diễn giải raw API. */
+  hasVariants: boolean;
+  /** Không có giá sản phẩm và cũng không có biến thể nào có giá. */
+  isContactForPrice: boolean;
+  /** Hết hàng theo tồn của biến thể, hoặc tồn sản phẩm khi không có biến thể. */
+  isOutOfStock: boolean;
   purchasable: boolean;
 }
 
@@ -114,6 +120,9 @@ export function toProductCardView(p: ProductResponseDto, locale: Locale): Produc
   const firstVariant = p.variants?.[0];
   const price = getEffectivePrice(p, firstVariant);
   const hasVariants = Boolean(p.variants?.length);
+  const isContactForPrice =
+    (p as ProductDetailApiDto).is_contact_for_price === true ||
+    (p.price == null && (!hasVariants || (p.variants ?? []).every((variant) => variant.price == null)));
   const anyVariantInStock = p.variants?.some((variant) => Number(variant.stock) > 0) ?? false;
   return {
     id: p.id,
@@ -136,7 +145,7 @@ export function toProductCardView(p: ProductResponseDto, locale: Locale): Produc
         ? resolveLocalized(firstVariant.name, locale)
         : null,
     specOutOfStock: Boolean(firstVariant && Number(firstVariant.stock) <= 0),
-    priceOnRequest: p.is_featured === true,
+    priceOnRequest: isContactForPrice,
   };
 }
 
@@ -145,6 +154,10 @@ export function toProductDetailView(
   locale: Locale,
   sizeMetaById?: Map<string, SizeMeta>,
 ): ProductDetailView {
+  const hasVariants = (p.variants?.length ?? 0) > 0;
+  const isContactForPrice =
+    (p as ProductDetailApiDto).is_contact_for_price === true ||
+    (p.price == null && (!hasVariants || (p.variants ?? []).every((variant) => variant.price == null)));
   const variants: ProductVariantView[] = (p.variants ?? []).map((v) => {
     // Trục variant = quy cách đóng gói. Nhãn chính = tên quy cách ("Cây 65gr"); nhãn phụ = SL đóng thùng.
     // Thuộc tính đầy đủ fetch qua /sizes vì API sản phẩm chỉ nhúng {id, name}.
@@ -168,6 +181,11 @@ export function toProductDetailView(
     ...toProductCardView(p, locale),
     images: p.images,
     variants,
+    hasVariants,
+    isContactForPrice,
+    isOutOfStock: hasVariants
+      ? variants.every((variant) => !variant.inStock)
+      : Number(p.stock_quantity) === 0,
     // Backend đã sanitize HTML; giữ markup để hiển thị đúng nội dung quản trị nhập.
     descriptionHtml: resolveLocalized(p.description, locale) || null,
     categoryName: p.category?.name ?? null,

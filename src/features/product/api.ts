@@ -10,6 +10,8 @@ export type ProductDetailApiDto = ProductResponseDto & {
   nutrition_information?: string | null;
   usage_instructions?: string | null;
   notes?: string | null;
+  /** Kept optional until the backend OpenAPI export can be refreshed after its migration ships. */
+  is_contact_for_price?: boolean;
 };
 
 /**
@@ -41,7 +43,7 @@ export async function getSizeMetaById(): Promise<Map<string, SizeMeta>> {
   const sizes = await customFetch<SizeApiDto[]>({
     url: '/sizes',
     method: 'GET',
-    next: { revalidate: 300 },
+    cache: 'no-store',
   }).catch(() => [] as SizeApiDto[]);
   return new Map(
     sizes.map((s) => [
@@ -94,12 +96,17 @@ export async function getProductsByCategory(
   locale: string,
   limit = 12,
 ): Promise<ProductResponseDto[]> {
-  const res = await getProducts({
-    category_id: categoryId,
-    status: 'active',
-    locale: locale as ProductsControllerFindAllParams['locale'],
-    page: 1,
-    limit,
+  const res = await customFetch<ProductListDto>({
+    url: '/products',
+    method: 'GET',
+    params: {
+      category_id: categoryId,
+      status: 'active',
+      locale: locale as ProductsControllerFindAllParams['locale'],
+      page: 1,
+      limit,
+    },
+    cache: 'no-store',
   });
   return res.data;
 }
@@ -110,7 +117,7 @@ export async function getProductBySlug(slug: string, locale: string): Promise<Pr
       url: `/products/slug/${encodeURIComponent(slug)}`,
       method: 'GET',
       params: { locale },
-      next: { revalidate: 300 },
+      cache: 'no-store',
     });
   } catch (error) {
     if (error instanceof ApiError && error.status === 404) return null;

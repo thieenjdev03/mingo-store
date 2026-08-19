@@ -1,5 +1,4 @@
 import type { Metadata } from 'next';
-import Image from 'next/image';
 import { notFound } from 'next/navigation';
 import { ChevronRight } from 'lucide-react';
 import { setRequestLocale, getTranslations } from 'next-intl/server';
@@ -8,9 +7,10 @@ import { Chip } from '@/components/ui/chip';
 import { fWeight } from '@/lib/format';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { PurchasePanel } from '@/features/product/purchase-panel';
+import { ProductGallery } from '@/features/product/product-gallery';
 import { MustTrySection } from '@/sections/mingo-home/must-try/must-try-section';
-import { getAllProducts, getProductBySlug, getProductsByCategory, getSizeMetaById } from '@/features/product/api';
-import { getMockupBySlug, MOCKUP_CATALOG, toMockupProductDto } from '@/features/product/mockup-catalog';
+import { getProductBySlug, getProductsByCategory, getSizeMetaById } from '@/features/product/api';
+import { getMockupBySlug, toMockupProductDto } from '@/features/product/mockup-catalog';
 import { isPublicCatalogProduct, toProductCardView, toProductDetailView } from '@/features/product/types';
 import { routing } from '@/i18n/routing';
 import { Link } from '@/i18n/navigation';
@@ -18,18 +18,9 @@ import { JsonLd } from '@/components/seo/json-ld';
 import { absoluteUrl, localizedPath, pageMetadata, seoDescription, toSeoLocale } from '@/lib/seo';
 
 const richHtmlClass =
-  'space-y-2 [&_a]:text-primary [&_a]:underline [&_li]:ml-5 [&_ol]:list-decimal [&_table]:w-full [&_table]:border-collapse [&_td]:border [&_td]:border-border [&_td]:p-2 [&_th]:border [&_th]:border-border [&_th]:p-2 [&_ul]:list-disc';
+  'space-y-2 [&_a]:text-primary [&_a]:underline [&_li]:ml-5 [&_ol]:list-decimal [&_table]:w-full [&_table]:border-collapse [&_table]:border-0 [&_table_*]:border-0 [&_td]:p-2 [&_th]:p-2 [&_ul]:list-disc';
 
-export const revalidate = 300;
-export const dynamic = 'force-static';
-
-export async function generateStaticParams() {
-  const apiProducts = await getAllProducts({ locale: 'vi', status: 'active' }).catch(() => []);
-  return Array.from(new Set([
-    ...apiProducts.map((product) => product.slug),
-    ...MOCKUP_CATALOG.map((product) => product.slug),
-  ])).map((slug) => ({ slug }));
-}
+export const dynamic = 'force-dynamic';
 
 async function resolveProduct(slug: string, locale: 'vi' | 'en') {
   const mockup = getMockupBySlug(slug);
@@ -112,7 +103,7 @@ export default async function ProductDetailPage({
     gtin: product.barcode ?? undefined,
     brand: product.brandName ? { '@type': 'Brand', name: product.brandName } : { '@type': 'Brand', name: 'Mingo' },
     category: product.categoryName ?? undefined,
-    offers: !product.priceOnRequest && product.price > 0 ? {
+    offers: !product.isContactForPrice && product.price > 0 ? {
       '@type': 'Offer',
       url: productUrl,
       priceCurrency: 'VND',
@@ -163,15 +154,7 @@ export default async function ProductDetailPage({
       </nav>
 
       <main className="mx-auto w-full max-w-[1200px] lg:grid lg:grid-cols-[588px_588px] lg:gap-6 lg:pt-[39px]">
-        <div className="relative flex h-[450px] w-full items-center justify-center overflow-hidden bg-[radial-gradient(circle_at_center,#fff1e8_0%,rgba(255,241,232,0)_70%)] lg:aspect-[3/4] lg:h-auto lg:bg-none">
-          {product.image ? (
-            <div className="relative h-[376px] w-[282px] lg:size-full">
-              <Image src={product.image} alt={product.name} fill sizes="(max-width: 1023px) 282px, 588px" className="object-contain" priority />
-            </div>
-          ) : (
-            <div className="flex h-full items-center justify-center rounded-xl bg-muted text-6xl">🍦</div>
-          )}
-        </div>
+        <ProductGallery images={product.images} productName={product.name} />
 
         <div className="px-4 pb-4 pt-8 lg:px-0 lg:pb-0 lg:pt-[102px]">
           {breadcrumbCollection ? (

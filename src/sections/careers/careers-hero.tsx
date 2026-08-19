@@ -2,23 +2,25 @@ import Image from 'next/image';
 import { Search } from 'lucide-react';
 import { getLocale, getTranslations } from 'next-intl/server';
 
+// TODO: thay bằng banner Figma thật khi có asset/URL được cung cấp.
+const CAREERS_BANNER_URL = '/assets/mingo/home/hero-background.jpg';
+
 export async function CareersHero({ query = '' }: { query?: string }) {
   const [t, locale] = await Promise.all([getTranslations('careers'), getLocale()]);
   const action = locale === 'vi' ? '/careers' : `/${locale}/careers`;
 
   return (
-    <section className="relative isolate min-h-[360px] overflow-hidden bg-card sm:min-h-[410px]" aria-labelledby="careers-title">
-      {/* Logo full chiều cao banner, dính mép phải. object-right giữ logo bám cạnh phải
-          khi banner rộng ra; ẩn dưới sm để không đè lên form tìm kiếm. */}
-      <div className="pointer-events-none absolute inset-y-0 right-0 -z-0 hidden w-1/2 sm:block" aria-hidden="true">
+    <section className="relative isolate min-h-[360px] overflow-hidden bg-primary-dark sm:min-h-[410px]" aria-labelledby="careers-title">
+      <div className="absolute inset-0 -z-10" aria-hidden="true">
         <Image
-          src="/assets/mingo/m-stroke-orange.png"
+          src={CAREERS_BANNER_URL}
           alt=""
           fill
           priority
-          sizes="50vw"
-          className="object-contain object-right"
+          sizes="100vw"
+          className="object-cover object-center"
         />
+        <div className="absolute inset-0 bg-gradient-to-r from-card via-card/90 to-card/30" />
       </div>
       <div className="relative z-10 mx-auto flex min-h-[360px] max-w-[1200px] items-center px-5 sm:min-h-[410px] sm:px-8">
         <div className="w-full max-w-[390px]">

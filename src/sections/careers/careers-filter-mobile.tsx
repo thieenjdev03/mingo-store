@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { SlidersHorizontal, X } from 'lucide-react';
-import { useLocale, useTranslations } from 'next-intl';
+import { useTranslations } from 'next-intl';
 
 export interface CareersFilterGroup {
   title: string;
@@ -13,10 +13,11 @@ export interface CareersFilterGroup {
 }
 
 interface CareersFilterMobileProps {
-  query: string;
   groups: CareersFilterGroup[];
   /** Số công việc khớp bộ lọc hiện tại (hiển thị ở "Hiển thị N công việc" + nút Áp dụng). */
   resultCount: number;
+  onToggle: (name: 'group' | 'location' | 'type', value: string, checked: boolean) => void;
+  onClear: () => void;
 }
 
 /**
@@ -24,9 +25,8 @@ interface CareersFilterMobileProps {
  * Trên lg trở lên aside filter cố định đã hiển thị nên component này bị ẩn.
  * Form vẫn là GET thuần (giống aside desktop) — submit là điều hướng cả trang.
  */
-export function CareersFilterMobile({ query, groups, resultCount }: CareersFilterMobileProps) {
+export function CareersFilterMobile({ groups, resultCount, onToggle, onClear }: CareersFilterMobileProps) {
   const t = useTranslations('careers');
-  const locale = useLocale();
   const [open, setOpen] = useState(false);
 
   // Khóa cuộn nền khi drawer mở.
@@ -46,9 +46,6 @@ export function CareersFilterMobile({ query, groups, resultCount }: CareersFilte
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, [open]);
-
-  const action = locale === 'vi' ? '/careers' : `/${locale}/careers`;
-  const clearHref = query ? `${action}?q=${encodeURIComponent(query)}` : action;
 
   return (
     <div className="lg:hidden">
@@ -76,19 +73,13 @@ export function CareersFilterMobile({ query, groups, resultCount }: CareersFilte
             onClick={() => setOpen(false)}
             className="absolute inset-0 bg-black/40 animate-in fade-in"
           />
-          <form
-            method="get"
-            action={action}
-            className="absolute inset-y-0 right-0 flex w-[86%] max-w-sm flex-col bg-background shadow-xl"
-          >
-            <input type="hidden" name="q" value={query} />
-
+          <div className="absolute inset-y-0 right-0 flex w-[86%] max-w-sm flex-col bg-background shadow-xl">
             <header className="flex items-center justify-between border-b border-foreground/10 px-5 py-4">
               <h2 className="font-display text-xl font-bold text-foreground">{t('filters.title')}</h2>
               <div className="flex items-center gap-3">
-                <a href={clearHref} className="text-sm font-semibold text-primary hover:underline">
+                <button type="button" onClick={onClear} className="text-sm font-semibold text-primary hover:underline">
                   {t('filters.clearAll')}
-                </a>
+                </button>
                 <button
                   type="button"
                   aria-label={t('filters.close')}
@@ -112,9 +103,9 @@ export function CareersFilterMobile({ query, groups, resultCount }: CareersFilte
                       >
                         <input
                           type="checkbox"
-                          name={group.name}
                           value={value}
-                          defaultChecked={group.selected.includes(value)}
+                          checked={group.selected.includes(value)}
+                          onChange={(event) => onToggle(group.name as 'group' | 'location' | 'type', value, event.target.checked)}
                           className="size-5 appearance-none rounded-md border border-foreground/70 bg-transparent checked:border-primary checked:bg-primary focus-visible:ring-2 focus-visible:ring-primary/30"
                         />
                         <span>{value}</span>
@@ -125,15 +116,7 @@ export function CareersFilterMobile({ query, groups, resultCount }: CareersFilte
               ))}
             </div>
 
-            <div className="border-t border-foreground/10 p-4">
-              <button
-                type="submit"
-                className="h-12 w-full rounded-lg bg-foreground px-5 text-sm font-bold text-white transition-colors hover:bg-foreground/90"
-              >
-                {t('filters.applyCount', { count: resultCount })}
-              </button>
-            </div>
-          </form>
+          </div>
         </div>
       )}
     </div>

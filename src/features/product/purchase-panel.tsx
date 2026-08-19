@@ -12,25 +12,19 @@ import { discountPercent, type ProductDetailView } from './types';
 export function PurchasePanel({ product }: { product: ProductDetailView }) {
   const t = useTranslations('product');
   const cart = useCart();
-  const hasVariants = product.variants.length > 0;
-  const contactOnly = !product.purchasable;
-  const [selectedSku, setSelectedSku] = useState<string | null>(null);
+  const initialSelectedSku = product.variants.find((variant) => variant.inStock)?.sku ?? product.variants[0]?.sku ?? null;
+  const [selectedSku, setSelectedSku] = useState<string | null>(initialSelectedSku);
   const [quantity, setQuantity] = useState(1);
 
-  const selectedVariant = hasVariants
+  const selectedVariant = product.hasVariants
     ? product.variants.find((v) => v.sku === selectedSku)
     : undefined;
 
   const unitPrice = selectedVariant?.price ?? product.price;
   const maxStock = selectedVariant ? selectedVariant.stock : product.stock;
-  const canBuy = hasVariants
+  const canBuy = product.hasVariants
     ? Boolean(selectedVariant?.inStock)
     : product.purchasable && product.stock > 0;
-  const availableVariantPrices = product.variants
-    .filter((variant) => variant.inStock)
-    .map((variant) => variant.price);
-  const minVariantPrice = availableVariantPrices.length > 0 ? Math.min(...availableVariantPrices) : null;
-  const maxVariantPrice = availableVariantPrices.length > 0 ? Math.max(...availableVariantPrices) : null;
   // Khi bật nhãn giảm giá, compareAtPrice = giá gốc; hiện giá gốc gạch + % giảm.
   const salePercent = discountPercent(product.price, product.compareAtPrice);
 
@@ -42,9 +36,9 @@ export function PurchasePanel({ product }: { product: ProductDetailView }) {
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-        {product.priceOnRequest || contactOnly ? (
+        {product.isContactForPrice ? (
           <span className="text-[26px] font-extrabold leading-none text-primary lg:text-[32px]">
-            {contactOnly ? t('contactForInfo') : t('priceOnRequest')}
+            {t('contactForPrice')}
           </span>
         ) : (
           <>
@@ -52,20 +46,12 @@ export function PurchasePanel({ product }: { product: ProductDetailView }) {
               <span className="text-[26px] font-extrabold leading-none text-primary lg:text-[32px]">
                 {fCurrencyVND(selectedVariant.price)}
               </span>
-            ) : hasVariants ? (
-              minVariantPrice != null && maxVariantPrice != null ? (
-                <span className="text-[26px] font-extrabold leading-none text-primary lg:text-[32px]">
-                  {minVariantPrice === maxVariantPrice
-                    ? fCurrencyVND(minVariantPrice)
-                    : `${fCurrencyVND(minVariantPrice)} - ${fCurrencyVND(maxVariantPrice)}`}
-                </span>
-              ) : null
-            ) : (
+            ) : !product.hasVariants ? (
               <span className="text-[26px] font-extrabold leading-none text-primary lg:text-[32px]">
                 {fCurrencyVND(product.price)}
               </span>
-            )}
-            {!hasVariants && product.compareAtPrice ? (
+            ) : null}
+            {!product.hasVariants && product.compareAtPrice ? (
               <>
                 <span className="text-[16px] text-muted-foreground line-through lg:text-[18px]">
                   {fCurrencyVND(product.compareAtPrice)}
@@ -79,10 +65,18 @@ export function PurchasePanel({ product }: { product: ProductDetailView }) {
             ) : null}
           </>
         )}
+        {product.isOutOfStock && !product.isContactForPrice ? (
+          <>
+            <span className="text-sm font-semibold text-muted-foreground">{t('productTemporarilyOutOfStock')}</span>
+            <span className="rounded-md bg-muted px-2 py-1 text-sm font-semibold text-muted-foreground">
+              {t('contactForPrice')}
+            </span>
+          </>
+        ) : null}
       </div>
-      {contactOnly ? null : hasVariants ? (
-        <div className="border-y border-[#e5beb2]/30" role="radiogroup" aria-label={t('variants')}>
-          {product.variants.map((variant, index) => {
+      {product.hasVariants ? (
+        <div className="flex flex-wrap gap-2" role="radiogroup" aria-label={t('variants')}>
+          {product.variants.map((variant) => {
             const selected = variant.sku === selectedVariant?.sku;
             return (
               <button
@@ -92,38 +86,13 @@ export function PurchasePanel({ product }: { product: ProductDetailView }) {
                 aria-checked={selected}
                 disabled={!variant.inStock || cart.isMutating}
                 onClick={() => selectVariant(variant.sku)}
-                className={`flex w-full items-center justify-between gap-3 py-[17px] text-left text-[#563e2b] transition-opacity disabled:cursor-not-allowed disabled:opacity-40 ${
-                  index > 0 ? 'border-t border-[#e5beb2]/30' : ''
+                className={`rounded-md border px-4 py-2 text-sm font-bold uppercase transition-colors disabled:cursor-not-allowed disabled:opacity-40 disabled:line-through ${
+                  selected
+                    ? 'border-primary bg-primary text-primary-foreground'
+                    : 'border-border bg-card text-foreground hover:border-primary'
                 }`}
               >
-                <span className="flex min-w-0 items-center gap-3">
-                  <span
-                    className={`grid size-5 shrink-0 place-items-center rounded-full border-2 ${
-                      selected ? 'border-[#563e2b]' : 'border-[#b8a99a]'
-                    }`}
-                  >
-                    {selected ? <span className="size-2.5 rounded-full bg-[#563e2b]" /> : null}
-                  </span>
-                  <span className="flex min-w-0 flex-col">
-                    <span className="truncate text-[16px] font-bold uppercase leading-6 lg:text-[18px]">
-                      {variant.label}
-                    </span>
-                    {variant.packLabel ? (
-                      <span className="truncate text-[13px] font-medium leading-5 text-[#563e2b]/60">
-                        {variant.packLabel}
-                      </span>
-                    ) : null}
-                  </span>
-                </span>
-                {!variant.inStock ? (
-                  <span className="shrink-0 text-sm font-semibold text-muted-foreground">
-                    {t('temporarilyOutOfStock')}
-                  </span>
-                ) : !product.priceOnRequest ? (
-                  <span className="shrink-0 text-[16px] font-bold lg:text-[18px]">
-                    {fCurrencyVND(variant.price)}
-                  </span>
-                ) : null}
+                {variant.label}
               </button>
             );
           })}
@@ -141,10 +110,13 @@ export function PurchasePanel({ product }: { product: ProductDetailView }) {
         </div>
       )}
 
-      {product.priceOnRequest || contactOnly ? (
-        // Sản phẩm "giá liên hệ": không bán trực tiếp, dẫn khách sang trang liên hệ.
+      {product.isOutOfStock || !product.purchasable ? (
+        <div className="flex h-12 w-full items-center justify-center rounded-lg bg-muted px-4 text-sm font-bold text-muted-foreground lg:rounded-[5px] lg:text-base">
+          {product.isOutOfStock ? t('productTemporarilyOutOfStock') : t('outOfStock')}
+        </div>
+      ) : product.isContactForPrice ? (
         <Button asChild className="h-12 w-full rounded-lg text-sm lg:rounded-[5px] lg:text-[16px]">
-          <Link href="/contact">{contactOnly ? t('contactForInfo') : t('contactForPrice')}</Link>
+          <Link href="/contact">{t('contactForPrice')}</Link>
         </Button>
       ) : (
         <div className="grid grid-cols-[146px_minmax(0,1fr)] items-center gap-4 lg:grid-cols-[130px_minmax(0,1fr)] lg:gap-[10px]">
