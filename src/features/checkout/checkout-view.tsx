@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import { useEffect, useMemo, useState, type FormEvent, type InputHTMLAttributes } from 'react';
-import { Banknote, CheckCircle2, CircleUserRound, PackageCheck, QrCode, ReceiptText, ShoppingBag, Truck } from 'lucide-react';
+import { Banknote, CheckCircle2, CircleUserRound, QrCode, ReceiptText, ShoppingBag, Truck } from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
 import { Link } from '@/i18n/navigation';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -14,11 +14,14 @@ import { getApiErrorMessage } from '@/lib/api/error-message';
 import { fCurrencyVND } from '@/lib/format';
 import { MeltingIceCreamLoader } from '@/components/ui/melting-ice-cream-loader';
 import { provinces, type Province } from '@/lib/vn-address';
-import { createCheckoutOrder, quoteShipping, upsertShippingAddress } from './api';
+import { createCheckoutOrder, getShippingAddresses, upsertShippingAddress } from './api';
 import { getShippingAreas, type ShippingAreaOption } from './shipping-locations';
-import type { CheckoutPaymentMethod, CheckoutRequestInput, ShippingAddressInput, ShippingQuoteView } from './types';
+import type { CheckoutPaymentMethod, CheckoutRequestInput, SavedShippingAddress, ShippingAddressInput } from './types';
 
-type Step = 'checking-auth' | 'form' | 'quoting' | 'redirecting' | 'completed';
+type Step = 'checking-auth' | 'form' | 'submitting' | 'redirecting' | 'completed';
+
+/** Phí vận chuyển cố định, công khai ở storefront qua biến môi trường. */
+const DEFAULT_SHIPPING_FEE = Number(process.env.NEXT_PUBLIC_SHIPPING_FEE) || 0;
 
 export function CheckoutView() {
   const locale = useLocale();
@@ -29,41 +32,83 @@ export function CheckoutView() {
   const [profileName, setProfileName] = useState('');
   const [profilePhone, setProfilePhone] = useState('');
   const [profileEmail, setProfileEmail] = useState('');
+  const [savedAddresses, setSavedAddresses] = useState<SavedShippingAddress[]>([]);
+  const [selectedSavedAddressId, setSelectedSavedAddressId] = useState('');
+  const [recipientMatchesBuyer, setRecipientMatchesBuyer] = useState(true);
+  const [recipientName, setRecipientName] = useState('');
+  const [recipientPhone, setRecipientPhone] = useState('');
+  const [addressLine, setAddressLine] = useState('');
   const [paymentMethod, setPaymentMethod] = useState<CheckoutPaymentMethod>('VIETQR');
   const [invoiceRequested, setInvoiceRequested] = useState(false);
   const [completedOrderCode, setCompletedOrderCode] = useState<string | null>(null);
   const [province, setProvince] = useState<Province | null>(null);
   const [area, setArea] = useState<ShippingAreaOption | null>(null);
-  const [shippingQuote, setShippingQuote] = useState<ShippingQuoteView | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const areaOptions = useMemo(() => getShippingAreas(province), [province]);
 
   useEffect(() => {
     if (!getAccessToken()) {
+      setRecipientMatchesBuyer(false);
       setStep('form');
       return;
     }
     meControllerGetMe()
-      .then((user) => {
+      .then(async (user) => {
+        const name = [user.firstName, user.lastName].filter(Boolean).join(' ');
         setUserId(user.id);
-        setProfileName([user.firstName, user.lastName].filter(Boolean).join(' '));
+        setProfileName(name);
         setProfilePhone(user.phoneNumber ?? '');
         setProfileEmail(user.email);
+        setRecipientName(name);
+        setRecipientPhone(user.phoneNumber ?? '');
+
+        const addresses = await getShippingAddresses(user.id).catch(() => []);
+        const shippingAddresses = addresses.filter((address) => address.isShipping);
+        setSavedAddresses(shippingAddresses);
+        const defaultAddress = shippingAddresses.find((address) => address.isDefault) ?? shippingAddresses[0];
+        if (defaultAddress) applySavedAddress(defaultAddress);
       })
       .catch(() => clearAccessToken())
       .finally(() => setStep('form'));
   }, []);
 
-  function invalidateQuote() {
-    setShippingQuote(null);
+  function applySavedAddress(address: SavedShippingAddress) {
+    const nextProvince = provinces.find((item) => item.id === address.provinceId || item.name === address.province) ?? null;
+    const nextArea = getShippingAreas(nextProvince).find((item) =>
+      item.id === address.wardId || item.name === address.district || item.name === address.ward,
+    ) ?? null;
+
+    setSelectedSavedAddressId(address.id);
+    setRecipientMatchesBuyer(
+      address.recipientName.trim() === profileName.trim()
+      && (address.recipientPhone ?? '').trim() === profilePhone.trim(),
+    );
+    setRecipientName(address.recipientName);
+    setRecipientPhone(address.recipientPhone ?? '');
+    setAddressLine(address.streetLine1);
+    setProvince(nextProvince);
+    setArea(nextArea);
+    clearCheckoutError();
+  }
+
+  function setRecipientSameAsBuyer(checked: boolean) {
+    setRecipientMatchesBuyer(checked);
+    if (checked) {
+      setRecipientName(profileName);
+      setRecipientPhone(profilePhone);
+    }
+    clearCheckoutError();
+  }
+
+  function clearCheckoutError() {
     setErrorMessage(null);
   }
 
   /** Validate phía client trước khi gọi API. Trả message lỗi (đã i18n) hoặc null nếu hợp lệ. */
   function validateCheckout(form: FormData): string | null {
-    const fullName = String(form.get('fullName') ?? '').trim();
-    const phone = String(form.get('phone') ?? '').trim();
+    const fullName = String(form.get('recipientName') ?? '').trim();
+    const phone = String(form.get('recipientPhone') ?? '').trim();
     const addressLine = String(form.get('addressLine') ?? '').trim();
     const invoiceEmail = String(form.get('invoiceEmail') ?? '').trim();
     if (!fullName) return t('nameRequired');
@@ -74,8 +119,8 @@ export function CheckoutView() {
     return null;
   }
 
-  // Flow 1 click: validate -> quote khu vực (serviceable) -> quote đơn -> tạo đơn/redirect.
-  // Phí ship cố định (env) nên không còn bước bấm riêng để "xem phí giao hàng".
+  // Flow 1 click: validate -> lưu địa chỉ -> tạo đơn/redirect.
+  // Phí ship được cấu hình cố định bằng env nên không gọi /shipping/quote.
   async function handleCheckout(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const form = new FormData(event.currentTarget);
@@ -89,8 +134,8 @@ export function CheckoutView() {
     const customerNote = String(form.get('note') ?? '').trim() || undefined;
     const invoiceEmail = String(form.get('invoiceEmail') ?? '').trim();
     const address: ShippingAddressInput = {
-      recipientName: String(form.get('fullName') ?? '').trim(),
-      recipientPhone: String(form.get('phone') ?? '').trim(),
+      recipientName: String(form.get('recipientName') ?? '').trim(),
+      recipientPhone: String(form.get('recipientPhone') ?? '').trim(),
       label: 'Checkout',
       countryCode: 'VN',
       province: province.name,
@@ -102,17 +147,9 @@ export function CheckoutView() {
       isDefault: true,
     };
 
-    setStep('quoting');
+    setStep('submitting');
     setErrorMessage(null);
     try {
-      const shipping = await quoteShipping({ province_code: province.id, district_code: area.id });
-      setShippingQuote(shipping);
-      if (!shipping.serviceable) {
-        setErrorMessage(shipping.reason ?? t('unsupportedArea'));
-        setStep('form');
-        return;
-      }
-
       const shippingAddressId = userId ? (await upsertShippingAddress(userId, address)).id : undefined;
       const request: CheckoutRequestInput = {
         shippingAddressId,
@@ -179,11 +216,10 @@ export function CheckoutView() {
 
   const subtotal = cart.subtotal;
   const productDiscount = 0; // Không còn /checkout/quote — giảm giá SP do backend áp lúc tạo đơn.
-  // Phí vận chuyển lấy từ env NEXT_PUBLIC_SHIPPING_FEE; chưa cấu hình -> mặc định 0đ.
-  const shippingFee = Number(process.env.NEXT_PUBLIC_SHIPPING_FEE) || 0;
+  const shippingFee = DEFAULT_SHIPPING_FEE;
   const voucherDiscount = 0; // Chưa có tính năng voucher — hiển thị 0đ theo design.
   const total = subtotal - productDiscount - voucherDiscount + shippingFee;
-  const busy = step === 'quoting' || step === 'redirecting';
+  const busy = step === 'submitting' || step === 'redirecting';
 
   return (
     <div className="min-h-screen bg-ivory py-14 sm:py-20 lg:py-24">
@@ -209,25 +245,59 @@ export function CheckoutView() {
               </div>
             </section>
 
-            <form id="checkout-form" onSubmit={handleCheckout} onChange={invalidateQuote} className="space-y-10 sm:space-y-12">
+            <form id="checkout-form" onSubmit={handleCheckout} onChange={clearCheckoutError} className="space-y-10 sm:space-y-12">
+              {userId ? (
+                <section aria-labelledby="buyer-title">
+                  <h2 id="buyer-title" className="text-xl font-bold uppercase tracking-wide text-foreground">{t('buyerTitle')}</h2>
+                  <div className="mt-5 bg-card p-4 sm:p-5">
+                    {errorMessage ? <div className="mb-5 rounded-lg bg-destructive/10 p-4 text-sm font-semibold text-destructive" role="alert">{errorMessage}</div> : null}
+                    <div className="grid gap-x-4 gap-y-4 sm:grid-cols-2">
+                      <CheckoutInput id="buyerName" label={t('fullName')} autoComplete="name" value={profileName} readOnly />
+                      <CheckoutInput id="buyerPhone" type="tel" label={t('phone')} autoComplete="tel" value={profilePhone} readOnly />
+                    </div>
+                  </div>
+                </section>
+              ) : null}
+
               <section aria-labelledby="shipping-title">
-                <h2 id="shipping-title" className="text-xl font-bold text-foreground">{t('shippingTitle')}</h2>
+                <h2 id="shipping-title" className="text-xl font-bold uppercase tracking-wide text-foreground">{t('shippingTitle')}</h2>
                 <div className="mt-5 bg-card p-4 sm:p-5">
+                  {userId && savedAddresses.length > 0 ? (
+                    <div className="mb-5 border-b border-border pb-5">
+                      <label htmlFor="savedAddress" className="block text-xs font-bold text-primary">{t('savedAddress')}</label>
+                      <Select value={selectedSavedAddressId || undefined} onValueChange={(id) => {
+                        const address = savedAddresses.find((item) => item.id === id);
+                        if (address) applySavedAddress(address);
+                      }}>
+                        <SelectTrigger id="savedAddress" className="mt-2 h-11 rounded-none border-0 border-b border-primary bg-blush px-3 shadow-none focus:ring-0"><SelectValue placeholder={t('savedAddressPlaceholder')} /></SelectTrigger>
+                        <SelectContent>
+                          {savedAddresses.map((address) => <SelectItem key={address.id} value={address.id}>{address.isDefault ? `${t('defaultAddress')} — ` : ''}{address.label}: {address.streetLine1}, {address.ward ?? address.district}, {address.province}</SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  ) : null}
+
+                  {userId ? (
+                    <label className="mb-5 flex min-h-12 cursor-pointer items-center gap-3 text-sm font-bold uppercase tracking-wide text-foreground">
+                      <input type="checkbox" checked={recipientMatchesBuyer} onChange={(event) => setRecipientSameAsBuyer(event.target.checked)} className="peer sr-only" />
+                      <span className="relative h-7 w-14 shrink-0 rounded-full border-2 border-primary bg-card transition-colors peer-checked:bg-primary after:absolute after:left-0.5 after:top-0.5 after:size-5 after:rounded-full after:bg-primary after:transition-transform peer-checked:after:translate-x-7 peer-checked:after:bg-card" aria-hidden="true" />
+                      {t('recipientSameAsBuyer')}
+                    </label>
+                  ) : null}
                   <p className="mb-4 text-[11px] font-bold uppercase tracking-wide text-muted-foreground">{t('recipientTitle')}</p>
-                  {errorMessage ? <div className="mb-5 rounded-lg bg-destructive/10 p-4 text-sm font-semibold text-destructive" role="alert">{errorMessage}</div> : null}
                   <div className="grid gap-x-4 gap-y-4 sm:grid-cols-2">
-                    <CheckoutInput id="fullName" name="fullName" label={t('fullName')} autoComplete="name" defaultValue={profileName} required />
-                    <CheckoutInput id="phone" name="phone" type="tel" label={t('phone')} autoComplete="tel" defaultValue={profilePhone} pattern="(?:0|\+84)[0-9]{9,10}" required />
+                    <CheckoutInput id="recipientName" name="recipientName" label={t('fullName')} autoComplete="name" value={recipientName} onChange={(event) => setRecipientName(event.target.value)} readOnly={recipientMatchesBuyer} required />
+                    <CheckoutInput id="recipientPhone" name="recipientPhone" type="tel" label={t('phone')} autoComplete="tel" value={recipientPhone} onChange={(event) => setRecipientPhone(event.target.value)} readOnly={recipientMatchesBuyer} pattern="(?:0|\+84)[0-9]{9,10}" required />
                     <CheckoutSelect id="province" label={t('province')} value={province?.id ?? ''} onChange={(id) => {
                       setProvince(provinces.find((item) => item.id === id) ?? null);
                       setArea(null);
-                      invalidateQuote();
+                      clearCheckoutError();
                     }} placeholder={t('provincePlaceholder')} options={provinces} />
                     <CheckoutSelect id="district" label={t('district')} value={area?.id ?? ''} onChange={(id) => {
                       setArea(areaOptions.find((item) => item.id === id) ?? null);
-                      invalidateQuote();
+                      clearCheckoutError();
                     }} placeholder={t('districtPlaceholder')} options={areaOptions} disabled={!province} />
-                    <CheckoutInput id="addressLine" name="addressLine" label={t('addressLine')} autoComplete="street-address" required className="sm:col-span-2" />
+                    <CheckoutInput id="addressLine" name="addressLine" label={t('addressLine')} autoComplete="street-address" value={addressLine} onChange={(event) => setAddressLine(event.target.value)} required className="sm:col-span-2" />
                     <CheckoutInput id="note" name="note" label={t('note')} className="sm:col-span-2" />
                   </div>
                 </div>
@@ -241,16 +311,10 @@ export function CheckoutView() {
                     <span className="size-4 rounded-full border-4 border-primary bg-card" aria-hidden="true" />
                     {t('standardDelivery')}
                   </div>
-                  {shippingQuote ? (
-                    <div className={`mt-3 flex items-start gap-3 rounded-lg p-4 text-sm ${shippingQuote.serviceable ? 'bg-primary/10' : 'bg-destructive/10 text-destructive'}`} aria-live="polite">
-                      <PackageCheck className="mt-0.5 size-5 shrink-0" aria-hidden="true" />
-                      <div>
-                        <p className="font-bold">{shippingQuote.fulfillment_type === 'DIRECT' ? t('directDelivery') : t('dealerDelivery')}</p>
-                        <p className="mt-1">{shippingQuote.serviceable ? fCurrencyVND(shippingQuote.shipping_fee) : shippingQuote.reason}</p>
-                        {shippingQuote.dealer ? <p className="mt-1">{t('dealerName', { name: shippingQuote.dealer.name })}</p> : null}
-                      </div>
-                    </div>
-                  ) : null}
+                  <div className="mt-3 flex items-center justify-between gap-3 bg-primary/10 px-4 py-3 text-sm text-primary" aria-live="polite">
+                    <span className="font-semibold">{t('shippingFee')}</span>
+                    <span className="font-bold">{fCurrencyVND(DEFAULT_SHIPPING_FEE)}</span>
+                  </div>
                 </div>
               </section>
 
@@ -348,7 +412,7 @@ export function CheckoutView() {
                 disabled={busy || !cart.valid}
                 className="mt-4 flex h-12 w-full items-center justify-center bg-primary px-6 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary-dark focus-visible:outline-offset-2 disabled:cursor-not-allowed disabled:bg-muted disabled:text-muted-foreground"
               >
-                {step === 'quoting'
+                {step === 'submitting'
                   ? t('submitting')
                   : step === 'redirecting'
                     ? t(paymentMethod === 'COD' ? 'placingCodOrder' : 'redirectingToQr')

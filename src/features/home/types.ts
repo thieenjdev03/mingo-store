@@ -1,34 +1,30 @@
-import { isPublicCatalogProduct, type ProductCardView } from '@/features/product/types';
+import type { ProductResponseDto } from '@/lib/api/generated/ecomAPI.schemas';
+import {
+  isPublicCatalogProduct,
+  toProductCardView,
+  type ProductCardView,
+} from '@/features/product/types';
+import type { Locale } from '@/types/localized';
 
 /**
- * TẦNG 1 (khai báo tay) — shape của GET /collections/homepage.
- * Endpoint này được backend thêm sau lần generate openapi gần nhất nên chưa có
- * trong `@/lib/api/generated`; khai báo ở đây và gọi qua customFetch (giống pattern
- * hiện có của feature). Backend đã resolve locale => name/slug/description là string thuần.
+ * TẦNG 1 — collection từ GET /collections. API bọc kết quả trong cursor page
+ * `{ items, nextCursor }`; các sản phẩm preview được lấy riêng theo collection id.
  */
-export interface HomepageProductTileDto {
-  id: string;
-  name: string;
-  slug: string;
-  short_description: string | null;
-  price: number;
-  sale_price: number | null;
-  image: string | null;
-  images: string[];
-  stock_quantity: number;
-  status: string;
-  is_featured: boolean;
-  enable_sale_tag: boolean;
-}
-
-export interface HomepageSectionDto {
+export interface HomepageCollectionDto {
   id: string;
   name: string;
   slug: string;
   description: string | null;
-  homepage_section: string;
-  product_count: number;
-  products: HomepageProductTileDto[];
+  banner_image_url: string | null;
+  seo_title: string | null;
+  seo_description: string | null;
+  is_active: boolean;
+  homepage_section: string | null;
+}
+
+export interface CursorPage<T> {
+  items: T[];
+  nextCursor: string | null;
 }
 
 /** TẦNG 1 — shape của GET /homepage/banners (findAll chưa được backend gõ kiểu, tự khai báo). */
@@ -74,7 +70,7 @@ export interface HomeCollectionView {
   description: string | null;
   /** Mã khối trang chủ (homepage_section) mà collection này đại diện. */
   homepageSection: string;
-  /** Tổng số sản phẩm của collection (không chỉ số tile được preview). */
+  /** Số sản phẩm đang hiển thị trong carousel preview. */
   productCount: number;
   products: ProductCardView[];
 }
@@ -84,46 +80,28 @@ export interface StorefrontHomeView {
   sections: HomeCollectionView[];
 }
 
-/**
- * Tile trang chủ có shape gọn hơn ProductResponseDto (không có variants/compare_at_price),
- * nên map riêng thay vì dùng toProductCardView. Giá hiệu lực = sale_price ?? price.
- */
-function toTileCardView(tile: HomepageProductTileDto): ProductCardView {
-  const effectivePrice = Number(tile.sale_price ?? tile.price);
-  const onSale =
-    tile.enable_sale_tag &&
-    tile.sale_price != null &&
-    Number(tile.price) > Number(tile.sale_price);
-  return {
-    id: tile.id,
-    slug: tile.slug,
-    name: tile.name,
-    image: tile.image ?? tile.images[0] ?? null,
-    price: effectivePrice,
-    compareAtPrice: onSale ? Number(tile.price) : null,
-    stock: Number(tile.stock_quantity),
-    available: tile.status === 'active' && Number(tile.stock_quantity) > 0,
-    spec: null,
-    specOutOfStock: false,
-    priceOnRequest: tile.is_featured === true,
-  };
-}
-
 export function toHomeSectionsView(
-  sections: HomepageSectionDto[],
+  collections: HomepageCollectionDto[],
+  productsByCollectionId: ReadonlyMap<string, ProductResponseDto[]>,
+  locale: Locale,
 ): HomeCollectionView[] {
-  return sections
-    .map((section) => ({
-      id: section.id,
-      slug: section.slug,
-      title: section.name,
-      description: section.description ?? null,
-      homepageSection: section.homepage_section ?? '',
-      productCount: section.product_count,
-      products: section.products.filter(isPublicCatalogProduct).map(toTileCardView),
-    }))
-    // Backend lọc `homepage_section IS NOT NULL`, nhưng admin "gỡ khỏi trang chủ"
-    // lưu chuỗi rỗng => phòng thủ ở đây, và bỏ khối không có sản phẩm để hiển thị.
+  return collections
+    .map((collection) => {
+      const products = productsByCollectionId.get(collection.id) ?? [];
+      return {
+        id: collection.id,
+        slug: collection.slug,
+        title: collection.name,
+        description: collection.description ?? null,
+        homepageSection: collection.homepage_section ?? '',
+        productCount: products.length,
+        products: products
+          .filter(isPublicCatalogProduct)
+          .map((product) => toProductCardView(product, locale)),
+      };
+    })
+    // Admin "gỡ khỏi trang chủ" lưu chuỗi rỗng; bỏ collection không active hoặc
+    // không có sản phẩm công khai để không tạo một khối rỗng trên storefront.
     .filter((section) =>
       section.homepageSection.trim() !== '' &&
       section.products.length > 0 &&

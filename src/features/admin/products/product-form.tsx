@@ -20,7 +20,7 @@ import { listSizes } from '@/features/admin/sizes/api';
 import { packagingLabel } from '@/features/product/types';
 import { fCurrencyVND } from '@/lib/format';
 import { ApiError } from '@/lib/api/fetcher';
-import { getApiErrorMessage } from '@/lib/api/error-message';
+import { getApiErrorMessages } from '@/lib/api/error-message';
 import type { CreateProductDtoStatus } from '@/lib/api/generated/ecomAPI.schemas';
 import { getProductForEdit, createProduct, updateProduct } from './api';
 
@@ -196,7 +196,7 @@ export function ProductForm({ open, onOpenChange, productId, onSaved }: ProductF
   const [lang, setLang] = useState<'vi' | 'en'>('vi');
   // Field bắt buộc (tên) tự mirror sang EN cho tới khi người dùng tự sửa tab EN.
   const [nameEnEdited, setNameEnEdited] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [errors, setErrors] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
 
@@ -235,7 +235,7 @@ export function ProductForm({ open, onOpenChange, productId, onSaved }: ProductF
 
   useEffect(() => {
     if (!open) return;
-    setError(null);
+    setErrors([]);
     setLang('vi');
     setPreviewOpen(false);
     if (productId && editData) {
@@ -274,10 +274,10 @@ export function ProductForm({ open, onOpenChange, productId, onSaved }: ProductF
     }
   }, [open, productId, editData]);
 
-  const fail = (message: string) => {
+  const fail = (messages: string | string[]) => {
     // Thoát chế độ xem trước để dải lỗi ở đầu form luôn hiển thị.
     setPreviewOpen(false);
-    setError(message);
+    setErrors(Array.isArray(messages) ? messages : [messages]);
   };
 
   const onSubmit = async () => {
@@ -320,7 +320,7 @@ export function ProductForm({ open, onOpenChange, productId, onSaved }: ProductF
       fail('Giá và tồn kho của biến thể không được âm.');
       return;
     }
-    setError(null);
+    setErrors([]);
     setSaving(true);
     try {
       const variantPayload = variants.map((v) => {
@@ -374,9 +374,15 @@ export function ProductForm({ open, onOpenChange, productId, onSaved }: ProductF
         err instanceof ApiError && err.status === 409
           ? 'SKU hoặc slug đã tồn tại — kiểm tra lại SKU sản phẩm/biến thể và slug.'
           : null;
-      const message = duplicateSku ?? getApiErrorMessage(err, 'Lưu sản phẩm thất bại. Vui lòng thử lại.');
-      fail(message);
-      toast({ title: message, tone: 'error' });
+      const messages = duplicateSku
+        ? [duplicateSku]
+        : getApiErrorMessages(err, 'Lưu sản phẩm thất bại. Vui lòng thử lại.');
+      fail(messages);
+      toast({
+        title: 'Không thể lưu sản phẩm',
+        description: messages.join(' '),
+        tone: 'error',
+      });
     } finally {
       setSaving(false);
     }
@@ -422,12 +428,15 @@ export function ProductForm({ open, onOpenChange, productId, onSaved }: ProductF
         />
       ) : (
         <div className="flex flex-col gap-4">
-          {error ? (
+          {errors.length > 0 ? (
             <div
               role="alert"
               className="rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm font-medium text-destructive"
             >
-              {error}
+              <p className="font-bold">Kiểm tra lại thông tin sản phẩm:</p>
+              <ul className="mt-1 list-disc space-y-1 pl-5 font-normal">
+                {errors.map((message, index) => <li key={`${message}-${index}`}>{message}</li>)}
+              </ul>
             </div>
           ) : null}
           {/* Nội dung song ngữ dạng tab — ưu tiên Tiếng Việt; mở tab EN khi cần dịch. */}

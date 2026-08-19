@@ -57,6 +57,23 @@ export interface ShippingAddressInput {
   isDefault: true;
 }
 
+/** Địa chỉ giao hàng đã lưu từ API `/users/:userId/addresses`. */
+export interface SavedShippingAddress {
+  id: string;
+  recipientName: string;
+  recipientPhone: string | null;
+  countryCode: string;
+  provinceId: string;
+  province: string;
+  district: string;
+  wardId: string;
+  ward: string | null;
+  streetLine1: string;
+  label: string;
+  isShipping: boolean;
+  isDefault: boolean;
+}
+
 export interface ShippingAddressView extends ShippingAddressInput {
   id: string;
 }

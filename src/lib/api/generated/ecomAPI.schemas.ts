@@ -332,6 +332,71 @@ export interface GenerateUrlDto {
 
 export interface UpdateAddressDto { [key: string]: unknown }
 
+export interface UserAddressResponseDto {
+  id: string;
+  recipientName: string;
+  recipientPhone: string;
+  provinceId: string;
+  provinceName: string;
+  wardId: string;
+  wardName: string;
+  /** @nullable */
+  district?: string | null;
+  addressLine: string;
+  /** @nullable */
+  label?: string | null;
+  isDefault: boolean;
+  /** Địa chỉ đã ghép sẵn để FE hiển thị */
+  formattedAddress: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface UserAddressListResponseDto {
+  items: UserAddressResponseDto[];
+  total: number;
+}
+
+export interface CreateUserAddressDto {
+  /** @maxLength 160 */
+  recipientName: string;
+  recipientPhone: string;
+  provinceId: string;
+  /** @maxLength 160 */
+  provinceName: string;
+  wardId: string;
+  /** @maxLength 160 */
+  wardName: string;
+  /** @maxLength 160 */
+  district?: string;
+  /** @maxLength 255 */
+  addressLine: string;
+  /** @maxLength 60 */
+  label?: string;
+  /** Đặt làm địa chỉ mặc định */
+  isDefault?: boolean;
+}
+
+export interface UpdateUserAddressDto {
+  /** @maxLength 160 */
+  recipientName?: string;
+  recipientPhone?: string;
+  provinceId?: string;
+  /** @maxLength 160 */
+  provinceName?: string;
+  wardId?: string;
+  /** @maxLength 160 */
+  wardName?: string;
+  /** @maxLength 160 */
+  district?: string;
+  /** @maxLength 255 */
+  addressLine?: string;
+  /** @maxLength 60 */
+  label?: string;
+  /** Đặt làm địa chỉ mặc định */
+  isDefault?: boolean;
+}
+
 export interface SendOtpDto {
   email: string;
 }
@@ -395,7 +460,8 @@ export interface CreateProductDto {
   usage_instructions?: LocalizedStringDto;
   /** Sanitized notes / cautions HTML in multiple languages */
   notes?: LocalizedStringDto;
-  price: number;
+  /** @nullable */
+  price?: number | null;
   sale_price?: number;
   cost_price?: number;
   images?: string[];
@@ -413,6 +479,8 @@ export interface CreateProductDto {
   status?: CreateProductDtoStatus;
   is_featured?: boolean;
   enable_sale_tag?: boolean;
+  /** Show a contact-for-quote CTA instead of a numeric product price. */
+  is_contact_for_price?: boolean;
   /** Meta title in multiple languages */
   meta_title?: LocalizedStringDto;
   /** Meta description in multiple languages */
@@ -478,7 +546,8 @@ export interface ProductVariantSizeDto {
 export interface ProductVariantResponseDto {
   name: string;
   sku: string;
-  price: number;
+  /** @nullable */
+  price?: number | null;
   stock: number;
   /** @nullable */
   barcode?: string | null;
@@ -563,6 +632,7 @@ export interface ProductResponseDto {
   status: ProductResponseDtoStatus;
   is_featured: boolean;
   enable_sale_tag: boolean;
+  is_contact_for_price: boolean;
   /** @nullable */
   meta_title?: string | null;
   /** @nullable */
@@ -618,7 +688,8 @@ export interface UpdateProductDto {
   usage_instructions?: LocalizedStringDto;
   /** Sanitized notes / cautions HTML in multiple languages */
   notes?: LocalizedStringDto;
-  price?: number;
+  /** @nullable */
+  price?: number | null;
   sale_price?: number;
   cost_price?: number;
   images?: string[];
@@ -636,6 +707,8 @@ export interface UpdateProductDto {
   status?: UpdateProductDtoStatus;
   is_featured?: boolean;
   enable_sale_tag?: boolean;
+  /** Show a contact-for-quote CTA instead of a numeric product price. */
+  is_contact_for_price?: boolean;
   /** Meta title in multiple languages */
   meta_title?: LocalizedStringDto;
   /** Meta description in multiple languages */
@@ -916,6 +989,38 @@ export interface ChangeOrderStatusDto {
   toStatus: ChangeOrderStatusDtoToStatus;
   /** Optional note for status change */
   note?: string;
+}
+
+export interface PointsBalanceResponseDto {
+  /** Điểm loyalty hiện tại của user */
+  pointsBalance: number;
+}
+
+export type PointTransactionDtoType = typeof PointTransactionDtoType[keyof typeof PointTransactionDtoType];
+
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const PointTransactionDtoType = {
+  EARN: 'EARN',
+  REVERSE: 'REVERSE',
+} as const;
+
+export interface PointTransactionDto {
+  id: string;
+  /** Đơn hàng phát sinh điểm */
+  orderId: string;
+  type: PointTransactionDtoType;
+  /** Số điểm (dương). EARN cộng, REVERSE trừ khỏi balance. */
+  points: number;
+  createdAt: string;
+}
+
+export interface PointsHistoryResponseDto {
+  items: PointTransactionDto[];
+  /** Tổng số giao dịch */
+  total: number;
+  page: number;
+  limit: number;
 }
 
 export interface CreatePaypalOrderDto {
@@ -1624,6 +1729,18 @@ userId?: string;
  * Filter by order status
  */
 status?: string;
+};
+
+export type GetMyPointsHistoryParams = {
+/**
+ * @minimum 1
+ */
+page?: number;
+/**
+ * @minimum 1
+ * @maximum 100
+ */
+limit?: number;
 };
 
 export type PaypalControllerHandleWebhookBodyResource = { [key: string]: unknown };

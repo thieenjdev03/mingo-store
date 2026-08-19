@@ -7,6 +7,7 @@ import type {
   CreateOrderResult,
   OrderView,
   ShippingAddressInput,
+  SavedShippingAddress,
   ShippingAddressView,
   ShippingQuoteDto,
   ShippingQuoteView,
@@ -82,6 +83,15 @@ export function upsertShippingAddress(
     url: `/users/${encodeURIComponent(userId)}/addresses/shipping`,
     method: 'PUT',
     data: address,
+  });
+}
+
+/** Danh sách địa chỉ hiện có của tài khoản, luôn lấy mới khi vào checkout. */
+export function getShippingAddresses(userId: string): Promise<SavedShippingAddress[]> {
+  return customFetch<SavedShippingAddress[]>({
+    url: `/users/${encodeURIComponent(userId)}/addresses`,
+    method: 'GET',
+    cache: 'no-store',
   });
 }
 

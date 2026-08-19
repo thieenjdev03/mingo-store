@@ -141,7 +141,7 @@ export default async function ProductDetailPage({
     <div className="bg-[#f5f5f5] text-[#563e2b]">
       <JsonLd data={productSchema} />
       <JsonLd data={breadcrumbSchema} />
-      <nav className="no-scrollbar flex h-[48px] items-center gap-2 overflow-x-auto px-4 text-[12px] font-bold text-primary lg:h-[100px] lg:px-[max(2rem,calc((100vw-1200px)/2))] lg:text-[18px]">
+      <nav className="bg-white no-scrollbar flex h-[36px] items-center gap-2 overflow-x-auto px-4 text-[12px] font-bold text-primary lg:h-[68px] lg:px-[max(2rem,calc((100vw-1200px)/2))] lg:text-[18px]">
         <Link href="/products" className="shrink-0">Products</Link>
         <ChevronRight className="size-4 shrink-0" strokeWidth={1.5} />
         {breadcrumbCollection ? (
@@ -153,7 +153,7 @@ export default async function ProductDetailPage({
         <span className="shrink-0">{product.name}</span>
       </nav>
 
-      <main className="mx-auto w-full max-w-[1200px] lg:grid lg:grid-cols-[588px_588px] lg:gap-6 lg:pt-[39px]">
+      <main className="mx-auto w-full max-w-[1200px] lg:grid lg:grid-cols-[588px_588px] lg:gap-6 lg:pt-[12px] lg:pb-[39px]">
         <ProductGallery images={product.images} productName={product.name} />
 
         <div className="px-4 pb-4 pt-8 lg:px-0 lg:pb-0 lg:pt-[102px]">

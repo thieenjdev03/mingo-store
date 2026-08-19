@@ -10,6 +10,7 @@ import { updateMyProfile, type UpdateMyProfilePayload } from './api';
 import { getAccessToken, clearAccessToken } from '@/lib/auth/token';
 import { CustomerAuthForm } from './customer-auth-form';
 import { OrderHistory, type MyOrder } from './order-history';
+import { PointsSection } from '@/features/points/points-section';
 import { toAccountView, type AccountView } from './types';
 import { MeltingIceCreamLoader } from '@/components/ui/melting-ice-cream-loader';
 
@@ -391,6 +392,9 @@ export function AccountPageView() {
               )}
               {profileSaved && !editingProfile ? <p className="mt-4 text-sm font-semibold text-emerald-700">{t('updateSuccess')}</p> : null}
           </section>
+
+          {/* Điểm loyalty — balance + lịch sử tích/trừ điểm */}
+          <PointsSection token={token} />
 
           {/* Lịch sử đơn hàng — dữ liệu thật từ /orders/my-orders */}
           <OrderHistory orders={orders} />

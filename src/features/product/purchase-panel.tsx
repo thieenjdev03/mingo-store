@@ -37,7 +37,7 @@ export function PurchasePanel({ product }: { product: ProductDetailView }) {
     <div className="space-y-4">
       <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
         {product.isContactForPrice ? (
-          <span className="text-[26px] font-extrabold leading-none text-primary lg:text-[32px]">
+          <span className="rounded-md bg-primary/10 px-2.5 py-1 text-[18px] font-extrabold leading-none text-primary lg:text-[20px]">
             {t('contactForPrice')}
           </span>
         ) : (
@@ -66,16 +66,13 @@ export function PurchasePanel({ product }: { product: ProductDetailView }) {
           </>
         )}
         {product.isOutOfStock && !product.isContactForPrice ? (
-          <>
-            <span className="text-sm font-semibold text-muted-foreground">{t('productTemporarilyOutOfStock')}</span>
-            <span className="rounded-md bg-muted px-2 py-1 text-sm font-semibold text-muted-foreground">
-              {t('contactForPrice')}
-            </span>
-          </>
+          <span className="rounded-md bg-muted px-2 py-1 text-sm font-semibold text-muted-foreground">
+            {t('contactForPrice')}
+          </span>
         ) : null}
       </div>
       {product.hasVariants ? (
-        <div className="flex flex-wrap gap-2" role="radiogroup" aria-label={t('variants')}>
+        <div className="border-y border-[#e5beb2]/30" role="radiogroup" aria-label={t('variants')}>
           {product.variants.map((variant) => {
             const selected = variant.sku === selectedVariant?.sku;
             return (
@@ -86,19 +83,35 @@ export function PurchasePanel({ product }: { product: ProductDetailView }) {
                 aria-checked={selected}
                 disabled={!variant.inStock || cart.isMutating}
                 onClick={() => selectVariant(variant.sku)}
-                className={`rounded-md border px-4 py-2 text-sm font-bold uppercase transition-colors disabled:cursor-not-allowed disabled:opacity-40 disabled:line-through ${
-                  selected
-                    ? 'border-primary bg-primary text-primary-foreground'
-                    : 'border-border bg-card text-foreground hover:border-primary'
+                className={`grid min-h-16 w-full grid-cols-[24px_minmax(0,1fr)_auto] items-center gap-3 border-b border-[#e5beb2]/30 px-1 text-left transition-colors last:border-b-0 focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-ring disabled:cursor-not-allowed disabled:opacity-40 disabled:line-through sm:px-2 ${
+                  selected ? 'bg-primary/[0.04]' : 'hover:bg-primary/[0.03]'
                 }`}
               >
-                {variant.label}
+                <span
+                  className={`grid size-[22px] place-items-center rounded-full border border-[#6b4a31] ${
+                    selected ? 'border-2 border-[#563e2b]' : ''
+                  }`}
+                  aria-hidden="true"
+                >
+                  {selected ? <span className="size-2.5 rounded-full bg-[#563e2b]" /> : null}
+                </span>
+                <span className="min-w-0 truncate text-[14px] font-bold  leading-6 text-[#563e2b] lg:text-[19px]">
+                  {variant.label}{variant.packLabel ? ` - ${variant.packLabel}` : ''}
+                </span>
+                <span className="shrink-0 text-[14px] font-bold leading-6 text-[#563e2b] lg:text-[19px]">
+                  {fCurrencyVND(variant.price)}
+                </span>
               </button>
             );
           })}
+          {product.isOutOfStock ? (
+            <span className="block border-t border-[#e5beb2]/30 px-1 py-3 text-right text-sm font-semibold text-muted-foreground sm:px-2">
+              {t('productTemporarilyOutOfStock')}
+            </span>
+          ) : null}
         </div>
       ) : (
-        <div className="flex items-center border-y border-[#e5beb2]/30 py-[17px] text-[#563e2b]">
+        <div className="flex items-center justify-between gap-3 border-y border-[#e5beb2]/30 py-[17px] text-[#563e2b]">
           <div className="flex min-w-0 items-center gap-3">
             <span className="grid size-5 shrink-0 place-items-center rounded-full border-2 border-[#5e5c50]">
               <span className="size-2.5 rounded-full bg-[#5e5c50]" />
@@ -107,6 +120,11 @@ export function PurchasePanel({ product }: { product: ProductDetailView }) {
               {product.spec || '—'}
             </span>
           </div>
+          {product.isOutOfStock ? (
+            <span className="shrink-0 text-sm font-semibold text-muted-foreground">
+              {t('productTemporarilyOutOfStock')}
+            </span>
+          ) : null}
         </div>
       )}
 

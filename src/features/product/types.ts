@@ -11,7 +11,7 @@ export interface ProductVariantView {
   sku: string;
   /** Nhãn chính = tên quy cách, vd "Cây 65gr". */
   label: string;
-  /** Nhãn phụ số lượng đóng thùng, vd "Thùng 30 cây". Null khi thiếu packQty. */
+  /** Nhãn phụ số lượng đóng thùng, vd "30 cây / thùng". Null khi thiếu packQty. */
   packLabel: string | null;
   price: number;
   stock: number;
@@ -31,10 +31,7 @@ export interface ProductCardView {
   spec: string | null;
   /** Quy cách đại diện trên card đang tạm hết hàng; khi true phải ẩn giá. */
   specOutOfStock: boolean;
-  /**
-   * Giá theo yêu cầu: khi bật cờ "Nổi bật" (is_featured) ở admin, storefront KHÔNG
-   * công khai giá mà hiển thị "liên hệ để nhận báo giá" thay cho giá bán.
-   */
+  /** Không có giá sản phẩm và cũng không có biến thể nào có giá. */
   priceOnRequest: boolean;
 }
 
@@ -90,13 +87,13 @@ export function packagingLabel(size: {
 }
 
 /**
- * Nhãn phụ số lượng đóng thùng cho PDP, vd "Thùng 30 cây". Khối lượng đã nằm trong
+ * Nhãn phụ số lượng đóng thùng cho PDP, vd "30 cây / thùng". Khối lượng đã nằm trong
  * tên quy cách ("Cây 65gr") nên nhãn phụ chỉ mô tả quy cách đóng thùng. Null khi thiếu packQty.
  */
 export function packagingCartonLabel(size: Pick<SizeMeta, 'packQty' | 'unit'>): string | null {
   if (size.packQty == null || size.packQty <= 0) return null;
   const unit = size.unit?.trim();
-  return `Thùng ${size.packQty}${unit ? ` ${unit}` : ''}`;
+  return `${size.packQty}${unit ? ` ${unit}` : ''} / thùng`;
 }
 
 /** Quy tắc giá hiệu lực THỐNG NHẤT toàn site: variant.price ?? sale_price ?? price */
@@ -116,15 +113,37 @@ export function discountPercent(price: number, compareAtPrice: number | null): n
   return Math.round(((compareAtPrice - price) / compareAtPrice) * 100);
 }
 
-export function toProductCardView(p: ProductResponseDto, locale: Locale): ProductCardView {
+/**
+ * Các trạng thái mua hàng dùng chung cho card và PDP. Giữ việc suy luận ở tầng
+ * view-model để component không phải diễn giải raw API data.
+ */
+interface ProductPurchaseState {
+  hasVariants: boolean;
+  isContactForPrice: boolean;
+  isOutOfStock: boolean;
+}
+
+function derivePurchaseState(product: ProductResponseDto): ProductPurchaseState {
+  const variants = product.variants ?? [];
+  const hasVariants = variants.length > 0;
+  const isContactForPrice =
+    product.price == null &&
+    (!hasVariants || variants.every((variant) => variant.price == null));
+  const isOutOfStock = hasVariants
+    ? variants.every((variant) => Number(variant.stock) === 0)
+    : Number(product.stock_quantity) === 0;
+
+  return { hasVariants, isContactForPrice, isOutOfStock };
+}
+
+export function toProductCardView(
+  p: ProductResponseDto,
+  locale: Locale,
+  purchaseState: ProductPurchaseState = derivePurchaseState(p),
+): ProductCardView {
   const firstVariant = p.variants?.[0];
   const price = getEffectivePrice(p, firstVariant);
-  const hasVariants = Boolean(p.variants?.length);
-  const isContactForPrice =
-    (p as ProductDetailApiDto).is_contact_for_price === true ||
-    // Cờ "Nổi bật" (is_featured) được dùng làm cờ "LH báo giá" trong admin: bật => ẩn giá.
-    p.is_featured === true ||
-    (p.price == null && (!hasVariants || (p.variants ?? []).every((variant) => variant.price == null)));
+  const { hasVariants, isContactForPrice } = purchaseState;
   const anyVariantInStock = p.variants?.some((variant) => Number(variant.stock) > 0) ?? false;
   return {
     id: p.id,
@@ -156,12 +175,8 @@ export function toProductDetailView(
   locale: Locale,
   sizeMetaById?: Map<string, SizeMeta>,
 ): ProductDetailView {
-  const hasVariants = (p.variants?.length ?? 0) > 0;
-  const isContactForPrice =
-    (p as ProductDetailApiDto).is_contact_for_price === true ||
-    // Cờ "Nổi bật" (is_featured) được dùng làm cờ "LH báo giá" trong admin: bật => ẩn giá.
-    p.is_featured === true ||
-    (p.price == null && (!hasVariants || (p.variants ?? []).every((variant) => variant.price == null)));
+  const purchaseState = derivePurchaseState(p);
+  const { hasVariants, isContactForPrice, isOutOfStock } = purchaseState;
   const variants: ProductVariantView[] = (p.variants ?? []).map((v) => {
     // Trục variant = quy cách đóng gói. Nhãn chính = tên quy cách ("Cây 65gr"); nhãn phụ = SL đóng thùng.
     // Thuộc tính đầy đủ fetch qua /sizes vì API sản phẩm chỉ nhúng {id, name}.
@@ -182,14 +197,12 @@ export function toProductDetailView(
   });
 
   return {
-    ...toProductCardView(p, locale),
+    ...toProductCardView(p, locale, purchaseState),
     images: p.images,
     variants,
     hasVariants,
     isContactForPrice,
-    isOutOfStock: hasVariants
-      ? variants.every((variant) => !variant.inStock)
-      : Number(p.stock_quantity) === 0,
+    isOutOfStock,
     // Backend đã sanitize HTML; giữ markup để hiển thị đúng nội dung quản trị nhập.
     descriptionHtml: resolveLocalized(p.description, locale) || null,
     categoryName: p.category?.name ?? null,

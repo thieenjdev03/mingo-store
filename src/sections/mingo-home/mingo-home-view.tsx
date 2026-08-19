@@ -14,7 +14,7 @@ export async function MingoHomeView({ locale }: { locale: Locale }) {
 
   const { heroes, sections } = home;
   const viewAllLabel = tProducts('viewAll');
-
+  console.log('sections', sections);
   return (
     <>
       {/* Banner cứng có sẵn luôn hiển thị; banner do admin tạo (nếu có) nối tiếp phía sau. */}
@@ -29,12 +29,13 @@ export async function MingoHomeView({ locale }: { locale: Locale }) {
         aboutCta={tBrands('joy.aboutCta')}
         headingLevel="h2"
       />
-      {/* Chỉ render collection lấy từ DB (/collections/homepage). Không dùng sản phẩm mock:
-          khi backend chưa có collection nào thì không hiển thị section sản phẩm nào. */}
+      {/* Collection được lấy từ DB (/collections); chỉ collection có homepage_section
+          và có sản phẩm công khai mới tạo thành một khối trên trang chủ. */}
       {sections.map((section) => (
         <MustTrySection
           key={section.id}
           title={section.title}
+          description={section.description}
           products={section.products}
           href={`/collections/${section.slug}`}
           viewAllLabel={viewAllLabel}

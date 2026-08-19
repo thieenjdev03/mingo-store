@@ -7,6 +7,7 @@ interface CollectionShowcaseProps {
   products: ProductCardView[];
   description?: string | null;
   /** Link "xem tất cả" (vd sang trang collection). Bỏ trống -> ẩn nút. */
+  bgColor?: 'ivory' | 'white';
   href?: string;
   viewAllLabel?: string;
   /** Canh tiêu đề (mặc định 'left'). 'center' căn giữa cả section (dùng ở khối gợi ý PDP). */
@@ -31,7 +32,7 @@ export function MustTrySection({ title, products, description, href, viewAllLabe
   const alignClass = TITLE_ALIGN_CLASS[titleAlign];
 
   return (
-    <section className="bg-background py-[56px] sm:py-[72px] lg:py-[100px]">
+    <section className={`relative py-10 sm:py-14 lg:py-[60px] ${titleAlign === 'center' ? 'bg-white' : titleAlign === 'right' ? 'bg-ivory' : ''}` }>
       <div className="mx-auto max-w-[1200px] px-5 sm:px-8 xl:px-0">
         <div className="mb-10 lg:mb-[60px]">
           <div className="flex flex-wrap items-end gap-4">
