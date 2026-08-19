@@ -1,0 +1,57 @@
+# Chạy từ thư mục mingo-store, yêu cầu ecom-website nằm cạnh (../ecom-website).
+# Biến lấy từ mingo-store/.env ; secrets của API lấy từ ecom-website/.env
+services:
+  postgres:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-appdb}
+      POSTGRES_USER: ${POSTGRES_USER:-appuser}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set in .env}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-appuser}"]
+      interval: 5s
+      retries: 10
+
+  api:
+    build: ../ecom-website
+    restart: unless-stopped
+    env_file: ../ecom-website/.env
+    environment:
+      PORT: 3000
+      DATABASE_URL: postgresql://${POSTGRES_USER:-appuser}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-appdb}?sslmode=disable
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  web:
+    build:
+      context: .
+      args:
+        # NEXT_PUBLIC_* inline lúc build -> đổi giá trị là phải build lại
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
+        NEXT_PUBLIC_SITE_URL: ${NEXT_PUBLIC_SITE_URL}
+        NEXT_PUBLIC_SHIPPING_FEE: ${NEXT_PUBLIC_SHIPPING_FEE:-}
+        NEXT_PUBLIC_VIETQR_BANK_ID: ${NEXT_PUBLIC_VIETQR_BANK_ID:-}
+        NEXT_PUBLIC_VIETQR_ACCOUNT_NO: ${NEXT_PUBLIC_VIETQR_ACCOUNT_NO:-}
+        NEXT_PUBLIC_VIETQR_ACCOUNT_NAME: ${NEXT_PUBLIC_VIETQR_ACCOUNT_NAME:-}
+    restart: unless-stopped
+    depends_on: [api]
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports: ["80:80", "443:443"]
+    environment:
+      SITE_DOMAIN: ${SITE_DOMAIN:?set in .env}
+      API_DOMAIN: ${API_DOMAIN:?set in .env}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddydata:/data
+    depends_on: [web, api]
+
+volumes:
+  pgdata:
+  caddydata:
