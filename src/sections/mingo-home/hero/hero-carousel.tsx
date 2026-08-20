@@ -33,28 +33,32 @@ function PrimaryBanner() {
         sizes="100vw"
         className="object-cover"
       />
-      <div className="absolute left-1/2 top-[12%] z-10 w-[205px] -translate-x-1/2 sm:w-[250px] lg:left-[32.15%] lg:top-[15%] lg:w-[270px] lg:translate-x-0">
+      {/* ponytail: từ lg các lớp đè đo bằng vw để co giãn cùng ảnh nền object-cover
+          (nền scale theo chiều rộng ở tỉ lệ desktop thường gặp) — px cứng làm bố cục lệch
+          khi zoom hoặc đổi độ phân giải. Muốn khớp tuyệt đối ở mọi tỉ lệ màn thì phải bọc
+          cả cụm vào một stage aspect-ratio cố định. */}
+      <div className="absolute left-1/2 top-[12%] z-10 w-[205px] -translate-x-1/2 sm:w-[250px] lg:left-[32.15%] lg:top-[15%] lg:w-[18.75vw] lg:translate-x-0">
         <Image src={PRIMARY_BANNER.title} alt="" width={270} height={205} loading="eager" fetchPriority="low" className="h-auto w-full" />
       </div>
-      <div className="absolute -right-8 top-[24%] h-[52%] w-[200px] sm:right-[6%] sm:w-[236px] lg:left-[54.72%] lg:right-auto lg:top-[7%] lg:h-[82%] lg:w-[368px]">
+      <div className="absolute -right-8 top-[24%] h-[52%] w-[200px] sm:right-[6%] sm:w-[236px] lg:left-[54.72%] lg:right-auto lg:top-[7%] lg:h-[82%] lg:w-[25.55vw]">
         <Image
           src={PRIMARY_BANNER.product}
           alt="Kem que Crème Custard Caramel của Mingo"
           fill
           priority
           fetchPriority="high"
-          sizes="(max-width: 640px) 52vw, (max-width: 1024px) 38vw, 368px"
+          sizes="(max-width: 640px) 52vw, (max-width: 1024px) 38vw, 26vw"
           className="object-contain drop-shadow-[0_18px_18px_rgba(82,45,17,0.12)]"
         />
       </div>
-      <div className="absolute bottom-[10%] left-[6%] h-[160px] w-[190px] sm:left-[17%] sm:h-[200px] sm:w-[238px] lg:bottom-[12%] lg:left-[33.33%] lg:h-[312px] lg:w-[370px]">
+      <div className="absolute bottom-[10%] left-[6%] h-[160px] w-[190px] sm:left-[17%] sm:h-[200px] sm:w-[238px] lg:bottom-[12%] lg:left-[33.33%] lg:h-[21.67vw] lg:w-[25.7vw]">
         <Image
           src={PRIMARY_BANNER.pudding}
           alt="Bánh flan caramel"
           fill
           loading="eager"
           fetchPriority="low"
-          sizes="(max-width: 640px) 48vw, 370px"
+          sizes="(max-width: 640px) 48vw, 26vw"
           className="object-contain"
         />
       </div>

@@ -123,14 +123,13 @@ export function SiteHeader() {
         hidden ? "pointer-events-none -translate-y-full opacity-0" : "translate-y-0 opacity-100"
       }`}
     >
-      <div className="relative mx-auto flex h-full max-w-[1440px] items-center px-4 sm:px-8 xl:block xl:px-0">
-        {/* Logo phải nằm gọn trong chiều cao header (căn giữa dọc, không lố xuống dưới)
-            để KHÔNG đè lên ảnh banner homepage lúc tải trang. Trên xl header dùng layout
-            absolute nên logo giữ absolute + căn giữa qua top-1/2/-translate-y-1/2. */}
+      <div className="relative mx-auto flex h-full max-w-[1440px] items-center px-4 sm:px-8 xl:justify-between xl:px-[107px]">
+        {/* Logo nằm trong dòng flex (items-center) nên luôn căn giữa theo chiều cao
+            header, không phụ thuộc mốc % của mockup 1440. */}
         <Link
           href="/"
           aria-label="Mingo — trang chủ"
-          className="relative -ml-2 block size-[60px] shrink-0 xl:absolute xl:left-[7.4306%] xl:top-1/2 xl:ml-0 xl:size-[154px] xl:-translate-y-1/2"
+          className="relative -ml-2 block size-[60px] shrink-0 xl:ml-0 xl:size-[154px]"
         >
           <Image
             src={HEADER_ASSETS.logo}
@@ -144,7 +143,7 @@ export function SiteHeader() {
 
         <nav
           aria-label={t("mainNav")}
-          className="absolute left-[31.8056%] top-[26px] hidden h-8 items-center gap-[60px] xl:flex"
+          className="hidden h-8 shrink items-center gap-[clamp(20px,4.1667vw,60px)] xl:flex"
         >
           {NAV.map((item) => {
             const dropdown = navDropdown(item.key);
@@ -202,7 +201,7 @@ export function SiteHeader() {
           })}
         </nav>
 
-        <div className="ml-auto flex items-center gap-4 xl:absolute xl:left-[76.7361%] xl:top-1/2 xl:ml-0 xl:-translate-y-1/2 xl:gap-[60px]">
+        <div className="ml-auto flex shrink-0 items-center gap-4 xl:ml-0 xl:gap-[clamp(20px,4.1667vw,60px)]">
           <Link
             href="/account"
             aria-label={t("account")}

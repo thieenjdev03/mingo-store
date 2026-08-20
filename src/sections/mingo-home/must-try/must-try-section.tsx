@@ -33,7 +33,8 @@ export function MustTrySection({ title, products, description, href, viewAllLabe
 
   return (
     <section className={`relative py-10 sm:py-14 lg:py-[60px] ${titleAlign === 'center' ? 'bg-white' : titleAlign === 'right' ? 'bg-ivory' : ''}` }>
-      <div className="mx-auto max-w-[1200px] px-5 sm:px-8 xl:px-0">
+      {/* Bỏ padding đúng lúc mũi tên carousel ra được ngoài khung (min-[1360px]) — dưới mốc đó giữ padding để nội dung không chạm mép. */}
+      <div className="mx-auto max-w-[1200px] px-5 sm:px-8 min-[1360px]:px-0">
         <div className="mb-10 lg:mb-[60px]">
           <div className="flex flex-wrap items-end gap-4">
             {/* flex-1 để h2 chiếm hết chỗ trống -> text-align mới thực sự canh được trong section. */}
