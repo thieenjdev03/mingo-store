@@ -8,6 +8,7 @@ import { fWeight } from '@/lib/format';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { PurchasePanel } from '@/features/product/purchase-panel';
 import { ProductGallery } from '@/features/product/product-gallery';
+import { ProductVariantSelectionProvider } from '@/features/product/product-variant-selection';
 import { MustTrySection } from '@/sections/mingo-home/must-try/must-try-section';
 import { getProductBySlug, getProductsByCategory, getSizeMetaById } from '@/features/product/api';
 import { getMockupBySlug, toMockupProductDto } from '@/features/product/mockup-catalog';
@@ -153,8 +154,9 @@ export default async function ProductDetailPage({
         <span className="shrink-0">{product.name}</span>
       </nav>
 
-      <main className="mx-auto w-full max-w-[1200px] lg:grid lg:grid-cols-[588px_588px] lg:gap-6 lg:pt-[12px] lg:pb-[39px]">
-        <ProductGallery images={product.images} productName={product.name} />
+      <ProductVariantSelectionProvider key={product.id} initialSku={product.defaultVariantSku}>
+        <main className="mx-auto w-full max-w-[1200px] lg:grid lg:grid-cols-[588px_588px] lg:gap-6 lg:pt-[12px] lg:pb-[39px]">
+          <ProductGallery images={product.images} productName={product.name} variants={product.variants} />
 
         <div className="px-4 pb-4 pt-8 lg:px-0 lg:pb-0 lg:pt-[102px]">
           {breadcrumbCollection ? (
@@ -239,7 +241,8 @@ export default async function ProductDetailPage({
             </AccordionItem>
           </Accordion>
         </div>
-      </main>
+        </main>
+      </ProductVariantSelectionProvider>
 
       <MustTrySection
         title={t('suggestions')}

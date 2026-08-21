@@ -7,13 +7,13 @@ import { Button } from '@/components/ui/button';
 import { Link } from '@/i18n/navigation';
 import { fCurrencyVND } from '@/lib/format';
 import { useCart } from '@/features/cart/cart-context';
+import { useProductVariantSelection } from './product-variant-selection';
 import { discountPercent, type ProductDetailView } from './types';
 
 export function PurchasePanel({ product }: { product: ProductDetailView }) {
   const t = useTranslations('product');
   const cart = useCart();
-  const initialSelectedSku = product.variants.find((variant) => variant.inStock)?.sku ?? product.variants[0]?.sku ?? null;
-  const [selectedSku, setSelectedSku] = useState<string | null>(initialSelectedSku);
+  const { selectedSku, selectVariant: setSelectedSku } = useProductVariantSelection();
   const [quantity, setQuantity] = useState(1);
 
   const selectedVariant = product.hasVariants
@@ -27,6 +27,7 @@ export function PurchasePanel({ product }: { product: ProductDetailView }) {
     : product.purchasable && product.stock > 0;
   // Khi bật nhãn giảm giá, compareAtPrice = giá gốc; hiện giá gốc gạch + % giảm.
   const salePercent = discountPercent(product.price, product.compareAtPrice);
+  const useVariantChips = product.variants.length > 5;
 
   const selectVariant = (sku: string) => {
     setSelectedSku(sku);
@@ -72,40 +73,71 @@ export function PurchasePanel({ product }: { product: ProductDetailView }) {
         ) : null}
       </div>
       {product.hasVariants ? (
-        <div className="border-y border-[#e5beb2]/30" role="radiogroup" aria-label={t('variants')}>
-          {product.variants.map((variant) => {
-            const selected = variant.sku === selectedVariant?.sku;
-            return (
-              <button
-                key={variant.sku}
-                type="button"
-                role="radio"
-                aria-checked={selected}
-                disabled={!variant.inStock || cart.isMutating}
-                onClick={() => selectVariant(variant.sku)}
-                className={`grid min-h-16 w-full grid-cols-[24px_minmax(0,1fr)_auto] items-center gap-3 border-b border-[#e5beb2]/30 px-1 text-left transition-colors last:border-b-0 focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-ring disabled:cursor-not-allowed disabled:opacity-40 disabled:line-through sm:px-2 ${
-                  selected ? 'bg-primary/[0.04]' : 'hover:bg-primary/[0.03]'
-                }`}
-              >
-                <span
-                  className={`grid size-[22px] place-items-center rounded-full border border-[#6b4a31] ${
-                    selected ? 'border-2 border-[#563e2b]' : ''
+        <div
+          className={`border-y border-[#e5beb2]/30 ${useVariantChips ? 'py-4' : ''}`}
+          role="radiogroup"
+          aria-label={t('variants')}
+        >
+          {useVariantChips ? (
+            <div className="flex flex-wrap gap-2 px-1 sm:px-2">
+              {product.variants.map((variant) => {
+                const selected = variant.sku === selectedVariant?.sku;
+                const chipName = variant.name || variant.label;
+                return (
+                  <button
+                    key={variant.sku}
+                    type="button"
+                    role="radio"
+                    aria-checked={selected}
+                    disabled={!variant.inStock || cart.isMutating}
+                    onClick={() => selectVariant(variant.sku)}
+                    title={`${chipName} · ${fCurrencyVND(variant.price)}`}
+                    className={`min-h-10 max-w-full rounded-full border px-4 py-2 text-sm font-bold leading-5 transition-[color,background-color,border-color,box-shadow] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-40 disabled:line-through ${
+                      selected
+                        ? 'border-primary bg-primary text-primary-foreground shadow-sm'
+                        : 'border-[#caa99d] bg-white text-[#563e2b] hover:border-primary hover:bg-primary/[0.05]'
+                    }`}
+                  >
+                    <span className="block max-w-[220px] truncate">{chipName}</span>
+                  </button>
+                );
+              })}
+            </div>
+          ) : (
+            product.variants.map((variant) => {
+              const selected = variant.sku === selectedVariant?.sku;
+              return (
+                <button
+                  key={variant.sku}
+                  type="button"
+                  role="radio"
+                  aria-checked={selected}
+                  disabled={!variant.inStock || cart.isMutating}
+                  onClick={() => selectVariant(variant.sku)}
+                  className={`grid min-h-16 w-full grid-cols-[24px_minmax(0,1fr)_auto] items-center gap-3 border-b border-[#e5beb2]/30 px-1 text-left transition-colors last:border-b-0 focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-ring disabled:cursor-not-allowed disabled:opacity-40 disabled:line-through sm:px-2 ${
+                    selected ? 'bg-primary/[0.04]' : 'hover:bg-primary/[0.03]'
                   }`}
-                  aria-hidden="true"
                 >
-                  {selected ? <span className="size-2.5 rounded-full bg-[#563e2b]" /> : null}
-                </span>
-                <span className="min-w-0 truncate text-[14px] font-bold  leading-6 text-[#563e2b] lg:text-[19px]">
-                  {variant.label}{variant.packLabel ? ` - ${variant.packLabel}` : ''}
-                </span>
-                <span className="shrink-0 text-[14px] font-bold leading-6 text-[#563e2b] lg:text-[19px]">
-                  {fCurrencyVND(variant.price)}
-                </span>
-              </button>
-            );
-          })}
+                  <span
+                    className={`grid size-[22px] place-items-center rounded-full border border-[#6b4a31] ${
+                      selected ? 'border-2 border-[#563e2b]' : ''
+                    }`}
+                    aria-hidden="true"
+                  >
+                    {selected ? <span className="size-2.5 rounded-full bg-[#563e2b]" /> : null}
+                  </span>
+                  <span className="min-w-0 truncate text-[14px] font-bold leading-6 text-[#563e2b] lg:text-[19px]">
+                    {variant.label}{variant.packLabel ? ` - ${variant.packLabel}` : ''}
+                  </span>
+                  <span className="shrink-0 text-[14px] font-bold leading-6 text-[#563e2b] lg:text-[19px]">
+                    {fCurrencyVND(variant.price)}
+                  </span>
+                </button>
+              );
+            })
+          )}
           {product.isOutOfStock ? (
-            <span className="block border-t border-[#e5beb2]/30 px-1 py-3 text-right text-sm font-semibold text-muted-foreground sm:px-2">
+            <span className={`block px-1 text-right text-sm font-semibold text-muted-foreground sm:px-2 ${useVariantChips ? 'pt-3' : 'border-t border-[#e5beb2]/30 py-3'}`}>
               {t('productTemporarilyOutOfStock')}
             </span>
           ) : null}

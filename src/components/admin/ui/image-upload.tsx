@@ -25,10 +25,12 @@ interface ImageUploadProps {
   /** Thư mục Cloudinary, vd 'homepage/banners'. */
   folder: string;
   className?: string;
+  /** Phiên bản gọn dùng trong bảng/danh sách nhiều dòng. */
+  compact?: boolean;
 }
 
 /** Upload 1 ảnh lên Cloudinary qua /files/upload, trả về URL tuyệt đối. */
-export function ImageUpload({ value, onChange, folder, className }: ImageUploadProps) {
+export function ImageUpload({ value, onChange, folder, className, compact = false }: ImageUploadProps) {
   const { toast } = useToast();
   const inputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
@@ -57,22 +59,22 @@ export function ImageUpload({ value, onChange, folder, className }: ImageUploadP
   };
 
   return (
-    <div className={cn('flex items-center gap-4', className)}>
-      <div className="relative flex size-24 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-border bg-muted">
+    <div className={cn('flex items-center', compact ? 'gap-2' : 'gap-4', className)}>
+      <div className={cn('relative flex shrink-0 items-center justify-center overflow-hidden rounded-lg border border-border bg-muted', compact ? 'size-10' : 'size-24')}>
         {value ? (
           <>
-            <Image src={value} alt="" fill className="object-cover" sizes="96px" />
+            <Image src={value} alt="" fill className="object-cover" sizes={compact ? '40px' : '96px'} />
             <button
               type="button"
               onClick={() => onChange(null)}
-              className="absolute right-1 top-1 rounded-md bg-black/60 p-1 text-white hover:bg-black/80"
+              className={cn('absolute rounded-md bg-black/60 text-white hover:bg-black/80', compact ? 'right-0.5 top-0.5 p-0.5' : 'right-1 top-1 p-1')}
               aria-label="Xoá ảnh"
             >
-              <X className="size-3.5" />
+              <X className={compact ? 'size-3' : 'size-3.5'} />
             </button>
           </>
         ) : (
-          <ImagePlus className="size-7 text-muted-foreground" />
+          <ImagePlus className={cn('text-muted-foreground', compact ? 'size-5' : 'size-7')} />
         )}
         {uploading ? (
           <div className="absolute inset-0 flex items-center justify-center bg-white/70">
@@ -85,11 +87,11 @@ export function ImageUpload({ value, onChange, folder, className }: ImageUploadP
           type="button"
           onClick={() => inputRef.current?.click()}
           disabled={uploading}
-          className="rounded-md border border-border bg-white px-3 py-2 text-sm font-semibold text-foreground transition-colors hover:bg-muted disabled:opacity-60"
+          className={cn('rounded-md border border-border bg-white font-semibold text-foreground transition-colors hover:bg-muted disabled:opacity-60', compact ? 'px-2 py-1.5 text-xs' : 'px-3 py-2 text-sm')}
         >
           {value ? 'Đổi ảnh' : 'Tải ảnh lên'}
         </button>
-        <p className="mt-1 text-xs text-muted-foreground">PNG/JPG/WebP, tối đa 5MB.</p>
+        {!compact ? <p className="mt-1 text-xs text-muted-foreground">PNG/JPG/WebP, tối đa 5MB.</p> : null}
       </div>
       <input
         ref={inputRef}

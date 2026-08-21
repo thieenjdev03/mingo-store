@@ -9,6 +9,8 @@ import type { ProductDetailApiDto, SizeMeta } from './api';
 
 export interface ProductVariantView {
   sku: string;
+  /** Tên biến thể do quản trị viên đặt, dùng cho chế độ chip khi danh sách dài. */
+  name: string;
   /** Nhãn chính = tên quy cách, vd "Cây 65gr". */
   label: string;
   /** Nhãn phụ số lượng đóng thùng, vd "30 cây / thùng". Null khi thiếu packQty. */
@@ -16,6 +18,8 @@ export interface ProductVariantView {
   price: number;
   stock: number;
   inStock: boolean;
+  /** Ảnh đại diện riêng của biến thể; null thì gallery dùng ảnh chính sản phẩm. */
+  image: string | null;
 }
 
 export interface ProductCardView {
@@ -54,6 +58,8 @@ export interface ProductDetailView extends ProductCardView {
   collectionName: string | null;
   collectionSlug: string | null;
   variants: ProductVariantView[];
+  /** SKU được chọn khi mở PDP: biến thể còn hàng đầu tiên, nếu không có thì phần tử đầu. */
+  defaultVariantSku: string | null;
   /** Trạng thái dẫn xuất cho PDP; UI không phải đọc/diễn giải raw API. */
   hasVariants: boolean;
   /** Không có giá sản phẩm và cũng không có biến thể nào có giá. */
@@ -188,18 +194,24 @@ export function toProductDetailView(
         : resolveLocalized(v.name, locale);
     return {
       sku: v.sku,
+      name: resolveLocalized(v.name, locale),
       label,
       packLabel: meta ? packagingCartonLabel(meta) : null,
       price: getEffectivePrice(p, v),
       stock: v.stock,
       inStock: v.stock > 0,
+      image: v.image_url?.trim() || null,
     };
   });
+
+  const defaultVariantSku =
+    variants.find((variant) => variant.inStock)?.sku ?? variants[0]?.sku ?? null;
 
   return {
     ...toProductCardView(p, locale, purchaseState),
     images: p.images,
     variants,
+    defaultVariantSku,
     hasVariants,
     isContactForPrice,
     isOutOfStock,

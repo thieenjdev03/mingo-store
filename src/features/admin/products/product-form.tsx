@@ -11,6 +11,7 @@ import { NativeSelect } from '@/components/admin/ui/native-select';
 import { Switch } from '@/components/admin/ui/switch';
 import { Button } from '@/components/admin/ui/button';
 import { MultiImageUpload } from '@/components/admin/ui/multi-image-upload';
+import { ImageUpload } from '@/components/admin/ui/image-upload';
 import { useToast } from '@/components/admin/ui/toast';
 import { Plus, Trash2 } from 'lucide-react';
 import { slugify } from '@/lib/admin/slugify';
@@ -25,10 +26,12 @@ import type { CreateProductDtoStatus } from '@/lib/api/generated/ecomAPI.schemas
 import { getProductForEdit, createProduct, updateProduct } from './api';
 
 interface VariantRow {
+  name: string;
   size_id: string;
   sku: string;
   price: string;
   stock: number;
+  image_url: string | null;
 }
 
 interface ProductFormProps {
@@ -135,7 +138,7 @@ function ProductPreview({
           {variants.length > 0 ? (
             <div className="mt-4 flex flex-wrap gap-2">
               {variants.map((variant, index) => {
-                const sizeName = (sizeOptions.find((size) => size.id === variant.size_id)?.name ?? variant.sku) || `Biến thể ${index + 1}`;
+                const sizeName = variant.name || (sizeOptions.find((size) => size.id === variant.size_id)?.name ?? variant.sku) || `Biến thể ${index + 1}`;
                 return (
                   <span key={`${variant.sku}-${index}`} className="rounded-full border border-border px-2.5 py-1 text-xs text-muted-foreground">
                     {sizeName} · {fCurrencyVND(Number(variant.price) || price)} · còn {variant.stock}
@@ -258,10 +261,12 @@ export function ProductForm({ open, onOpenChange, productId, onSaved }: ProductF
       setEnableSaleTag(editData.base.enable_sale_tag ?? false);
       setVariants(
         (editData.base.variants ?? []).map((v) => ({
+          name: typeof v.name === 'string' ? v.name : '',
           size_id: v.size_id ?? v.size?.id ?? '',
           sku: v.sku,
           price: v.price != null ? String(v.price) : '',
           stock: Number(v.stock) || 0,
+          image_url: v.image_url ?? null,
         })),
       );
     } else if (!productId) {
@@ -312,8 +317,8 @@ export function ProductForm({ open, onOpenChange, productId, onSaved }: ProductF
       fail('Giá của mỗi biến thể phải lớn hơn 0.');
       return;
     }
-    if (variants.some((v) => !v.size_id || !v.sku.trim())) {
-      fail('Mỗi biến thể cần chọn quy cách và nhập SKU.');
+    if (variants.some((v) => !v.name.trim() || !v.size_id || !v.sku.trim())) {
+      fail('Mỗi biến thể cần nhập tên, chọn quy cách và nhập SKU.');
       return;
     }
     if (variants.some((v) => Number(v.price) < 0 || Number(v.stock) < 0)) {
@@ -325,7 +330,15 @@ export function ProductForm({ open, onOpenChange, productId, onSaved }: ProductF
     try {
       const variantPayload = variants.map((v) => {
         const sizeName = sizeOptions.find((s) => s.id === v.size_id)?.name ?? v.sku;
-        return { name: { vi: sizeName, en: sizeName }, sku: v.sku.trim(), price: Number(v.price) || 0, stock: Number(v.stock) || 0, size_id: v.size_id };
+        const variantName = v.name.trim() || sizeName;
+        return {
+          name: { vi: variantName, en: variantName },
+          sku: v.sku.trim(),
+          price: Number(v.price) || 0,
+          stock: Number(v.stock) || 0,
+          size_id: v.size_id,
+          image_url: v.image_url || undefined,
+        };
       });
       // Backend yêu cầu CreateProductDto.price (number). Khi bỏ trống giá gốc (có biến thể / LH báo giá),
       // dùng giá biến thể nhỏ nhất làm giá đại diện, nếu không có thì 0.
@@ -593,7 +606,7 @@ export function ProductForm({ open, onOpenChange, productId, onSaved }: ProductF
                 variant="outline"
                 size="sm"
                 disabled={availableSizes.length === 0}
-                onClick={() => setVariants((prev) => [...prev, { size_id: '', sku: '', price: price, stock: 0 }])}
+                onClick={() => setVariants((prev) => [...prev, { name: '', size_id: '', sku: '', price: price, stock: 0, image_url: null }])}
               >
                 <Plus className="size-4" /> Thêm biến thể
               </Button>
@@ -604,21 +617,37 @@ export function ProductForm({ open, onOpenChange, productId, onSaved }: ProductF
               </p>
             ) : (
               <div className="overflow-x-auto">
-                <div className="min-w-[520px]">
+                <div className="min-w-[940px]">
                   {/* Tiêu đề cột — căn theo cùng grid template với các dòng biến thể bên dưới. */}
-                  <div className="grid grid-cols-[1fr_1fr_6rem_5rem_2.25rem] items-center gap-2 border-b border-border px-1 pb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  <div className="grid grid-cols-[1fr_1fr_1fr_6rem_5rem_9rem_2.25rem] items-center gap-2 border-b border-border px-1 pb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                    <span>Tên biến thể</span>
                     <span>Quy cách</span>
                     <span>SKU</span>
                     <span>Giá (VND)</span>
                     <span>Tồn</span>
+                    <span>Ảnh</span>
                     <span className="sr-only">Xoá</span>
                   </div>
                   <div className="flex flex-col gap-2 pt-2">
                     {variants.map((v, i) => (
-                      <div key={i} className="grid grid-cols-[1fr_1fr_6rem_5rem_2.25rem] items-center gap-2">
+                      <div key={i} className="grid grid-cols-[1fr_1fr_1fr_6rem_5rem_9rem_2.25rem] items-center gap-2">
+                        <Input
+                          placeholder="Tên biến thể"
+                          aria-label="Tên biến thể"
+                          value={v.name}
+                          onChange={(e) => setVariants((prev) => prev.map((x, idx) => (idx === i ? { ...x, name: e.target.value } : x)))}
+                        />
                         <NativeSelect
                           value={v.size_id}
-                          onChange={(e) => setVariants((prev) => prev.map((x, idx) => (idx === i ? { ...x, size_id: e.target.value } : x)))}
+                          onChange={(e) => {
+                            const sizeId = e.target.value;
+                            const suggestedName = sizeOptions.find((size) => size.id === sizeId)?.name ?? '';
+                            setVariants((prev) => prev.map((x, idx) => (
+                              idx === i
+                                ? { ...x, size_id: sizeId, name: x.name.trim() ? x.name : suggestedName }
+                                : x
+                            )));
+                          }}
                           aria-label="Quy cách"
                         >
                           <option value="">— Quy cách —</option>
@@ -639,6 +668,12 @@ export function ProductForm({ open, onOpenChange, productId, onSaved }: ProductF
                           type="number" min={0} placeholder="Tồn" aria-label="Tồn"
                           value={v.stock}
                           onChange={(e) => setVariants((prev) => prev.map((x, idx) => (idx === i ? { ...x, stock: Number(e.target.value) } : x)))}
+                        />
+                        <ImageUpload
+                          compact
+                          value={v.image_url}
+                          folder="products/variants"
+                          onChange={(imageUrl) => setVariants((prev) => prev.map((x, idx) => (idx === i ? { ...x, image_url: imageUrl } : x)))}
                         />
                         <Button variant="ghost" size="icon" aria-label="Xoá biến thể" onClick={() => setVariants((prev) => prev.filter((_, idx) => idx !== i))}>
                           <Trash2 className="size-4 text-destructive" />
