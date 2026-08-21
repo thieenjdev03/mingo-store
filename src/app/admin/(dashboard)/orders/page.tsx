@@ -19,7 +19,7 @@ import {
   paymentStatusTone,
   type AdminOrder,
 } from '@/features/admin/orders/api';
-import { ORDER_STATUS_LABEL, orderStatusTone } from '@/features/admin/orders/status';
+import { ORDER_STATUS_LABEL, ORDER_STATUS_ORDER, orderStatusTone } from '@/features/admin/orders/status';
 
 const PER_PAGE = 10;
 
@@ -235,8 +235,8 @@ export default function AdminOrdersPage() {
         />
         <NativeSelect fitContent value={status} onChange={(e) => { setStatus(e.target.value); setPage(1); }}>
           <option value="">Tất cả trạng thái đơn</option>
-          {Object.entries(ORDER_STATUS_LABEL).map(([value, label]) => (
-            <option key={value} value={value}>{label}</option>
+          {ORDER_STATUS_ORDER.map((value) => (
+            <option key={value} value={value}>{ORDER_STATUS_LABEL[value]}</option>
           ))}
         </NativeSelect>
         <NativeSelect fitContent value={paymentStatus} onChange={(e) => { setPaymentStatus(e.target.value); setPage(1); }}>
