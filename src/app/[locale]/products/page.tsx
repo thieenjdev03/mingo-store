@@ -85,6 +85,7 @@ export default async function ProductListPage({ params }: { params: Promise<{ lo
         {sections.map((section) => (
           <MustTrySection
             key={section.slug}
+            titleAlign="center"
             title={section.name}
             products={section.products}
             href={section.slug !== 'other' ? `/categories/${section.slug}` : undefined}

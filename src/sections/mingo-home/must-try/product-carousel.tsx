@@ -77,11 +77,11 @@ export function ProductCarousel({ products }: { products: ProductCardView[] }) {
                 </div>
               )}
             </div>
-            <h3 className="mt-4 line-clamp-2 min-h-12 font-sans text-base font-bold leading-6 text-[#563e2b] transition-colors group-hover:text-primary sm:mt-10 sm:min-h-14 sm:text-[24px] sm:leading-7 lg:mt-12 lg:min-h-[4.5rem] lg:text-[32px] lg:leading-9">
+            <h3 className="mt-4 line-clamp-2 min-h-12 font-sans text-base font-bold leading-6 text-[#563e2b] transition-colors group-hover:text-primary sm:mt-10 sm:min-h-14 sm:text-[24px] sm:leading-7 lg:mt-12 lg:min-h-[4.5rem] lg:text-[32px] lg:leading-9 text-center">
               {product.name}
             </h3>
             {product.available ? (
-              <div className="mt-2 flex min-h-6 items-baseline justify-between gap-2 text-xs font-light leading-6 text-[#563e2b] sm:mt-5 sm:gap-3 sm:text-[14px]">
+              <div className="mt-2 flex min-h-6 items-baseline text-center justify-between gap-2 text-xs font-light leading-6 text-[#563e2b] sm:mt-5 sm:gap-3 sm:text-[14px]">
                 {!product.specOutOfStock ? <span className="truncate">{product.spec ?? ''}</span> : <span />}
                 {product.specOutOfStock ? (
                 <span className="shrink-0 font-semibold text-muted-foreground">{t('temporarilyOutOfStock')}</span>
@@ -93,7 +93,7 @@ export function ProductCarousel({ products }: { products: ProductCardView[] }) {
                 )}
               </div>
             ) : (
-              <p className="mt-2 min-h-6 text-sm font-semibold leading-6 text-primary-dark">{t('contactForInfo')}</p>
+              <p className="mt-2 min-h-6 text-sm font-semibold leading-6 text-primary-dark text-center">{t('contactForInfo')}</p>
             )}
           </Link>
         ))}
