@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, type FormEvent } from 'react';
-import { Gift, LayoutGrid, LogOut, Mail, Package, ShoppingBag, type LucideIcon } from 'lucide-react';
+import { Gift, LayoutGrid, LogOut, Mail, Package, Phone, ShoppingBag, type LucideIcon } from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
 import { Link, useRouter } from '@/i18n/navigation';
 import { meControllerGetMe } from '@/lib/api/generated/me/me';
@@ -245,8 +245,12 @@ export function AccountPageView() {
             <div>
               <h1 className="font-display text-3xl font-bold text-foreground sm:text-4xl">{account.fullName}</h1>
               <p className="mt-1 flex items-center gap-2 text-muted-foreground">
-                <Mail className="size-4" aria-hidden="true" />
+                <Mail className="size-4 shrink-0" aria-hidden="true" />
                 {account.email}
+              </p>
+              <p className="mt-1 flex items-center gap-2 text-muted-foreground">
+                <Phone className="size-4 shrink-0" aria-hidden="true" />
+                {account.phoneNumber || t('notProvided')}
               </p>
             </div>
           </section>

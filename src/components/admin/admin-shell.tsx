@@ -3,6 +3,7 @@
 import { useState, type ReactNode } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { LogOut, Menu, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Logo } from '@/components/layout/logo';
@@ -16,6 +17,7 @@ function isActive(pathname: string, href: string): boolean {
 
 /** Khung admin: sidebar điều hướng + header, non-localized (dùng next/link, không qua i18n). */
 export function AdminShell({ children }: { children: ReactNode }) {
+  const t = useTranslations('admin');
   const pathname = usePathname();
   const router = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -46,7 +48,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
                     )}
                   >
                     <Icon className="size-[18px]" />
-                    {item.label}
+                    {item.labelKey ? t(item.labelKey) : item.label}
                   </Link>
                 </li>
               );

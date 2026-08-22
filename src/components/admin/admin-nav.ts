@@ -19,6 +19,7 @@ export interface AdminNavItem {
   label: string;
   href: string;
   icon: LucideIcon;
+  labelKey?: string;
 }
 
 export interface AdminNavGroup {
@@ -60,6 +61,9 @@ export const ADMIN_NAV: AdminNavGroup[] = [
   },
   {
     heading: 'Hệ thống',
-    items: [{ label: 'Người dùng', href: '/admin/users', icon: Users }],
+    items: [
+      { label: 'Người dùng', href: '/admin/users', icon: Users },
+      { label: '', labelKey: 'auditLog.navigation', href: '/admin/audit-logs', icon: FileText },
+    ],
   },
 ];
