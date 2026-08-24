@@ -17,6 +17,8 @@ interface DataTableProps<T> {
   loading?: boolean;
   emptyMessage?: string;
   error?: string | null;
+  onRetry?: () => void;
+  retryLabel?: string;
   /** Số dòng hiển thị đồng thời trước khi bảng tự cuộn. */
   visibleRows?: number;
 }
@@ -36,6 +38,8 @@ export function DataTable<T>({
   loading,
   emptyMessage = 'Không có dữ liệu.',
   error,
+  onRetry,
+  retryLabel = 'Thử lại',
   visibleRows = 10,
 }: DataTableProps<T>) {
   const tableMaxHeight = TABLE_HEADER_HEIGHT + Math.max(1, visibleRows) * TABLE_ROW_HEIGHT;
@@ -66,7 +70,18 @@ export function DataTable<T>({
           {error ? (
             <tr>
               <td colSpan={columns.length} className="px-4 py-12 text-center text-sm text-destructive">
-                {error}
+                <div className="flex flex-col items-center gap-3">
+                  <span>{error}</span>
+                  {onRetry ? (
+                    <button
+                      type="button"
+                      onClick={onRetry}
+                      className="rounded-md border border-border px-3 py-1.5 text-sm font-semibold text-foreground transition-colors hover:bg-muted"
+                    >
+                      {retryLabel}
+                    </button>
+                  ) : null}
+                </div>
               </td>
             </tr>
           ) : loading ? (
