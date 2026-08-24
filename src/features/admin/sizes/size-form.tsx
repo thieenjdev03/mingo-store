@@ -70,16 +70,6 @@ export function SizeForm({ open, onOpenChange, size, onSaved }: SizeFormProps) {
       setError('Nhập nhãn hiển thị (hoặc điền đơn vị + SL/thùng / dung tích để tự tạo).');
       return;
     }
-    // P0: đã nhập giá trị khối lượng thì bắt buộc chọn đơn vị trước khi lưu.
-    if (volumeMl.trim() && !volumeUnit) {
-      setError('Vui lòng chọn đơn vị cho khối lượng / dung tích.');
-      return;
-    }
-    // P1: đơn vị chỉ có ý nghĩa khi giá trị > 0.
-    if (volumeMl.trim() && Number(volumeMl) <= 0) {
-      setError('Khối lượng / dung tích phải lớn hơn 0.');
-      return;
-    }
     setSaving(true);
     try {
       const payload = {
@@ -143,15 +133,7 @@ export function SizeForm({ open, onOpenChange, size, onSaved }: SizeFormProps) {
             <Field id="packQty" label="SL / thùng" required={false}>
               <Input id="packQty" type="number" min={0} value={packQty} onChange={(e) => setPackQty(e.target.value)} placeholder="24" />
             </Field>
-            <Field id="volumeMl" label="Khối lượng / Dung tích" required={false} className="sm:col-span-2">
-              <div className="flex gap-2">
-                <Input id="volumeMl" type="number" min={0} value={volumeMl} onChange={(e) => setVolumeMl(e.target.value)} placeholder="250" className="flex-1" />
-                <NativeSelect fitContent aria-label="Đơn vị khối lượng / dung tích" value={volumeUnit} onChange={(e) => setVolumeUnit(e.target.value)}>
-                  <option value="">— đơn vị —</option>
-                  {VOLUME_UNITS.map((u) => <option key={u} value={u}>{u}</option>)}
-                </NativeSelect>
-              </div>
-            </Field>
+        
           </div>
         </fieldset>
         <Field id="categories" label="Phạm vi danh mục" required={false} hint="Có thể chọn nhiều; bỏ trống = dùng chung toàn hệ thống.">

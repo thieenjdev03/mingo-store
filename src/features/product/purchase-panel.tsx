@@ -106,32 +106,47 @@ export function PurchasePanel({ product }: { product: ProductDetailView }) {
           ) : (
             product.variants.map((variant) => {
               const selected = variant.sku === selectedVariant?.sku;
+              const soldOut = !variant.inStock;
               return (
                 <button
                   key={variant.sku}
                   type="button"
                   role="radio"
                   aria-checked={selected}
-                  disabled={!variant.inStock || cart.isMutating}
+                  disabled={soldOut || cart.isMutating}
                   onClick={() => selectVariant(variant.sku)}
-                  className={`grid min-h-16 w-full grid-cols-[24px_minmax(0,1fr)_auto] items-center gap-3 border-b border-[#e5beb2]/30 px-1 text-left transition-colors last:border-b-0 focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-ring disabled:cursor-not-allowed disabled:opacity-40 disabled:line-through sm:px-2 ${
-                    selected ? 'bg-primary/[0.04]' : 'hover:bg-primary/[0.03]'
+                  className={`grid min-h-16 w-full grid-cols-[24px_minmax(0,1fr)_auto] items-center gap-3 border-b border-[#e5beb2]/30 px-1 text-left transition-colors last:border-b-0 focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-ring disabled:cursor-not-allowed sm:px-2 ${
+                    soldOut ? '' : selected ? 'bg-primary/[0.04]' : 'hover:bg-primary/[0.03]'
                   }`}
                 >
                   <span
-                    className={`grid size-[22px] place-items-center rounded-full border border-[#6b4a31] ${
-                      selected ? 'border-2 border-[#563e2b]' : ''
+                    className={`grid size-[22px] place-items-center rounded-full border ${
+                      soldOut
+                        ? 'border-[#b0aca5]'
+                        : selected
+                          ? 'border-2 border-[#563e2b]'
+                          : 'border-[#6b4a31]'
                     }`}
                     aria-hidden="true"
                   >
-                    {selected ? <span className="size-2.5 rounded-full bg-[#563e2b]" /> : null}
+                    {selected && !soldOut ? <span className="size-2.5 rounded-full bg-[#563e2b]" /> : null}
                   </span>
-                  <span className="min-w-0 truncate text-[14px] font-bold leading-6 text-[#563e2b] lg:text-[19px]">
+                  <span
+                    className={`min-w-0 truncate text-[14px] font-bold leading-6 lg:text-[19px] ${
+                      soldOut ? 'text-[#a8a49d]' : 'text-[#563e2b]'
+                    }`}
+                  >
                     {variant.label}{variant.packLabel ? ` - ${variant.packLabel}` : ''}
                   </span>
-                  <span className="shrink-0 text-[14px] font-bold leading-6 text-[#563e2b] lg:text-[19px]">
-                    {fCurrencyVND(variant.price)}
-                  </span>
+                  {soldOut ? (
+                    <span className="shrink-0 text-[14px] font-bold uppercase leading-6 text-[#a8a49d] lg:text-[19px]">
+                      {t('outOfStock')}
+                    </span>
+                  ) : (
+                    <span className="shrink-0 text-[14px] font-bold leading-6 text-[#563e2b] lg:text-[19px]">
+                      {fCurrencyVND(variant.price)}
+                    </span>
+                  )}
                 </button>
               );
             })
