@@ -612,5 +612,11 @@
     "variants": "Danh sách biến thể",
     "skuLabel": "SKU: {sku}",
     "availableCount": "{count} sản phẩm"
+  },
+  "notFound": {
+    "title": "Không tìm thấy trang",
+    "description": "Trang bạn tìm không tồn tại hoặc đã được chuyển đi. Kiểm tra lại đường dẫn nhé.",
+    "home": "Về trang chủ",
+    "products": "Xem sản phẩm"
   }
 }

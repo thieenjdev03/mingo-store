@@ -615,5 +615,11 @@
     "variants": "Variants",
     "skuLabel": "SKU: {sku}",
     "availableCount": "{count} items"
+  },
+  "notFound": {
+    "title": "Page not found",
+    "description": "The page you are looking for does not exist or has been moved. Please check the URL.",
+    "home": "Back to home",
+    "products": "Browse products"
   }
 }
