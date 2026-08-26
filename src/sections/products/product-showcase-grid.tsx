@@ -18,7 +18,6 @@ export interface ProductListCard {
   specOutOfStock?: boolean;
   /** Cờ "Nổi bật" (is_featured) => ẩn giá, hiển thị nhãn liên hệ thay giá. */
   priceOnRequest?: boolean;
-  isMockup?: boolean;
 }
 
 interface ProductShowcaseGridProps {
@@ -31,7 +30,7 @@ interface ProductShowcaseGridProps {
 
 /**
  * Lưới sản phẩm theo design: packshot đặt thẳng trên nền trang (không khung/viền),
- * tên bên dưới, và hàng "quy cách | giá" nhỏ màu xám. Mockup gắn nhãn góc để phân biệt.
+ * tên bên dưới, và hàng "quy cách | giá" nhỏ màu xám.
  */
 export function ProductShowcaseGrid({ products, outOfStockLabel, contactLabel, unavailableContactLabel }: ProductShowcaseGridProps) {
   return (
@@ -43,11 +42,6 @@ export function ProductShowcaseGrid({ products, outOfStockLabel, contactLabel, u
           className="group block text-center focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
         >
           <div className="relative mx-auto aspect-[3/5] w-full max-w-[220px] transition-transform duration-300 motion-reduce:transition-none group-hover:scale-105">
-            {product.isMockup ? (
-              <span className="absolute left-1 top-1 z-10 rounded-full bg-foreground/85 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-white">
-                Mockup
-              </span>
-            ) : null}
             {product.image ? (
               <ProgressiveImage
                 src={product.image}

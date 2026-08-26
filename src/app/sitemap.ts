@@ -1,9 +1,8 @@
 import type { MetadataRoute } from 'next';
-import { fetchNavBrands, fetchNavCategories, localNavBrands, localNavCategories } from '@/features/catalog/nav-data';
+import { fetchNavBrands, fetchNavCategories, localNavBrands } from '@/features/catalog/nav-data';
 import { getStorefrontHome } from '@/features/home/api';
 import { getCareers } from '@/features/careers/api';
 import { getAllProducts } from '@/features/product/api';
-import { MOCKUP_CATALOG } from '@/features/product/mockup-catalog';
 import { absoluteUrl, localizedPath } from '@/lib/seo';
 
 export const revalidate = 3600;
@@ -47,12 +46,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     getCareers({ status: 'published', limit: 100 }).then((response) => response.items).catch(() => []),
   ]);
 
-  const productSlugs = new Set([
-    ...apiProducts.map((product) => product.slug),
-    ...MOCKUP_CATALOG.map((product) => product.slug),
-  ]);
+  const productSlugs = new Set(apiProducts.map((product) => product.slug));
   const brands = apiBrands.length > 0 ? apiBrands : localNavBrands();
-  const categories = apiCategories.length > 0 ? apiCategories : localNavCategories('vi');
+  const categories = apiCategories;
 
   return [
     ...STATIC_PATHS.flatMap((pathname) => localizedEntries(pathname, pathname === '/' ? 'daily' : 'weekly', pathname === '/' ? 1 : 0.8)),

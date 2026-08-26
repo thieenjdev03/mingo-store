@@ -8,14 +8,13 @@ import { routing } from '@/i18n/routing';
 import { ProductShowcaseGrid, type ProductListCard } from '@/sections/products/product-showcase-grid';
 import { JsonLd } from '@/components/seo/json-ld';
 import { absoluteUrl, localizedPath, pageMetadata, seoDescription, toSeoLocale } from '@/lib/seo';
-import { fetchNavCategories, localNavCategories } from '@/features/catalog/nav-data';
+import { fetchNavCategories } from '@/features/catalog/nav-data';
 
 export const revalidate = 300;
 export const dynamic = 'force-static';
 
 export async function generateStaticParams() {
-  const apiCategories = await fetchNavCategories().catch(() => []);
-  const categories = apiCategories.length > 0 ? apiCategories : localNavCategories('vi');
+  const categories = await fetchNavCategories().catch(() => []);
   return categories.map((category) => ({ slug: category.slug }));
 }
 

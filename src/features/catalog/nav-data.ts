@@ -5,8 +5,6 @@
  */
 import { customFetch } from '@/lib/api/fetcher';
 import { BRANDS } from '@/config/brands';
-import { MOCKUP_CATEGORIES } from '@/features/product/mockup-catalog';
-import { resolveLocalized, type Locale } from '@/types/localized';
 
 export interface BrandNavItem {
   name: string;
@@ -73,9 +71,4 @@ export async function fetchNavCategories(): Promise<CategoryNavItem[]> {
     .filter((c) => c.is_active !== false)
     .sort((a, b) => (a.display_order ?? 0) - (b.display_order ?? 0))
     .map((c) => ({ name: c.name, slug: c.slug }));
-}
-
-/** Danh mục local (nhóm Mingo) làm fallback khi backend chưa seed categories. */
-export function localNavCategories(locale: Locale): CategoryNavItem[] {
-  return MOCKUP_CATEGORIES.map((c) => ({ name: resolveLocalized(c.name, locale), slug: c.slug }));
 }
