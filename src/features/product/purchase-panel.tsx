@@ -46,7 +46,7 @@ export function PurchasePanel({ product }: { product: ProductDetailView }) {
           <span className="rounded-md bg-primary/10 px-2.5 py-1 text-[18px] font-extrabold leading-none text-primary lg:text-[20px]">
             {t("contactForPrice")}
           </span>
-        ) : (
+        ) : product.isOutOfStock ? null : (
           <>
             {selectedVariant ? (
               <span className="text-[26px] font-extrabold leading-none text-primary lg:text-[32px]">

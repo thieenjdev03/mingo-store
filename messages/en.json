@@ -69,6 +69,11 @@
     "searchPlaceholder": "Search products..."
   },
   "footer": {
+    "companyTitle": "Mingo Ice Cream Vietnam",
+    "addressLabel": "Head office",
+    "phoneLabel": "Phone",
+    "taxLabel": "Tax code",
+    "emailLabel": "Email",
     "aboutTitle": "About Mingo",
     "aboutUs": "About us",
     "contact": "Contact",
@@ -83,6 +88,9 @@
     "seeProduct": "See product"
   },
   "products": {
+    "searchTitle": "Results for “{query}”",
+    "searchEmpty": "No matching products found.",
+    "searchViewAll": "View all results",
     "title": "Product lines",
     "description": "TODO: product listing + filters (category / brand / flavor / price).",
     "collectionTitle": "Dessert Collection",

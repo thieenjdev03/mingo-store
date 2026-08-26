@@ -3,8 +3,12 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import Image from "next/image";
 import { Menu, X } from "lucide-react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { Link, useRouter, usePathname } from "@/i18n/navigation";
+import { getProducts } from "@/features/product/api";
+import { isPublicCatalogProduct, toProductCardView, type ProductCardView } from "@/features/product/types";
+import { fCurrencyVND } from "@/lib/format";
+import type { Locale } from "@/types/localized";
 import { useCart } from "@/features/cart/cart-context";
 import { CartDrawer } from "@/features/cart/cart-drawer";
 import { LocaleSwitcher } from "@/components/layout/locale-switcher";
@@ -25,8 +29,14 @@ const HEADER_ASSETS = {
   search: "/assets/mingo/home/header-search.svg",
 } as const;
 
+/** Chờ gõ xong 300ms mới gọi API — tránh 1 request mỗi ký tự. */
+const SEARCH_DEBOUNCE_MS = 300;
+const SEARCH_RESULT_LIMIT = 6;
+
 export function SiteHeader() {
   const t = useTranslations("nav");
+  const tProducts = useTranslations("products");
+  const locale = useLocale() as Locale;
   const router = useRouter();
   const pathname = usePathname();
   const { totalQuantity, isDrawerOpen, openDrawer } = useCart();
@@ -47,6 +57,43 @@ export function SiteHeader() {
   // Nav key của dropdown đang mở ("products" | "brands"), hoặc null. Chỉ một dropdown mở cùng lúc.
   const [openNav, setOpenNav] = useState<string | null>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [searchResults, setSearchResults] = useState<ProductCardView[] | null>(null);
+  const [searchLoading, setSearchLoading] = useState(false);
+
+  // Debounce: mỗi lần gõ hủy timer cũ; `cancelled` chặn response cũ ghi đè kết quả mới.
+  useEffect(() => {
+    const query = searchTerm.trim();
+    if (!query) {
+      setSearchResults(null);
+      setSearchLoading(false);
+      return;
+    }
+    let cancelled = false;
+    setSearchLoading(true);
+    const timer = setTimeout(() => {
+      getProducts({ locale, status: "active", limit: SEARCH_RESULT_LIMIT, search: query })
+        .then((response) => {
+          if (cancelled) return;
+          setSearchResults(
+            response.data
+              .filter(isPublicCatalogProduct)
+              .map((product) => toProductCardView(product, locale)),
+          );
+        })
+        .catch(() => {
+          if (!cancelled) setSearchResults([]);
+        })
+        .finally(() => {
+          if (!cancelled) setSearchLoading(false);
+        });
+    }, SEARCH_DEBOUNCE_MS);
+
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [searchTerm, locale]);
 
   // Danh sách item cho dropdown của một nav key (categories cho "products", brands cho "brands").
   // Trả null khi nav key không có dropdown hoặc chưa có dữ liệu -> render link thường.
@@ -268,6 +315,8 @@ export function SiteHeader() {
               name="q"
               aria-label={t("search")}
               placeholder={t("searchPlaceholder")}
+              value={searchTerm}
+              onChange={(event) => setSearchTerm(event.target.value)}
               className="h-11 flex-1 border-b border-[#563e2b] bg-transparent px-2 text-base outline-none"
             />
             <button
@@ -278,6 +327,49 @@ export function SiteHeader() {
               <X className="size-6" />
             </button>
           </form>
+
+          {searchTerm.trim() ? (
+            <div className="mx-auto mt-3 max-w-[720px]" aria-live="polite">
+              {searchResults === null || (searchLoading && searchResults.length === 0) ? (
+                <p className="px-2 py-3 text-sm text-muted-foreground">…</p>
+              ) : searchResults.length === 0 ? (
+                <p className="px-2 py-3 text-sm text-muted-foreground">{tProducts("searchEmpty")}</p>
+              ) : (
+                <>
+                  <ul className="max-h-[60vh] overflow-y-auto">
+                    {searchResults.map((product) => (
+                      <li key={product.id}>
+                        <Link
+                          href={`/products/${product.slug}`}
+                          onClick={() => setSearchOpen(false)}
+                          className="flex items-center gap-3 rounded-md px-2 py-2 hover:bg-sand"
+                        >
+                          {product.image ? (
+                            <span className="relative size-11 shrink-0 overflow-hidden rounded-md bg-sand">
+                              <Image src={product.image} alt="" fill sizes="44px" className="object-cover" />
+                            </span>
+                          ) : (
+                            <span className="size-11 shrink-0 rounded-md bg-sand" aria-hidden />
+                          )}
+                          <span className="min-w-0 flex-1 truncate text-sm text-[#563e2b]">{product.name}</span>
+                          <span className="shrink-0 text-sm font-bold text-primary">
+                            {product.priceOnRequest ? tProducts("priceOnRequest") : fCurrencyVND(product.price)}
+                          </span>
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                  <Link
+                    href={`/products?q=${encodeURIComponent(searchTerm.trim())}`}
+                    onClick={() => setSearchOpen(false)}
+                    className="mt-1 block px-2 py-2 text-sm font-bold uppercase text-primary hover:underline"
+                  >
+                    {tProducts("searchViewAll")}
+                  </Link>
+                </>
+              )}
+            </div>
+          ) : null}
         </div>
       ) : null}
 

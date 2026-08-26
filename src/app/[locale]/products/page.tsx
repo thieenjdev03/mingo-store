@@ -22,8 +22,15 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
   return pageMetadata({ locale: seoLocale, pathname: '/products', ...SEO_COPY[seoLocale].products });
 }
 
-export default async function ProductListPage({ params }: { params: Promise<{ locale: string }> }) {
+export default async function ProductListPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ locale: string }>;
+  searchParams: Promise<{ q?: string }>;
+}) {
   const { locale } = await params;
+  const query = (await searchParams).q?.trim() ?? '';
   setRequestLocale(locale);
   const safeLocale = hasLocale(routing.locales, locale) ? locale : routing.defaultLocale;
   const t = await getTranslations('products');
@@ -31,7 +38,12 @@ export default async function ProductListPage({ params }: { params: Promise<{ lo
   let loadFailed = false;
   const apiByCategory = new Map<string, CategorySection>();
   try {
-    const response = await getProducts({ locale: safeLocale, status: 'active', limit: 100 });
+    const response = await getProducts({
+      locale: safeLocale,
+      status: 'active',
+      limit: 100,
+      ...(query ? { search: query } : {}),
+    });
     for (const product of response.data) {
       if (!isPublicCatalogProduct(product)) continue;
       const view = toProductCardView(product, safeLocale);
@@ -73,14 +85,18 @@ export default async function ProductListPage({ params }: { params: Promise<{ lo
         />
       ) : null}
       <section className="flex flex-col items-center justify-center bg-sand px-5 py-16 text-center sm:py-20 lg:py-24">
-        <h1 className="font-display text-[34px] font-bold leading-none text-foreground sm:text-[40px] lg:text-[48px]">{t('collectionTitle')}</h1>
+        <h1 className="font-display text-[34px] font-bold leading-none text-foreground sm:text-[40px] lg:text-[48px]">
+          {query ? t('searchTitle', { query }) : t('collectionTitle')}
+        </h1>
         <p className="mt-4 max-w-xl text-base text-foreground/70">{t('subtitle')}</p>
         <p className="mt-2 text-sm font-bold uppercase tracking-[0.14em] text-primary">{t('countLabel', { count: totalCount })}</p>
       </section>
 
       <div className="min-h-[600px] space-y-14 bg-background py-[56px] sm:space-y-16 sm:py-[72px] lg:py-[88px]">
         {loadFailed || sections.length === 0 ? (
-          <p className="mx-auto max-w-xl px-5 text-center text-muted-foreground">{loadFailed ? t('loadError') : t('empty')}</p>
+          <p className="mx-auto max-w-xl px-5 text-center text-muted-foreground">
+            {loadFailed ? t('loadError') : query ? t('searchEmpty') : t('empty')}
+          </p>
         ) : null}
         {sections.map((section) => (
           <MustTrySection

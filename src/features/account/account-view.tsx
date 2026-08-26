@@ -5,7 +5,10 @@ import { Gift, LayoutGrid, LogOut, Mail, Package, Phone, ShoppingBag, type Lucid
 import { useLocale, useTranslations } from 'next-intl';
 import { Link, useRouter } from '@/i18n/navigation';
 import { meControllerGetMe } from '@/lib/api/generated/me/me';
-import { getMyOrders } from '@/features/checkout/api';
+import { getMyOrders, getShippingAddresses, upsertShippingAddress } from '@/features/checkout/api';
+import { getShippingAreas } from '@/features/checkout/shipping-locations';
+import type { SavedShippingAddress } from '@/features/checkout/types';
+import { provinces } from '@/lib/vn-address';
 import { updateMyProfile, type UpdateMyProfilePayload } from './api';
 import { getAccessToken, clearAccessToken } from '@/lib/auth/token';
 import { CustomerAuthForm } from './customer-auth-form';
@@ -18,8 +21,33 @@ import { MeltingIceCreamLoader } from '@/components/ui/melting-ice-cream-loader'
 
 const REWARD_START_POINTS = 1_000;
 
+/** Địa chỉ giao hàng mặc định — dùng chung field/enpoint với checkout. */
+interface AddressDraft {
+  provinceId: string;
+  areaId: string;
+  streetLine1: string;
+}
+
+const EMPTY_ADDRESS_DRAFT: AddressDraft = { provinceId: '', areaId: '', streetLine1: '' };
+
+/** Địa chỉ đã lưu -> draft; khớp id trước, fallback theo tên vì bản ghi cũ có thể chỉ có tên. */
+function toAddressDraft(address: SavedShippingAddress | null): AddressDraft {
+  if (!address) return EMPTY_ADDRESS_DRAFT;
+  const province = provinces.find((item) => item.id === address.provinceId || item.name === address.province) ?? null;
+  const area = getShippingAreas(province).find(
+    (item) => item.id === address.wardId || item.name === address.district || item.name === address.ward,
+  );
+  return {
+    provinceId: province?.id ?? '',
+    areaId: area?.id ?? '',
+    streetLine1: address.streetLine1 ?? '',
+  };
+}
+
 export function AccountPageView() {
   const t = useTranslations('account');
+  // Nhãn tỉnh/quận/địa chỉ dùng lại nguyên văn của checkout, không nhân bản chuỗi dịch.
+  const tCheckout = useTranslations('checkout');
   const locale = useLocale();
   const router = useRouter();
   // null = chưa biết (đang đọc localStorage sau mount), '' = không có token.
@@ -40,7 +68,11 @@ export function AccountPageView() {
     country: '',
     profile: '',
   });
+  const [shippingAddress, setShippingAddress] = useState<SavedShippingAddress | null>(null);
+  const [addressDraft, setAddressDraft] = useState<AddressDraft>(EMPTY_ADDRESS_DRAFT);
   const { balance: pointsBalance, isLoading: pointsLoading } = usePointsBalance(!!token);
+
+  const areaOptions = getShippingAreas(provinces.find((item) => item.id === addressDraft.provinceId) ?? null);
 
   useEffect(() => {
     setToken(getAccessToken() ?? '');
@@ -53,9 +85,13 @@ export function AccountPageView() {
     setError(false);
 
     meControllerGetMe()
-      .then((user) => {
+      .then(async (user) => {
         if (cancelled) return;
         setAccount(toAccountView(user));
+        // Địa chỉ giao hàng nằm ở endpoint riêng (dùng chung với checkout), lỗi ở đây chỉ để form trống.
+        const addresses = await getShippingAddresses(user.id).catch(() => []);
+        if (cancelled) return;
+        setShippingAddress(addresses.find((item) => item.isShipping && item.isDefault) ?? addresses[0] ?? null);
       })
       .catch(() => {
         if (cancelled) return;
@@ -113,6 +149,7 @@ export function AccountPageView() {
       country: account.country,
       profile: account.profile,
     });
+    setAddressDraft(toAddressDraft(shippingAddress));
     setProfileError(false);
     setProfileSaved(false);
     setEditingProfile(true);
@@ -132,7 +169,36 @@ export function AccountPageView() {
         country: profileDraft.country.trim(),
         profile: profileDraft.profile.trim(),
       });
-      setAccount(toAccountView(updated));
+      const province = provinces.find((item) => item.id === addressDraft.provinceId);
+      const area = getShippingAreas(province ?? null).find((item) => item.id === addressDraft.areaId);
+      const street = addressDraft.streetLine1.trim();
+
+      if (province && area && street) {
+        const saved = await upsertShippingAddress(updated.id, {
+          recipientName: [updated.firstName, updated.lastName].filter(Boolean).join(' ') || updated.email,
+          recipientPhone: updated.phoneNumber ?? '',
+          label: 'Mặc định',
+          countryCode: 'VN',
+          province: province.name,
+          district: area.name,
+          ward: area.name,
+          streetLine1: street,
+          isShipping: true,
+          isDefault: true,
+        });
+        setShippingAddress({
+          ...saved,
+          provinceId: province.id,
+          wardId: area.id,
+          ward: saved.ward ?? null,
+          isShipping: true,
+          isDefault: true,
+        });
+        // /me trả kèm addresses -> đọc lại để tóm tắt địa chỉ hiển thị đúng ngay sau khi lưu.
+        setAccount(toAccountView(await meControllerGetMe()));
+      } else {
+        setAccount(toAccountView(updated));
+      }
       setEditingProfile(false);
       setProfileSaved(true);
     } catch {
@@ -396,6 +462,44 @@ export function AccountPageView() {
                       onChange={(event) => setProfileDraft((current) => ({ ...current, profile: event.target.value }))}
                       placeholder={t('profileBioPlaceholder')}
                       className="mt-2 w-full resize-y rounded-lg border border-border bg-background px-3 py-2 text-sm font-medium normal-case tracking-normal text-foreground outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
+                    />
+                  </label>
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <label className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
+                      {tCheckout('province')}
+                      <select
+                        value={addressDraft.provinceId}
+                        onChange={(event) => setAddressDraft((current) => ({ ...current, provinceId: event.target.value, areaId: '' }))}
+                        className="mt-2 h-11 w-full rounded-lg border border-border bg-background px-3 text-sm font-medium normal-case tracking-normal text-foreground outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
+                      >
+                        <option value="">{tCheckout('provincePlaceholder')}</option>
+                        {provinces.map((province) => (
+                          <option key={province.id} value={province.id}>{province.name}</option>
+                        ))}
+                      </select>
+                    </label>
+                    <label className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
+                      {tCheckout('district')}
+                      <select
+                        value={addressDraft.areaId}
+                        disabled={!addressDraft.provinceId}
+                        onChange={(event) => setAddressDraft((current) => ({ ...current, areaId: event.target.value }))}
+                        className="mt-2 h-11 w-full rounded-lg border border-border bg-background px-3 text-sm font-medium normal-case tracking-normal text-foreground outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20 disabled:opacity-60"
+                      >
+                        <option value="">{tCheckout('districtPlaceholder')}</option>
+                        {areaOptions.map((area) => (
+                          <option key={area.id} value={area.id}>{area.name}</option>
+                        ))}
+                      </select>
+                    </label>
+                  </div>
+                  <label className="block text-xs font-bold uppercase tracking-wide text-muted-foreground">
+                    {tCheckout('addressLine')}
+                    <input
+                      value={addressDraft.streetLine1}
+                      onChange={(event) => setAddressDraft((current) => ({ ...current, streetLine1: event.target.value }))}
+                      autoComplete="street-address"
+                      className="mt-2 h-11 w-full rounded-lg border border-border bg-background px-3 text-sm font-medium normal-case tracking-normal text-foreground outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
                     />
                   </label>
                   {profileError ? <p className="text-sm font-semibold text-destructive">{t('updateError')}</p> : null}

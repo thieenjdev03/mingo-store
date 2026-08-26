@@ -313,7 +313,8 @@ export function ProductForm({ open, onOpenChange, productId, onSaved }: ProductF
       fail('Giá khuyến mãi phải lớn hơn 0 và nhỏ hơn giá gốc.');
       return;
     }
-    if (variants.some((v) => !v.price.trim() || Number(v.price) <= 0)) {
+    // LH Báo Giá: storefront ẩn giá nên biến thể không cần giá; các trường hợp khác vẫn bắt buộc.
+    if (!isFeatured && variants.some((v) => !v.price.trim() || Number(v.price) <= 0)) {
       fail('Giá của mỗi biến thể phải lớn hơn 0.');
       return;
     }
@@ -540,13 +541,19 @@ export function ProductForm({ open, onOpenChange, productId, onSaved }: ProductF
               id="stock"
               label="Tồn kho"
               required={false}
-              hint={hasVariants ? 'Tự tính từ tổng tồn các quy cách bên dưới — không sửa trực tiếp.' : undefined}
+              hint={
+                hasVariants
+                  ? 'Tự tính từ tổng tồn các quy cách bên dưới — không sửa trực tiếp.'
+                  : isFeatured
+                    ? 'Đang bật LH Báo Giá — tồn kho không bắt buộc.'
+                    : undefined
+              }
             >
               <Input
                 id="stock"
                 type="number"
                 min={0}
-                disabled={hasVariants}
+                disabled={hasVariants || isFeatured}
                 value={effectiveStock}
                 onChange={(e) => setStock(Number(e.target.value))}
               />
@@ -595,6 +602,7 @@ export function ProductForm({ open, onOpenChange, productId, onSaved }: ProductF
             {isFeatured ? (
               <p className="w-full text-xs text-muted-foreground">
                 Bật <strong>LH Báo Giá</strong>: storefront sẽ ẩn giá và hiển thị “Liên hệ để nhận báo giá” thay cho giá bán.
+                Giá và tồn kho (kể cả của biến thể) không bắt buộc nhập.
               </p>
             ) : null}
           </div>
@@ -660,7 +668,7 @@ export function ProductForm({ open, onOpenChange, productId, onSaved }: ProductF
                           onChange={(e) => setVariants((prev) => prev.map((x, idx) => (idx === i ? { ...x, sku: e.target.value } : x)))}
                         />
                         <Input
-                          type="text" inputMode="numeric" placeholder="Giá" aria-label="Giá"
+                          type="text" inputMode="numeric" placeholder={isFeatured ? 'Tuỳ chọn' : 'Giá'} aria-label="Giá"
                           value={v.price}
                           onChange={(e) => setVariants((prev) => prev.map((x, idx) => (idx === i ? { ...x, price: onlyDigits(e.target.value) } : x)))}
                         />

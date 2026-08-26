@@ -69,6 +69,11 @@
     "searchPlaceholder": "Tìm sản phẩm..."
   },
   "footer": {
+    "companyTitle": "Mingo Ice Cream Vietnam",
+    "addressLabel": "Địa chỉ trụ sở",
+    "phoneLabel": "Điện thoại",
+    "taxLabel": "MST",
+    "emailLabel": "Email",
     "aboutTitle": "Về Mingo",
     "aboutUs": "Về chúng tôi",
     "contact": "Liên hệ",
@@ -83,6 +88,9 @@
     "seeProduct": "See Product"
   },
   "products": {
+    "searchTitle": "Kết quả cho “{query}”",
+    "searchEmpty": "Không tìm thấy sản phẩm nào phù hợp.",
+    "searchViewAll": "Xem tất cả kết quả",
     "title": "Dòng sản phẩm",
     "description": "TODO: danh sách + bộ lọc (category / thương hiệu / vị / giá).",
     "collectionTitle": "Dessert Collection",

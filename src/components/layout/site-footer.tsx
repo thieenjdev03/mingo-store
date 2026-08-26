@@ -10,6 +10,12 @@ const LINES = [
   { name: 'Kem ốc quế', slug: 'kem-oc-que' },
   { name: 'Kem đá', slug: 'kem-da' },
 ];
+const COMPANY = {
+  address: '232/28 Đ. Tô Hiệu, Phú Thạnh, Hồ Chí Minh, Việt Nam',
+  phone: '0977 008 879',
+  taxCode: '0309879026',
+  email: 'hi@mingo.hongtanphat.com',
+};
 const SOCIALS = [
   { label: 'Facebook', href: 'https://www.facebook.com', icon: '/assets/mingo/home/facebook.svg' },
   { label: 'Instagram', href: 'https://www.instagram.com', icon: '/assets/mingo/home/instagram.svg' },
@@ -30,7 +36,22 @@ export async function SiteFooter() {
 
   return (
     <footer className="bg-white text-[#563e2b]">
-      <div className="mx-auto grid h-auto max-w-[1200px] items-start gap-10 px-5 py-10 sm:grid-cols-2 sm:px-8 lg:grid-cols-[120px_120px_155px_1fr] lg:gap-[31px] lg:py-6 xl:px-0">
+      <div className="mx-auto grid h-auto max-w-[1200px] items-start gap-10 px-5 py-10 sm:grid-cols-2 sm:px-8 lg:grid-cols-[minmax(0,270px)_120px_120px_155px_1fr] lg:gap-[31px] lg:py-6 xl:px-0">
+        <div>
+          <h3 className="mb-3 text-[14px] font-bold uppercase leading-8 lg:text-[16px]">{t('companyTitle')}</h3>
+          <address className="text-[14px] not-italic leading-[26px] text-[#563e2b] lg:text-[16px] lg:leading-7">
+            <p className="uppercase">{t('addressLabel')}: {COMPANY.address}</p>
+            <p className="uppercase">{t('phoneLabel')}: {COMPANY.phone}</p>
+            <p className="uppercase">{t('taxLabel')}: {COMPANY.taxCode}</p>
+            <p className="uppercase">
+              {t('emailLabel')}:{' '}
+              <a href={`mailto:${COMPANY.email}`} className="underline transition-colors hover:text-primary">
+                {COMPANY.email}
+              </a>
+            </p>
+          </address>
+        </div>
+
         <div>
           <h3 className="mb-3 text-[14px] font-bold uppercase leading-8 lg:text-[16px]">{t('aboutTitle')}</h3>
           <ul>

@@ -132,9 +132,11 @@ interface ProductPurchaseState {
 function derivePurchaseState(product: ProductResponseDto): ProductPurchaseState {
   const variants = product.variants ?? [];
   const hasVariants = variants.length > 0;
+  // Giá 0 = chưa nhập giá (admin để trống khi bật LH Báo Giá), tính như không có giá.
+  const noPrice = (value: unknown) => value == null || Number(value) <= 0;
   const isContactForPrice =
-    product.price == null &&
-    (!hasVariants || variants.every((variant) => variant.price == null));
+    noPrice(product.price) &&
+    (!hasVariants || variants.every((variant) => noPrice(variant.price)));
   const isOutOfStock = hasVariants
     ? variants.every((variant) => Number(variant.stock) === 0)
     : Number(product.stock_quantity) === 0;
