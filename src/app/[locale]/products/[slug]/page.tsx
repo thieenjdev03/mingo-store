@@ -10,7 +10,7 @@ import { PurchasePanel } from '@/features/product/purchase-panel';
 import { ProductGallery } from '@/features/product/product-gallery';
 import { ProductVariantSelectionProvider } from '@/features/product/product-variant-selection';
 import { MustTrySection } from '@/sections/mingo-home/must-try/must-try-section';
-import { getProductBySlug, getProductsByCategory, getSizeMetaById } from '@/features/product/api';
+import { getProductBySlug, getProductsByCategory } from '@/features/product/api';
 import { isPublicCatalogProduct, toProductCardView, toProductDetailView } from '@/features/product/types';
 import { routing } from '@/i18n/routing';
 import { Link } from '@/i18n/navigation';
@@ -85,9 +85,7 @@ export default async function ProductDetailPage({
 
   const apiProduct = await resolveProduct(slug, safeLocale);
   if (!apiProduct || !isPublicCatalogProduct(apiProduct)) notFound();
-  // Thuộc tính quy cách đầy đủ để dựng nhãn "24 cây / thùng, cây 60 gr" — API sản phẩm chỉ nhúng {id, name}.
-  const sizeMetaById = apiProduct.variants?.length ? await getSizeMetaById() : undefined;
-  const product = toProductDetailView(apiProduct, safeLocale, sizeMetaById);
+  const product = toProductDetailView(apiProduct, safeLocale);
   const specLabel =
     product.spec ??
     (product.weightGrams != null

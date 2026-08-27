@@ -18,7 +18,6 @@ import { slugify } from '@/lib/admin/slugify';
 import { getCategoryOptions } from '@/features/admin/shared/options';
 import { brandsKey, listBrands } from '@/features/admin/brands/api';
 import { listSizes } from '@/features/admin/sizes/api';
-import { packagingLabel } from '@/features/product/types';
 import { fCurrencyVND } from '@/lib/format';
 import { ApiError } from '@/lib/api/fetcher';
 import { getApiErrorMessages } from '@/lib/api/error-message';
@@ -257,7 +256,7 @@ export function ProductForm({ open, onOpenChange, productId, onSaved }: ProductF
       setBrandId(editData.base.brand?.id ?? '');
       setImages(editData.base.images ?? []);
       setStatus(normalizeStatus(editData.base.status as CreateProductDtoStatus | undefined));
-      setIsFeatured(editData.base.is_featured ?? false);
+      setIsFeatured(editData.base.is_contact_for_price ?? editData.base.is_featured ?? false);
       setEnableSaleTag(editData.base.enable_sale_tag ?? false);
       setVariants(
         (editData.base.variants ?? []).map((v) => ({
@@ -371,6 +370,7 @@ export function ProductForm({ open, onOpenChange, productId, onSaved }: ProductF
         brand_id: brandId || null,
         status,
         is_featured: isFeatured,
+        is_contact_for_price: isFeatured,
         enable_sale_tag: enableSaleTag,
       };
       if (productId) {
@@ -659,7 +659,7 @@ export function ProductForm({ open, onOpenChange, productId, onSaved }: ProductF
                           aria-label="Quy cách"
                         >
                           <option value="">— Quy cách —</option>
-                          {sizeOptionsForRow(v.size_id).map((s) => (<option key={s.id} value={s.id}>{packagingLabel(s)}</option>))}
+                          {sizeOptionsForRow(v.size_id).map((s) => (<option key={s.id} value={s.id}>{s.name}</option>))}
                         </NativeSelect>
                         <Input
                           placeholder="SKU"

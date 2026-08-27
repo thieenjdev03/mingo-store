@@ -5,16 +5,14 @@
  */
 import type { ProductResponseDto, ProductVariantResponseDto } from '@/lib/api/generated/ecomAPI.schemas';
 import { resolveLocalized, type Locale } from '@/types/localized';
-import type { ProductDetailApiDto, SizeMeta } from './api';
+import type { ProductDetailApiDto } from './api';
 
 export interface ProductVariantView {
   sku: string;
   /** Tên biến thể do quản trị viên đặt, dùng cho chế độ chip khi danh sách dài. */
   name: string;
-  /** Nhãn chính = tên quy cách, vd "Cây 65gr". */
+  /** Nhãn quy cách do quản trị viên nhập tay, vd "Cây 65gr". */
   label: string;
-  /** Nhãn phụ số lượng đóng thùng, vd "30 cây / thùng". Null khi thiếu packQty. */
-  packLabel: string | null;
   price: number;
   stock: number;
   inStock: boolean;
@@ -75,32 +73,6 @@ export function isPublicCatalogProduct(product: { name: string; slug?: string })
   return !values.some((value) => /^(?:test|sp(?:[\s_-]+[a-z0-9]+)?)$/i.test(value));
 }
 
-/**
- * Nhãn quy cách đóng gói từ `size` (API sizes mở rộng). Luôn ưu tiên `name` (đã đúng định dạng:
- * "24 cây / thùng", "Hộp 250ml"); chỉ build từ field khi thiếu name.
- */
-export function packagingLabel(size: {
-  name: string;
-  unit?: string | null;
-  packQty?: number | null;
-  volumeMl?: number | null;
-  volumeUnit?: string | null;
-}): string {
-  if (size.name?.trim()) return size.name.trim();
-  if (size.volumeMl) return `${size.unit ?? 'Hộp'} ${size.volumeMl}${size.volumeUnit ?? 'ml'}`;
-  if (size.packQty) return `${size.packQty} ${size.unit ?? ''}/thùng`.trim();
-  return size.name;
-}
-
-/**
- * Nhãn phụ số lượng đóng thùng cho PDP, vd "30 cây / thùng". Khối lượng đã nằm trong
- * tên quy cách ("Cây 65gr") nên nhãn phụ chỉ mô tả quy cách đóng thùng. Null khi thiếu packQty.
- */
-export function packagingCartonLabel(size: Pick<SizeMeta, 'packQty' | 'unit'>): string | null {
-  if (size.packQty == null || size.packQty <= 0) return null;
-  const unit = size.unit?.trim();
-  return `${size.packQty}${unit ? ` ${unit}` : ''} / thùng`;
-}
 
 /** Quy tắc giá hiệu lực THỐNG NHẤT toàn site: variant.price ?? sale_price ?? price */
 export function getEffectivePrice(product: Pick<ProductResponseDto, 'price' | 'sale_price'>, variant?: ProductVariantResponseDto | null): number {
@@ -134,9 +106,13 @@ function derivePurchaseState(product: ProductResponseDto): ProductPurchaseState 
   const hasVariants = variants.length > 0;
   // Giá 0 = chưa nhập giá (admin để trống khi bật LH Báo Giá), tính như không có giá.
   const noPrice = (value: unknown) => value == null || Number(value) <= 0;
+  // Cờ do admin bật ("LH Báo Giá") LUÔN thắng — kể cả khi sản phẩm/biến thể vẫn còn giá.
+  // `is_featured` là dữ liệu cũ: switch "LH Báo Giá" trước đây ghi vào field này.
   const isContactForPrice =
-    noPrice(product.price) &&
-    (!hasVariants || variants.every((variant) => noPrice(variant.price)));
+    product.is_contact_for_price === true ||
+    product.is_featured === true ||
+    (noPrice(product.price) &&
+      (!hasVariants || variants.every((variant) => noPrice(variant.price))));
   const isOutOfStock = hasVariants
     ? variants.every((variant) => Number(variant.stock) === 0)
     : Number(product.stock_quantity) === 0;
@@ -168,11 +144,7 @@ export function toProductCardView(
     available:
       p.status === 'active' &&
       (hasVariants ? anyVariantInStock : Number(p.stock_quantity) > 0),
-    spec: firstVariant?.size
-      ? packagingLabel(firstVariant.size)
-      : firstVariant
-        ? resolveLocalized(firstVariant.name, locale)
-        : null,
+    spec: firstVariant?.size?.name ?? (firstVariant ? resolveLocalized(firstVariant.name, locale) : null),
     specOutOfStock: Boolean(firstVariant && Number(firstVariant.stock) <= 0),
     priceOnRequest: isContactForPrice,
   };
@@ -181,24 +153,16 @@ export function toProductCardView(
 export function toProductDetailView(
   p: ProductResponseDto,
   locale: Locale,
-  sizeMetaById?: Map<string, SizeMeta>,
 ): ProductDetailView {
   const purchaseState = derivePurchaseState(p);
   const { hasVariants, isContactForPrice, isOutOfStock } = purchaseState;
   const variants: ProductVariantView[] = (p.variants ?? []).map((v) => {
-    // Trục variant = quy cách đóng gói. Nhãn chính = tên quy cách ("Cây 65gr"); nhãn phụ = SL đóng thùng.
-    // Thuộc tính đầy đủ fetch qua /sizes vì API sản phẩm chỉ nhúng {id, name}.
-    const meta = v.size?.id ? sizeMetaById?.get(v.size.id) : undefined;
-    const label = meta
-      ? meta.name
-      : v.size
-        ? packagingLabel(v.size)
-        : resolveLocalized(v.name, locale);
+    // Trục variant = quy cách; nhãn lấy nguyên tên quy cách quản trị viên đã nhập.
+    const label = v.size?.name ?? resolveLocalized(v.name, locale);
     return {
       sku: v.sku,
       name: resolveLocalized(v.name, locale),
       label,
-      packLabel: meta ? packagingCartonLabel(meta) : null,
       price: getEffectivePrice(p, v),
       stock: v.stock,
       inStock: v.stock > 0,

@@ -27,7 +27,7 @@ export default function AdminSizesPage() {
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
-    return sizes.filter((s) => !q || s.name.toLowerCase().includes(q) || (s.unit ?? '').toLowerCase().includes(q));
+    return sizes.filter((s) => !q || s.name.toLowerCase().includes(q));
   }, [sizes, search]);
 
   const confirmDelete = async () => {
@@ -45,12 +45,8 @@ export default function AdminSizesPage() {
     }
   };
 
-  const dash = <span className="text-muted-foreground">—</span>;
-
   const columns: Column<AdminSizeView>[] = [
     { key: 'name', header: 'Nhãn quy cách', render: (s) => <span className="font-semibold">{s.name}</span> },
-    { key: 'unit', header: 'Đơn vị', render: (s) => s.unit || dash },
-    { key: 'packQty', header: 'SL/thùng', align: 'center', render: (s) => s.packQty ?? dash },
     {
       key: 'categories',
       header: 'Phạm vi',

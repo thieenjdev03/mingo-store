@@ -7,18 +7,14 @@ import { Button } from "@/components/ui/button";
 import { Link } from "@/i18n/navigation";
 import { fCurrencyVND } from "@/lib/format";
 import { useCart } from "@/features/cart/cart-context";
+import { useProductVariantSelection } from "./product-variant-selection";
 import { discountPercent, type ProductDetailView } from "./types";
 
 export function PurchasePanel({ product }: { product: ProductDetailView }) {
   const t = useTranslations("product");
   const cart = useCart();
-  const initialSelectedSku =
-    product.variants.find((variant) => variant.inStock)?.sku ??
-    product.variants[0]?.sku ??
-    null;
-  const [selectedSku, setSelectedSku] = useState<string | null>(
-    initialSelectedSku,
-  );
+  // SKU đang chọn nằm ở context để gallery đổi ảnh theo biến thể; đây là nguồn duy nhất.
+  const { selectedSku, selectVariant: setSelectedSku } = useProductVariantSelection();
   const [quantity, setQuantity] = useState(1);
 
   const selectedVariant = product.hasVariants
@@ -91,7 +87,7 @@ export function PurchasePanel({ product }: { product: ProductDetailView }) {
                     aria-checked={selected}
                     disabled={!variant.inStock || cart.isMutating}
                     onClick={() => selectVariant(variant.sku)}
-                    title={`${chipName} · ${fCurrencyVND(variant.price)}`}
+                    title={product.isContactForPrice ? chipName : `${chipName} · ${fCurrencyVND(variant.price)}`}
                     className={`min-h-10 max-w-full rounded-full border px-4 py-2 text-sm font-bold leading-5 transition-[color,background-color,border-color,box-shadow] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-40 disabled:line-through ${
                       selected
                         ? "border-primary bg-primary text-primary-foreground shadow-sm"
@@ -145,13 +141,12 @@ export function PurchasePanel({ product }: { product: ProductDetailView }) {
                     }`}
                   >
                     {variant.label}
-                    {variant.packLabel ? ` - ${variant.packLabel}` : ""}
                   </span>
                   {soldOut ? (
                     <span className="shrink-0 text-[14px] font-bold uppercase leading-6 text-[#a8a49d] lg:text-[19px]">
                       {t("outOfStock")}
                     </span>
-                  ) : (
+                  ) : product.isContactForPrice ? null : (
                     <span className="shrink-0 text-[14px] font-bold leading-6 text-[#563e2b] lg:text-[19px]">
                       {fCurrencyVND(variant.price)}
                     </span>

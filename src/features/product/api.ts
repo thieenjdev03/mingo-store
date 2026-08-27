@@ -10,55 +10,7 @@ export type ProductDetailApiDto = ProductResponseDto & {
   nutrition_information?: string | null;
   usage_instructions?: string | null;
   notes?: string | null;
-  /** Kept optional until the backend OpenAPI export can be refreshed after its migration ships. */
-  is_contact_for_price?: boolean;
 };
-
-/**
- * Thuộc tính đầy đủ của quy cách (size) từ `GET /sizes`. API sản phẩm chỉ nhúng
- * `variant.size = {id, name}`, nên PDP fetch danh sách này rồi ghép theo `size.id`
- * để dựng nhãn quy cách đúng như thuộc tính đã cấu hình ở trang Quy cách.
- * `volumeUnit` hiện chưa được backend trả về — mapper sẽ suy ra từ `name`.
- */
-export interface SizeMeta {
-  id: string;
-  name: string;
-  unit: string | null;
-  packQty: number | null;
-  volumeMl: number | null;
-  volumeUnit: string | null;
-}
-
-interface SizeApiDto {
-  id: string;
-  name: string;
-  unit?: string | null;
-  packQty?: number | null;
-  volumeMl?: number | null;
-  volumeUnit?: string | null;
-}
-
-/** Danh sách quy cách (public read). Trả map theo id để PDP tra cứu nhanh. */
-export async function getSizeMetaById(): Promise<Map<string, SizeMeta>> {
-  const sizes = await customFetch<SizeApiDto[]>({
-    url: '/sizes',
-    method: 'GET',
-    cache: 'no-store',
-  }).catch(() => [] as SizeApiDto[]);
-  return new Map(
-    sizes.map((s) => [
-      s.id,
-      {
-        id: s.id,
-        name: s.name,
-        unit: s.unit ?? null,
-        packQty: s.packQty ?? null,
-        volumeMl: s.volumeMl ?? null,
-        volumeUnit: s.volumeUnit ?? null,
-      },
-    ]),
-  );
-}
 
 /**
  * Server-side fetchers cho products. Generated SWR client (products/products.ts) import
