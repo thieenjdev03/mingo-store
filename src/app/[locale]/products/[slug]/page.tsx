@@ -22,6 +22,19 @@ const richHtmlClass =
 
 export const dynamic = 'force-dynamic';
 
+/** Chip thông tin dưới tên sản phẩm; có href thì bấm được để tới trang brand/collection/category. */
+function InfoChip({ label, href }: { label: string | null; href?: string | null }) {
+  if (!label) return null;
+  const chip = <Chip className="rounded-l-none text-primary">{label}</Chip>;
+  return href ? (
+    <Link href={href} className="transition-opacity hover:opacity-70">
+      {chip}
+    </Link>
+  ) : (
+    chip
+  );
+}
+
 async function resolveProduct(slug: string, locale: 'vi' | 'en') {
   return getProductBySlug(slug, locale).catch(() => null);
 }
@@ -75,6 +88,13 @@ export default async function ProductDetailPage({
   // Thuộc tính quy cách đầy đủ để dựng nhãn "24 cây / thùng, cây 60 gr" — API sản phẩm chỉ nhúng {id, name}.
   const sizeMetaById = apiProduct.variants?.length ? await getSizeMetaById() : undefined;
   const product = toProductDetailView(apiProduct, safeLocale, sizeMetaById);
+  const specLabel =
+    product.spec ??
+    (product.weightGrams != null
+      ? `${product.weightGrams} g`
+      : product.weightKg != null
+        ? fWeight(product.weightKg)
+        : null);
 
   // "Gợi ý cho bạn": sản phẩm cùng category với sản phẩm đang xem (loại chính nó), tối đa 8.
   const suggestions = product.categoryId
@@ -162,13 +182,10 @@ export default async function ProductDetailPage({
             {product.name}
           </h1>
           <div className="mt-4 flex flex-wrap gap-2 lg:mt-[30px] lg:gap-[25px]">
-            {product.brandName && <Chip className="rounded-l-none text-primary">{product.brandName}</Chip>}
-            {product.collectionName && <Chip className="rounded-l-none text-primary">{product.collectionName}</Chip>}
-            {product.categoryName && <Chip className="rounded-l-none text-primary">{product.categoryName}</Chip>}
-            {product.weightGrams != null ? <Chip className="rounded-l-none text-primary">{product.weightGrams} g</Chip> : null}
-            {product.weightGrams == null && product.weightKg != null ? (
-              <Chip className="rounded-l-none text-primary">{fWeight(product.weightKg)}</Chip>
-            ) : null}
+            <InfoChip label={product.collectionName} href={product.collectionSlug ? `/collections/${product.collectionSlug}` : null} />
+            <InfoChip label={specLabel} />
+            <InfoChip label={product.brandName} href={product.brandSlug ? `/brands/${product.brandSlug}` : null} />
+            <InfoChip label={product.categoryName} href={product.categorySlug ? `/categories/${product.categorySlug}` : null} />
           </div>
 
           {!product.descriptionHtml ? (
