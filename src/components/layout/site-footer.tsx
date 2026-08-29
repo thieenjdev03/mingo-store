@@ -23,7 +23,7 @@ const COMPANY = {
 const SOCIALS = [
   {
     label: "Facebook",
-    href: "https://www.facebook.com",
+    href: "https://www.facebook.com/mingoicecreamvietnam",
     icon: "/assets/mingo/home/facebook.svg",
   },
   {
