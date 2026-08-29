@@ -34,12 +34,44 @@
       "emptyValue": "(empty)",
       "deletedWarning": "This record has been deleted.",
       "fieldsChanged": "{count} fields changed",
-      "actions": { "CREATE": "Create", "UPDATE": "Update", "DELETE": "Delete" },
-      "summaries": { "CREATE": "Record created", "DELETE": "Record deleted" },
-      "entities": { "Product": "Product", "Order": "Order", "Category": "Category", "User": "User", "Collection": "Collection", "Brand": "Brand", "Size": "Size", "Career": "Career posting", "Policy": "Policy", "HomepageBanner": "Homepage banner", "Distributor": "Distributor" },
-      "fields": { "basePrice": "Base price", "salePrice": "Sale price", "variantIds": "Variant IDs", "productName": "Product name", "status": "Status" },
-      "metadataFields": { "ip": "IP address", "userAgent": "User agent", "method": "Method", "path": "Path" },
-      "detail": { "title": "Audit log details" }
+      "actions": {
+        "CREATE": "Create",
+        "UPDATE": "Update",
+        "DELETE": "Delete"
+      },
+      "summaries": {
+        "CREATE": "Record created",
+        "DELETE": "Record deleted"
+      },
+      "entities": {
+        "Product": "Product",
+        "Order": "Order",
+        "Category": "Category",
+        "User": "User",
+        "Collection": "Collection",
+        "Brand": "Brand",
+        "Size": "Size",
+        "Career": "Career posting",
+        "Policy": "Policy",
+        "HomepageBanner": "Homepage banner",
+        "Distributor": "Distributor"
+      },
+      "fields": {
+        "basePrice": "Base price",
+        "salePrice": "Sale price",
+        "variantIds": "Variant IDs",
+        "productName": "Product name",
+        "status": "Status"
+      },
+      "metadataFields": {
+        "ip": "IP address",
+        "userAgent": "User agent",
+        "method": "Method",
+        "path": "Path"
+      },
+      "detail": {
+        "title": "Audit log details"
+      }
     }
   },
   "points": {
@@ -137,7 +169,8 @@
       "title": "Mingo has received your message!",
       "description": "Thank you for reaching out. The Mingo team will get back to you soon.",
       "sendAnother": "Send another message"
-    }
+    },
+    "error": "Could not send your message. Please try again or call our hotline."
   },
   "locale": {
     "switch": "Switch language / Chuyển ngôn ngữ",
@@ -216,13 +249,13 @@
     "guestCheckout": "to earn points and track your order, or continue as a guest without signing in.",
     "memberCheckout": "You are checking out with your Mingo account and will earn points when the order is delivered.",
     "deliveryNotice": "Your delivery fee is shown at checkout.",
-      "buyerTitle": "Buyer information",
-      "shippingTitle": "Shipping details",
-      "recipientTitle": "Recipient information",
-      "recipientSameAsBuyer": "Recipient information is the same as buyer information",
-      "savedAddress": "Saved address",
-      "savedAddressPlaceholder": "Choose a saved address",
-      "defaultAddress": "Default",
+    "buyerTitle": "Buyer information",
+    "shippingTitle": "Shipping details",
+    "recipientTitle": "Recipient information",
+    "recipientSameAsBuyer": "Recipient information is the same as buyer information",
+    "savedAddress": "Saved address",
+    "savedAddressPlaceholder": "Choose a saved address",
+    "defaultAddress": "Default",
     "fullName": "Recipient full name",
     "phone": "Phone number",
     "province": "Province/City",
@@ -338,7 +371,13 @@
     "otpResendIn": "Resend code in {seconds}s",
     "otpResent": "A new verification code has been sent to your email.",
     "otpInvalid": "The verification code is incorrect or has expired.",
-    "otpChangeEmail": "Change email"
+    "otpChangeEmail": "Change email",
+    "resetTitle": "Set a new password",
+    "resetDescription": "We sent a 6-digit code to {email}. Enter the code and your new password to finish.",
+    "newPassword": "New password",
+    "resetSubmit": "Reset password",
+    "resetSubmitting": "Resetting...",
+    "resetSuccess": "Password reset. Please sign in with your new password."
   },
   "account": {
     "title": "My account",
@@ -572,7 +611,9 @@
     "delivery": "Delivery method",
     "direct": "Delivered directly by Mingo",
     "dealer": "Delivered by the dealer serving your area",
-    "address": "Delivery address"
+    "address": "Delivery address",
+    "payAgainTitle": "Pay for this order",
+    "payAgainDescription": "This order is awaiting payment. Scan the QR code below and transfer the exact amount, using the order code as the transfer note."
   },
   "vnpayReturn": {
     "checkingTitle": "Checking your payment",
@@ -614,7 +655,8 @@
     "increaseQuantity": "Increase quantity",
     "variants": "Variants",
     "skuLabel": "SKU: {sku}",
-    "availableCount": "{count} items"
+    "availableCount": "{count} items",
+    "phoneLabel": "Phone"
   },
   "notFound": {
     "title": "Page not found",

@@ -9,6 +9,7 @@ import { cn } from '@/lib/utils';
 import { Logo } from '@/components/layout/logo';
 import { ADMIN_NAV } from './admin-nav';
 import { clearAdminSession, getAdminUser } from '@/lib/admin/auth';
+import { clearAdminSessionCookie } from '@/lib/admin/session-client';
 
 function isActive(pathname: string, href: string): boolean {
   if (href === '/admin') return pathname === '/admin';
@@ -23,8 +24,9 @@ export function AdminShell({ children }: { children: ReactNode }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const user = getAdminUser();
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     clearAdminSession();
+    await clearAdminSessionCookie();
     router.replace('/admin/login');
   };
 

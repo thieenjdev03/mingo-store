@@ -9,8 +9,10 @@ import {
   otpControllerSendOtp,
   otpControllerVerifyOtp,
   otpControllerSendPasswordResetOtp,
+  otpControllerResetPassword,
 } from '@/lib/api/generated/otp/otp';
-import { setAccessToken } from '@/lib/auth/token';
+import { clearAccessToken, getAccessToken, setAccessToken } from '@/lib/auth/token';
+import { syncAdminSession } from '@/lib/admin/session-client';
 import { ApiError } from '@/lib/api/fetcher';
 import { mergeCart } from '@/features/cart/api';
 import { notifyCartUpdated } from '@/features/cart/cart-token';
@@ -34,14 +36,9 @@ const OTP_RESEND_COOLDOWN = 60;
 
 interface CustomerAuthFormProps {
   mode: AuthMode;
-  /**
-   * Khi được cung cấp (form nhúng trong /account), gọi sau khi đăng nhập/đăng ký thành công
-   * thay vì điều hướng sang /account — để trang tự cập nhật trạng thái đăng nhập tại chỗ.
-   */
-  onAuthenticated?: () => void;
 }
 
-export function CustomerAuthForm({ mode, onAuthenticated }: CustomerAuthFormProps) {
+export function CustomerAuthForm({ mode }: CustomerAuthFormProps) {
   const t = useTranslations('auth');
   const locale = useLocale();
   const router = useRouter();
@@ -53,6 +50,8 @@ export function CustomerAuthForm({ mode, onAuthenticated }: CustomerAuthFormProp
   // Bước xác thực OTP của luồng đăng ký: chỉ hiện sau khi đã gửi mã đến email.
   const [pending, setPending] = useState<PendingRegistration | null>(null);
   const [otpValue, setOtpValue] = useState('');
+  // Bước đặt mật khẩu mới của luồng quên mật khẩu: email đã nhận OTP.
+  const [resetEmail, setResetEmail] = useState<string | null>(null);
   const [resendCooldown, setResendCooldown] = useState(0);
   // Backend verifyOtp sẽ tự tạo tài khoản, nên phải register (đặt đúng mật khẩu) TRƯỚC khi
   // verify. Cờ này đảm bảo chỉ register 1 lần dù người dùng nhập sai OTP rồi thử lại.
@@ -65,6 +64,25 @@ export function CustomerAuthForm({ mode, onAuthenticated }: CustomerAuthFormProp
     return () => clearTimeout(timer);
   }, [resendCooldown]);
 
+  // Hỗ trợ session cũ chỉ còn trong localStorage: đồng bộ lại cookie trước khi hiển thị form.
+  useEffect(() => {
+    const accessToken = getAccessToken();
+    if (!accessToken) return;
+    let cancelled = false;
+    syncAdminSession(accessToken).then((user) => {
+      if (cancelled) return;
+      if (!user) {
+        clearAccessToken();
+        return;
+      }
+      if (user.role === 'admin') window.location.replace('/admin');
+      else router.replace('/');
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [router]);
+
   const config = {
     login: { title: t('loginTitle'), description: t('loginDescription'), submit: t('loginSubmit') },
     register: { title: t('registerTitle'), description: t('registerDescription'), submit: t('registerSubmit') },
@@ -72,6 +90,16 @@ export function CustomerAuthForm({ mode, onAuthenticated }: CustomerAuthFormProp
   }[mode];
 
   const otpStep = mode === 'register' && pending !== null;
+  const resetStep = mode === 'forgot' && resetEmail !== null;
+
+  async function completeAuthentication(accessToken: string, role: string) {
+    setAccessToken(accessToken);
+    const sessionUser = await syncAdminSession(accessToken);
+    if (!sessionUser || sessionUser.role !== role) throw new Error('Session could not be verified');
+    await mergeCartAfterAuthentication(locale);
+    if (role === 'admin') window.location.replace('/admin');
+    else router.push('/');
+  }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -84,10 +112,7 @@ export function CustomerAuthForm({ mode, onAuthenticated }: CustomerAuthFormProp
     try {
       if (mode === 'login') {
         const res = await authControllerLogin({ email, password });
-        setAccessToken(res.accessToken);
-        await mergeCartAfterAuthentication(locale);
-        if (onAuthenticated) onAuthenticated();
-        else router.push('/account');
+        await completeAuthentication(res.accessToken, res.user.role);
         return;
       }
 
@@ -119,16 +144,17 @@ export function CustomerAuthForm({ mode, onAuthenticated }: CustomerAuthFormProp
         return;
       }
 
-      // forgot: gửi OTP đặt lại mật khẩu tới email (backend: /api/v1/otp/send-password-reset).
-      // Backend hiện CHƯA có endpoint đặt mật khẩu mới bằng OTP nên chỉ dừng ở bước gửi mã;
-      // luôn hiển thị thông báo trung tính để không lộ email nào đã đăng ký.
+      // forgot: gửi OTP đặt lại mật khẩu (backend: /api/v1/otp/send-password-reset) rồi sang
+      // bước nhập mã + mật khẩu mới (/api/v1/otp/reset-password).
       try {
         await otpControllerSendPasswordResetOtp({ email });
       } catch (error) {
         // Nuốt lỗi "email không tồn tại" để tránh dò tài khoản; lỗi mạng thật thì báo chung.
         if (!(error instanceof ApiError)) throw error;
       }
-      setSubmitted(true);
+      setResetEmail(email);
+      setOtpValue('');
+      setResendCooldown(OTP_RESEND_COOLDOWN);
     } catch (error) {
       setErrorMessage(error instanceof ApiError ? errorMessageFromApiError(error) : t('genericError'));
     } finally {
@@ -161,10 +187,32 @@ export function CustomerAuthForm({ mode, onAuthenticated }: CustomerAuthFormProp
       await otpControllerVerifyOtp({ email: pending.email, otp: otpValue.trim() });
       // Backend không trả accessToken khi đăng ký — đăng nhập lại ngay bằng thông tin vừa tạo.
       const loginRes = await authControllerLogin({ email: pending.email, password: pending.password });
-      setAccessToken(loginRes.accessToken);
-      await mergeCartAfterAuthentication(locale);
-      if (onAuthenticated) onAuthenticated();
-      else router.push('/account');
+      await completeAuthentication(loginRes.accessToken, loginRes.user.role);
+    } catch (error) {
+      setErrorMessage(error instanceof ApiError ? errorMessageFromApiError(error) : t('otpInvalid'));
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  // Bước 2 của quên mật khẩu: một request vừa xác thực OTP vừa đổi mật khẩu.
+  async function handleResetPassword(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!resetEmail) return;
+    setErrorMessage(null);
+    setInfoMessage(null);
+    const data = new FormData(event.currentTarget);
+    const newPassword = String(data.get('newPassword') ?? '');
+    if (newPassword !== String(data.get('confirmPassword') ?? '')) {
+      setErrorMessage(t('passwordMismatch'));
+      return;
+    }
+    setSubmitting(true);
+    try {
+      await otpControllerResetPassword({ email: resetEmail, otp: otpValue.trim(), newPassword });
+      setResetEmail(null);
+      setSubmitted(true);
+      router.push('/login');
     } catch (error) {
       setErrorMessage(error instanceof ApiError ? errorMessageFromApiError(error) : t('otpInvalid'));
     } finally {
@@ -173,11 +221,13 @@ export function CustomerAuthForm({ mode, onAuthenticated }: CustomerAuthFormProp
   }
 
   async function handleResendOtp() {
-    if (!pending || resendCooldown > 0) return;
+    // pending = luồng đăng ký, resetEmail = luồng quên mật khẩu.
+    if ((!pending && !resetEmail) || resendCooldown > 0) return;
     setErrorMessage(null);
     setInfoMessage(null);
     try {
-      await otpControllerSendOtp({ email: pending.email });
+      if (resetEmail) await otpControllerSendPasswordResetOtp({ email: resetEmail });
+      else if (pending) await otpControllerSendOtp({ email: pending.email });
       setInfoMessage(t('otpResent'));
       setResendCooldown(OTP_RESEND_COOLDOWN);
     } catch (error) {
@@ -188,6 +238,7 @@ export function CustomerAuthForm({ mode, onAuthenticated }: CustomerAuthFormProp
   // Quay lại bước điền form (đổi email) — bỏ trạng thái OTP đang chờ.
   function backToForm() {
     setPending(null);
+    setResetEmail(null);
     setOtpValue('');
     setErrorMessage(null);
     setInfoMessage(null);
@@ -207,16 +258,75 @@ export function CustomerAuthForm({ mode, onAuthenticated }: CustomerAuthFormProp
           ) : null}
           <p className="text-sm font-bold uppercase tracking-[0.16em] text-primary">Mingo members</p>
           <h1 className="mt-3 font-display text-3xl font-bold leading-tight text-foreground sm:text-4xl">
-            {otpStep ? t('otpTitle') : config.title}
+            {otpStep ? t('otpTitle') : resetStep ? t('resetTitle') : config.title}
           </h1>
           <p className="mt-3 leading-6 text-muted-foreground">
-            {otpStep && pending ? t('otpDescription', { email: pending.email }) : config.description}
+            {otpStep && pending
+              ? t('otpDescription', { email: pending.email })
+              : resetStep && resetEmail
+                ? t('resetDescription', { email: resetEmail })
+                : config.description}
           </p>
 
           {submitted ? (
             <div className="mt-8 rounded-lg bg-blush p-5 text-sm font-semibold leading-6 text-primary" role="status">
-              {t('successNote')}
+              {mode === 'forgot' ? t('resetSuccess') : t('successNote')}
             </div>
+          ) : resetStep ? (
+            <form onSubmit={handleResetPassword} className="mt-8 space-y-5">
+              {errorMessage ? (
+                <div className="rounded-lg bg-destructive/10 p-4 text-sm font-semibold text-destructive" role="alert">
+                  {errorMessage}
+                </div>
+              ) : null}
+              {infoMessage ? (
+                <div className="rounded-lg bg-blush p-4 text-sm font-semibold text-primary" role="status">
+                  {infoMessage}
+                </div>
+              ) : null}
+              <AuthInput
+                id="otp"
+                name="otp"
+                label={t('otpLabel')}
+                placeholder={t('otpPlaceholder')}
+                inputMode="numeric"
+                autoComplete="one-time-code"
+                pattern="[0-9]*"
+                maxLength={6}
+                value={otpValue}
+                onChange={(e) => setOtpValue(e.target.value.replace(/\D/g, ''))}
+                className="tracking-[0.5em]"
+                required
+                autoFocus
+              />
+              <div className="relative">
+                <AuthInput
+                  id="newPassword"
+                  name="newPassword"
+                  type={showPassword ? 'text' : 'password'}
+                  label={t('newPassword')}
+                  placeholder={t('passwordPlaceholder')}
+                  autoComplete="new-password"
+                  minLength={8}
+                  required
+                />
+                <button type="button" onClick={() => setShowPassword((current) => !current)} aria-label={showPassword ? 'Hide password' : 'Show password'} className="absolute bottom-3 right-3 rounded p-1 text-muted-foreground hover:text-primary">
+                  {showPassword ? <EyeOff className="size-5" aria-hidden="true" /> : <Eye className="size-5" aria-hidden="true" />}
+                </button>
+              </div>
+              <AuthInput id="confirmPassword" name="confirmPassword" type="password" label={t('confirmPassword')} autoComplete="new-password" minLength={8} required />
+              <button type="submit" disabled={submitting || otpValue.length < 6} className="flex h-12 w-full items-center justify-center rounded-lg bg-primary px-6 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary-dark disabled:cursor-wait disabled:opacity-60">
+                {submitting ? t('resetSubmitting') : t('resetSubmit')}
+              </button>
+              <div className="flex items-center justify-between text-sm">
+                <button type="button" onClick={backToForm} className="font-semibold text-muted-foreground hover:text-primary">
+                  {t('otpChangeEmail')}
+                </button>
+                <button type="button" onClick={handleResendOtp} disabled={resendCooldown > 0} className="font-semibold text-primary hover:text-primary-dark disabled:cursor-not-allowed disabled:text-muted-foreground">
+                  {resendCooldown > 0 ? t('otpResendIn', { seconds: resendCooldown }) : t('otpResend')}
+                </button>
+              </div>
+            </form>
           ) : otpStep ? (
             <form onSubmit={handleVerifyOtp} className="mt-8 space-y-5">
               {errorMessage ? (

@@ -17,7 +17,7 @@ import { useToast } from '@/components/admin/ui/toast';
 import { fCurrencyVND } from '@/lib/format';
 import { resolveLocalized } from '@/types/localized';
 import { ProductForm } from '@/features/admin/products/product-form';
-import { productsKey, listProducts, deleteProduct } from '@/features/admin/products/api';
+import { productsKey, listProducts, deleteProduct, productStockTotal } from '@/features/admin/products/api';
 import { categoriesKey, listCategories } from '@/features/admin/categories/api';
 import { brandsKey, listBrands } from '@/features/admin/brands/api';
 
@@ -96,7 +96,12 @@ export default function AdminProductsPage() {
     { key: 'category', header: 'Danh mục', render: (p) => p.category?.name || <span className="text-muted-foreground">—</span> },
     { key: 'brand', header: 'Thương hiệu', render: (p) => p.brand?.name || <span className="text-muted-foreground">—</span> },
     { key: 'price', header: 'Giá', align: 'right', render: (p) => fCurrencyVND(Number(p.sale_price ?? p.price)) },
-    { key: 'stock_quantity', header: 'Tồn', align: 'center', render: (p) => p.stock_quantity },
+    {
+      key: 'stock_quantity',
+      header: 'Tồn',
+      align: 'center',
+      render: (p) => productStockTotal(p),
+    },
     {
       key: 'status',
       header: 'Trạng thái',

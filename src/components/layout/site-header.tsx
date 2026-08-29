@@ -170,7 +170,7 @@ export function SiteHeader() {
         hidden ? "pointer-events-none -translate-y-full opacity-0" : "translate-y-0 opacity-100"
       }`}
     >
-      <div className="relative mx-auto flex h-full max-w-[1440px] items-center px-4 sm:px-8 xl:justify-between xl:px-[107px]">
+      <div className="relative flex h-full w-full items-center gap-4 px-4 sm:px-6 xl:gap-[40px]">
         {/* Logo nằm trong dòng flex (items-center) nên luôn căn giữa theo chiều cao
             header, không phụ thuộc mốc % của mockup 1440. */}
         <Link
@@ -190,7 +190,7 @@ export function SiteHeader() {
 
         <nav
           aria-label={t("mainNav")}
-          className="hidden h-8 shrink items-center gap-[clamp(20px,4.1667vw,60px)] xl:flex"
+          className="hidden h-8 shrink items-center gap-[clamp(20px,3vw,44px)] xl:ml-auto xl:flex"
         >
           {NAV.map((item) => {
             const dropdown = navDropdown(item.key);
@@ -248,7 +248,7 @@ export function SiteHeader() {
           })}
         </nav>
 
-        <div className="ml-auto flex shrink-0 items-center gap-4 xl:ml-0 xl:gap-[clamp(20px,4.1667vw,60px)]">
+        <div className="ml-auto flex shrink-0 items-center gap-4 xl:ml-0 xl:gap-[clamp(20px,2vw,32px)]">
           <Link
             href="/account"
             aria-label={t("account")}

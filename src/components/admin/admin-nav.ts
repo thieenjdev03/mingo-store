@@ -10,6 +10,7 @@ import {
   Store,
   FileText,
   Images,
+  Link2,
   Users,
   UserRoundCheck,
   type LucideIcon,
@@ -57,6 +58,7 @@ export const ADMIN_NAV: AdminNavGroup[] = [
     items: [
       { label: 'Banner trang chủ', href: '/admin/homepage-banners', icon: Images },
       { label: 'Chính sách', href: '/admin/policies', icon: FileText },
+      { label: 'Liên kết', href: '/admin/settings', icon: Link2 },
     ],
   },
   {

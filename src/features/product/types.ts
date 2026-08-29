@@ -7,6 +7,8 @@ import type { ProductResponseDto, ProductVariantResponseDto } from '@/lib/api/ge
 import { resolveLocalized, type Locale } from '@/types/localized';
 import type { ProductDetailApiDto } from './api';
 
+export const PRODUCT_PLACEHOLDER_IMAGE = '/assets/mingo/product-placeholder.png';
+
 export interface ProductVariantView {
   sku: string;
   /** Tên biến thể do quản trị viên đặt, dùng cho chế độ chip khi danh sách dài. */
@@ -133,7 +135,7 @@ export function toProductCardView(
     id: p.id,
     slug: resolveLocalized(p.slug, locale),
     name: resolveLocalized(p.name, locale),
-    image: p.images[0] ?? null,
+    image: p.images[0] ?? PRODUCT_PLACEHOLDER_IMAGE,
     price,
     // Giá gạch = giá gốc, chỉ hiện khi đang có giá KM thấp hơn và bật nhãn giảm giá.
     compareAtPrice:

@@ -53,7 +53,7 @@ export async function SiteFooter() {
 
   return (
     <footer className="bg-white text-[#563e2b]">
-      <div className="mx-auto grid h-auto max-w-[1200px] items-start gap-10 px-5 py-10 sm:grid-cols-2 sm:px-8 lg:grid-cols-[minmax(0,270px)_120px_120px_155px_1fr] lg:gap-[31px] lg:py-6 xl:px-0">
+      <div className="mx-auto grid h-auto max-w-[1440px] items-start gap-10 px-5 py-10 sm:grid-cols-2 sm:px-8 lg:grid-cols-[minmax(0,270px)_120px_120px_155px_1fr] lg:gap-[31px] lg:py-6 min-[1504px]:px-0">
         <div>
           <h3 className="mb-3 text-[12px] font-bold uppercase leading-8 lg:text-[14px]">
             {t("companyTitle")}
@@ -161,20 +161,13 @@ export async function SiteFooter() {
             alt="Đã thông báo Bộ Công Thương"
             width={988}
             height={398}
-            className="mt-4 h-auto w-[300px] shrink-0"
-          />
-          <Image
-            src="/assets/mingo/logo.png"
-            alt="Đã thông báo Bộ Công Thương"
-            width={674}
-            height={206}
-            className="mt-4 h-auto w-[300px] shrink-0"
+            className="mt-4 h-auto w-50 shrink-0"
           />
         </div>
       </div>
 
       <div className="border-t border-[#563e2b]">
-        <div className="mx-auto max-w-[1200px] px-5 py-[21px] sm:px-8 xl:px-0">
+        <div className="mx-auto max-w-[1440px] px-5 py-[21px] sm:px-8 min-[1504px]:px-0">
           <p className="text-[12px] leading-[22px] text-black lg:text-[14px]">
             Hồng Tân Phát Co.,Ltd.
           </p>

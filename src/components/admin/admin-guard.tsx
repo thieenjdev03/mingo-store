@@ -2,13 +2,12 @@
 
 import { useEffect, useState, type ReactNode } from 'react';
 import Link from 'next/link';
-import { isAdminAuthenticated } from '@/lib/admin/auth';
+import { clearAdminSession } from '@/lib/admin/auth';
 import { MeltingIceCreamLoader } from '@/components/ui/melting-ice-cream-loader';
 
 /**
- * Guard client-side cho `/admin/**`: chưa đăng nhập admin -> đẩy sang /admin/login.
- * Backend vẫn là nguồn chân lý (401/403), guard này chỉ để UX. Kiểm tra sau mount vì
- * token nằm ở localStorage (không đọc được khi SSR).
+ * Guard phía client chỉ xử lý phiên hết hạn khi người dùng đang mở trang.
+ * Quyền truy cập thật đã được kiểm tra ở middleware bằng cookie HttpOnly + backend.
  *
  * Redirect dùng window.location (điều hướng cứng) để chắc chắn thoát khỏi màn "đang kiểm tra"
  * kể cả khi soft-navigation không kích hoạt; kèm link dự phòng nếu vì lý do nào đó chưa chuyển.
@@ -28,19 +27,19 @@ export function AdminGuard({ children }: { children: ReactNode }) {
     // Không để lỗi storage hoặc browser/webview khiến guard treo vô thời hạn.
     const fallbackTimer = window.setTimeout(goToLogin, 3000);
 
-    try {
-      if (isAdminAuthenticated()) {
+    fetch('/api/admin/session', { cache: 'no-store' })
+      .then((response) => {
+        if (settled) return;
+        if (!response.ok) throw new Error('Admin session is invalid');
         settled = true;
         window.clearTimeout(fallbackTimer);
         setStatus('ok');
-      } else {
+      })
+      .catch(() => {
         window.clearTimeout(fallbackTimer);
+        clearAdminSession();
         goToLogin();
-      }
-    } catch {
-      window.clearTimeout(fallbackTimer);
-      goToLogin();
-    }
+      });
 
     return () => {
       settled = true;

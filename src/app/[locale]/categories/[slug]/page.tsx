@@ -91,7 +91,7 @@ export default async function CategoryPage({ params }: { params: Promise<{ local
         ) : null}
       </section>
       <section className="min-h-[560px] bg-fog py-16 sm:py-20 lg:py-24">
-        {loadFailed || products.length === 0 ? <p className="mx-auto max-w-xl px-5 text-center text-muted-foreground">{loadFailed ? t('loadError') : t('empty')}</p> : <ProductShowcaseGrid products={products} outOfStockLabel={t('outOfStock')} contactLabel={t('priceOnRequest')} unavailableContactLabel={t('contactForInfo')} />}
+        {loadFailed || products.length === 0 ? <p className="mx-auto max-w-xl px-5 text-center text-muted-foreground">{loadFailed ? t('loadError') : t('empty')}</p> : <ProductShowcaseGrid products={products} outOfStockLabel={t('outOfStock')} contactLabel={t('contactForInfo')} />}
       </section>
     </div>
   );

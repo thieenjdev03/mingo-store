@@ -9,6 +9,7 @@ import { getApiErrorMessage } from '@/lib/api/error-message';
 import { getMyOrder } from '@/features/checkout/api';
 import type { OrderView } from '@/features/checkout/types';
 import { MeltingIceCreamLoader } from '@/components/ui/melting-ice-cream-loader';
+import { VietQrPanel } from '@/features/checkout/vietqr-panel';
 
 export function OrderDetailView({ orderCode }: { orderCode: string }) {
   const t = useTranslations('orders');
@@ -23,6 +24,10 @@ export function OrderDetailView({ orderCode }: { orderCode: string }) {
   if (!order) return <div className="bg-ivory py-20"><MeltingIceCreamLoader label={t('loading')} /></div>;
 
   const address = order.shippingSnapshot ?? order.shippingAddress;
+  // Lỡ luồng QR (đóng tab, hết phiên...) vẫn thanh toán lại được: QR chỉ cần mã đơn + số tiền.
+  const awaitingPayment = order.paymentStatus === 'PENDING' || order.paymentStatus === 'FAILED';
+  const canPayAgain = awaitingPayment && order.paymentMethod !== 'COD' && order.status !== 'CANCELLED';
+  const orderTotal = Number(order.summary.total);
   return (
     <div className="bg-ivory py-12 sm:py-16">
       <div className="mx-auto max-w-[900px] px-5 sm:px-8">
@@ -64,6 +69,14 @@ export function OrderDetailView({ orderCode }: { orderCode: string }) {
               <p className="mt-2 text-sm leading-6 text-muted-foreground">{formatAddress(address)}</p>
             </section>
           </div>
+
+          {canPayAgain && Number.isFinite(orderTotal) ? (
+            <section className="mt-8 border-t border-border pt-7">
+              <h2 className="font-display text-2xl font-bold text-foreground">{t('payAgainTitle')}</h2>
+              <p className="mt-2 text-sm leading-6 text-muted-foreground">{t('payAgainDescription')}</p>
+              <VietQrPanel orderCode={order.orderNumber} total={orderTotal} />
+            </section>
+          ) : null}
         </div>
       </div>
     </div>

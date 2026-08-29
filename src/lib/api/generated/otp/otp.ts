@@ -15,6 +15,7 @@ import type {
 } from 'swr/mutation';
 
 import type {
+  ResetPasswordDto,
   SendOtpDto,
   VerifyOtpDto
 } from '../ecomAPI.schemas';
@@ -107,6 +108,51 @@ export const useOtpControllerSendPasswordResetOtp = <TError = unknown>(
 
   const swrKey = swrOptions?.swrKey ?? getOtpControllerSendPasswordResetOtpMutationKey();
   const swrFn = getOtpControllerSendPasswordResetOtpMutationFetcher();
+
+  const query = useSWRMutation(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
+/**
+ * @summary Reset password with the OTP sent to email
+ */
+export const otpControllerResetPassword = (
+    resetPasswordDto: ResetPasswordDto,
+ ) => {
+    return customFetch<void>(
+    {url: `/api/v1/otp/reset-password`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: resetPasswordDto
+    },
+    );
+  }
+
+
+
+export const getOtpControllerResetPasswordMutationFetcher = ( ) => {
+  return (_: Key, { arg }: { arg: ResetPasswordDto }) => {
+    return otpControllerResetPassword(arg);
+  }
+}
+export const getOtpControllerResetPasswordMutationKey = () => [`/api/v1/otp/reset-password`] as const;
+
+export type OtpControllerResetPasswordMutationResult = NonNullable<Awaited<ReturnType<typeof otpControllerResetPassword>>>
+export type OtpControllerResetPasswordMutationError = unknown
+
+/**
+ * @summary Reset password with the OTP sent to email
+ */
+export const useOtpControllerResetPassword = <TError = unknown>(
+   options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof otpControllerResetPassword>>, TError, Key, ResetPasswordDto, Awaited<ReturnType<typeof otpControllerResetPassword>>> & { swrKey?: string }, }
+) => {
+
+  const {swr: swrOptions} = options ?? {}
+
+  const swrKey = swrOptions?.swrKey ?? getOtpControllerResetPasswordMutationKey();
+  const swrFn = getOtpControllerResetPasswordMutationFetcher();
 
   const query = useSWRMutation(swrKey, swrFn, swrOptions)
 

@@ -401,6 +401,12 @@ export interface SendOtpDto {
   email: string;
 }
 
+export interface ResetPasswordDto {
+  email: string;
+  otp: string;
+  newPassword: string;
+}
+
 export interface VerifyOtpDto {
   email: string;
   otp: string;
@@ -555,7 +561,10 @@ export interface ProductVariantResponseDto {
   color_id?: string | null;
   /** @nullable */
   size_id?: string | null;
-  /** @nullable */
+  /**
+   * Variant-specific image used by the storefront gallery
+   * @nullable
+   */
   image_url?: string | null;
   color?: ProductVariantColorDto;
   size?: ProductVariantSizeDto;
@@ -881,8 +890,8 @@ export const CreateOrderDtoPaymentMethod = {
 } as const;
 
 export interface CreateOrderDto {
-  /** User ID */
-  userId: string;
+  /** User ID. Ignored for authenticated requests; the server uses the JWT subject. */
+  userId?: string;
   /** Order items */
   items: OrderItemDto[];
   /** Order summary */
@@ -1502,6 +1511,55 @@ export interface UpdateCartItemDto {
   quantity: number;
 }
 
+/**
+ * Legacy storefront field name. Only VIETQR is accepted.
+ */
+export type VietQrPaymentMethod = typeof VietQrPaymentMethod[keyof typeof VietQrPaymentMethod];
+
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const VietQrPaymentMethod = {
+  VIETQR: 'VIETQR',
+} as const;
+
+export interface CreateVietQrOrderDto {
+  /** Saved shipping address ID (legacy storefront field name). */
+  shipping_address_id?: string;
+  /** Saved shipping address ID. */
+  shippingAddressId?: string;
+  /** Legacy checkout geo field. The saved shipping address is authoritative. */
+  province_code?: string;
+  /** Legacy checkout geo field. The saved shipping address is authoritative. */
+  district_code?: string;
+  notes?: string;
+  /** Legacy storefront field name. Only VIETQR is accepted. */
+  payment_method?: VietQrPaymentMethod;
+  /** Only VIETQR is accepted. */
+  paymentMethod?: VietQrPaymentMethod;
+}
+
+export type ContactDepartment = typeof ContactDepartment[keyof typeof ContactDepartment];
+
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const ContactDepartment = {
+  customerCare: 'customerCare',
+  business: 'business',
+  orderComplaint: 'orderComplaint',
+  other: 'other',
+} as const;
+
+export interface CreateContactDto {
+  fullName: string;
+  email: string;
+  phone: string;
+  department: ContactDepartment;
+  subject: string;
+  message: string;
+}
+
+export interface Object { [key: string]: unknown }
+
 export type HealthControllerGetHealth200 = {
   status?: string;
   timestamp?: number;
@@ -2029,5 +2087,36 @@ export type CartControllerMergeLocale = typeof CartControllerMergeLocale[keyof t
 export const CartControllerMergeLocale = {
   en: 'en',
   vi: 'vi',
+} as const;
+
+export type CheckoutControllerCreateOrderParams = {
+locale: string;
+};
+
+export type AuditControllerFindAllParams = {
+action?: AuditControllerFindAllAction;
+entity?: string;
+entityId?: string;
+userId?: string;
+page?: Object;
+limit?: Object;
+/**
+ * ISO date lower bound
+ */
+from?: string;
+/**
+ * ISO date upper bound
+ */
+to?: string;
+};
+
+export type AuditControllerFindAllAction = typeof AuditControllerFindAllAction[keyof typeof AuditControllerFindAllAction];
+
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export const AuditControllerFindAllAction = {
+  CREATE: 'CREATE',
+  UPDATE: 'UPDATE',
+  DELETE: 'DELETE',
 } as const;
 

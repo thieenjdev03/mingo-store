@@ -81,7 +81,7 @@ export async function AboutBrandView() {
       </section>
 
       <section
-        className="mx-auto max-w-[1200px] px-5 py-10 sm:px-8 lg:py-14"
+        className="mx-auto max-w-[1440px] px-5 py-10 sm:px-8 lg:py-14"
         aria-labelledby="office-title"
       >
         <div className="text-center">
@@ -152,7 +152,7 @@ export async function AboutBrandView() {
         className="scroll-mt-24 border-t border-primary/30"
         aria-labelledby="distribution-title"
       >
-        <div className="mx-auto max-w-[1200px] px-5 py-16 sm:px-8 lg:py-20">
+        <div className="mx-auto max-w-[1440px] px-5 py-16 sm:px-8 lg:py-20">
           <div className="text-center">
             <h2
               id="distribution-title"

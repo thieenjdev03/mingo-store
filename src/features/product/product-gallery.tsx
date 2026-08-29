@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import Image from 'next/image';
 import { useProductVariantSelection } from './product-variant-selection';
-import type { ProductVariantView } from './types';
+import { PRODUCT_PLACEHOLDER_IMAGE, type ProductVariantView } from './types';
 
 interface ProductGalleryProps {
   images: string[];
@@ -16,7 +16,7 @@ export function ProductGallery({ images, productName, variants }: ProductGallery
   const { selectedSku } = useProductVariantSelection();
   const selectedVariant = variants.find((variant) => variant.sku === selectedSku);
   const variantImage = selectedVariant?.image ?? null;
-  const fallbackImage = images[0] ?? null;
+  const fallbackImage = images[0] ?? PRODUCT_PLACEHOLDER_IMAGE;
   const galleryImages = useMemo(
     () => Array.from(new Set([...images, ...variants.flatMap((variant) => variant.image ? [variant.image] : [])])),
     [images, variants],
@@ -39,11 +39,7 @@ export function ProductGallery({ images, productName, variants }: ProductGallery
             className="object-contain"
             priority
           />
-        ) : (
-          <div className="flex size-full items-center justify-center rounded-xl bg-muted text-6xl" aria-label={productName}>
-            🍦
-          </div>
-        )}
+        ) : null}
       </div>
 
       {galleryImages.length > 1 ? (

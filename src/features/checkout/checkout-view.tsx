@@ -14,7 +14,7 @@ import { getApiErrorMessage } from '@/lib/api/error-message';
 import { fCurrencyVND } from '@/lib/format';
 import { MeltingIceCreamLoader } from '@/components/ui/melting-ice-cream-loader';
 import { provinces, type Province } from '@/lib/vn-address';
-import { buildVietQrImageUrl, VIETQR_NOT_CONFIGURED } from '@/config/vietqr';
+import { VietQrPanel } from './vietqr-panel';
 import { createCheckoutOrder, getShippingAddresses, upsertShippingAddress } from './api';
 import { getShippingAreas, type ShippingAreaOption } from './shipping-locations';
 import type { CheckoutPaymentMethod, CheckoutRequestInput, SavedShippingAddress, ShippingAddressInput } from './types';
@@ -210,10 +210,6 @@ export function CheckoutView() {
   }
 
   if (step === 'vietqr-payment' && vietQrPaymentOrder) {
-    const qrImageUrl = !VIETQR_NOT_CONFIGURED
-      ? buildVietQrImageUrl(vietQrPaymentOrder.total, vietQrPaymentOrder.orderCode)
-      : null;
-
     return (
       <div className="min-h-screen bg-ivory py-16 sm:py-24">
         <section className="mx-auto max-w-xl px-5 sm:px-8">
@@ -229,35 +225,7 @@ export function CheckoutView() {
               </div>
             </div>
 
-            <dl className="mt-6 grid grid-cols-2 gap-px bg-border text-sm">
-              <div className="bg-blush px-4 py-3">
-                <dt className="text-xs font-semibold text-muted-foreground">{t('orderNumberLabel')}</dt>
-                <dd className="mt-1 font-bold text-foreground">{vietQrPaymentOrder.orderCode}</dd>
-              </div>
-              <div className="bg-blush px-4 py-3 text-right">
-                <dt className="text-xs font-semibold text-muted-foreground">{t('amountToPay')}</dt>
-                <dd className="mt-1 text-base font-bold text-primary">{fCurrencyVND(vietQrPaymentOrder.total)}</dd>
-              </div>
-            </dl>
-
-            <div className="mt-6 border border-primary/30 bg-ivory p-5 text-center sm:p-7">
-              {qrImageUrl ? (
-                <img
-                  src={qrImageUrl}
-                  alt={t('qrAlt')}
-                  width={320}
-                  height={320}
-                  className="mx-auto h-auto w-full max-w-[320px] bg-card"
-                />
-              ) : (
-                <div className="mx-auto flex min-h-56 max-w-[320px] items-center justify-center bg-card px-6 text-sm leading-6 text-muted-foreground">
-                  {t('vietqrNotConfigured')}
-                </div>
-              )}
-              <p className="mt-5 text-sm font-semibold leading-6 text-foreground">{t('transferContentNote', { orderNumber: vietQrPaymentOrder.orderCode })}</p>
-            </div>
-
-            <p className="mt-5 border-l-2 border-primary bg-primary/[0.04] px-4 py-3 text-sm leading-6 text-muted-foreground">{t('manualVerificationNote')}</p>
+            <VietQrPanel orderCode={vietQrPaymentOrder.orderCode} total={vietQrPaymentOrder.total} />
 
             <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:justify-center">
               {userId ? <Link href={`/orders/${vietQrPaymentOrder.orderCode}`} className="inline-flex h-11 items-center justify-center border-2 border-primary px-6 text-sm font-bold text-primary">{t('viewOrder')}</Link> : null}

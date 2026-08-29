@@ -4,11 +4,13 @@ import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { Minus, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Link } from "@/i18n/navigation";
 import { fCurrencyVND } from "@/lib/format";
 import { useCart } from "@/features/cart/cart-context";
 import { useProductVariantSelection } from "./product-variant-selection";
 import { discountPercent, type ProductDetailView } from "./types";
+
+/** Hotline báo giá; footer đang hiển thị cùng số này dưới dạng "0977 008 879". */
+const CONTACT_PHONE = "097 700 88 79";
 
 export function PurchasePanel({ product }: { product: ProductDetailView }) {
   const t = useTranslations("product");
@@ -28,7 +30,8 @@ export function PurchasePanel({ product }: { product: ProductDetailView }) {
     : product.purchasable && product.stock > 0;
   // Khi bật nhãn giảm giá, compareAtPrice = giá gốc; hiện giá gốc gạch + % giảm.
   const salePercent = discountPercent(product.price, product.compareAtPrice);
-  const useVariantChips = product.variants.length > 5;
+  // Từ 5 quy cách trở lên thì danh sách radio quá dài -> chuyển sang chip.
+  const useVariantChips = product.variants.length >= 5;
 
   const selectVariant = (sku: string) => {
     setSelectedSku(sku);
@@ -192,9 +195,17 @@ export function PurchasePanel({ product }: { product: ProductDetailView }) {
       ) : product.isContactForPrice ? (
         <Button
           asChild
-          className="h-12 w-full rounded-lg text-sm lg:rounded-[5px] lg:text-[16px]"
+          className="h-auto min-h-12 w-full rounded-lg px-4 py-2 text-sm leading-tight lg:rounded-[5px] lg:text-[16px]"
         >
-          <Link href="/contact">{t("contactForPrice")}</Link>
+          {/* Bấm vào là gọi luôn trên mobile; số hiển thị giữ nguyên cách nhóm chữ số của tổng đài. */}
+          <a href={`tel:${CONTACT_PHONE.replace(/\s/g, "")}`}>
+            <span className="flex flex-col items-center">
+              <span>{t("contactForPrice")}</span>
+              <span className="font-bold">
+                {t("phoneLabel")}: {CONTACT_PHONE}
+              </span>
+            </span>
+          </a>
         </Button>
       ) : (
         <div className="grid grid-cols-[146px_minmax(0,1fr)] items-center gap-4 lg:grid-cols-[130px_minmax(0,1fr)] lg:gap-[10px]">

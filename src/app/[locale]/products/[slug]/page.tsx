@@ -167,7 +167,7 @@ export default async function ProductDetailPage({
       </nav>
 
       <ProductVariantSelectionProvider key={product.id} initialSku={product.defaultVariantSku}>
-        <main className="mx-auto w-full max-w-[1200px] lg:grid lg:grid-cols-[588px_588px] lg:gap-6 lg:pt-[12px] lg:pb-[39px]">
+        <main className="mx-auto w-full max-w-[1440px] lg:grid lg:grid-cols-2 lg:gap-6 lg:px-8 min-[1504px]:px-0 lg:pt-[12px] lg:pb-[39px]">
           <ProductGallery images={product.images} productName={product.name} variants={product.variants} />
 
         <div className="px-4 pb-4 pt-8 lg:px-0 lg:pb-0 lg:pt-[102px]">

@@ -11,6 +11,7 @@ import type { SavedShippingAddress } from '@/features/checkout/types';
 import { provinces } from '@/lib/vn-address';
 import { updateMyProfile, type UpdateMyProfilePayload } from './api';
 import { getAccessToken, clearAccessToken } from '@/lib/auth/token';
+import { clearAdminSessionCookie } from '@/lib/admin/session-client';
 import { CustomerAuthForm } from './customer-auth-form';
 import { OrderHistory, type MyOrder } from './order-history';
 import { PointsSection } from '@/features/points/points-section';
@@ -133,6 +134,7 @@ export function AccountPageView() {
 
   function handleLogout() {
     clearAccessToken();
+    void clearAdminSessionCookie();
     setToken('');
     setAccount(null);
     setEditingProfile(false);
@@ -222,7 +224,7 @@ export function AccountPageView() {
             {t('sessionExpired')}
           </div>
         ) : null}
-        <CustomerAuthForm mode="login" onAuthenticated={() => setToken(getAccessToken() ?? '')} />
+        <CustomerAuthForm mode="login" />
       </>
     );
   }

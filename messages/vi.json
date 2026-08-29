@@ -34,12 +34,44 @@
       "emptyValue": "(trống)",
       "deletedWarning": "Bản ghi này đã bị xóa.",
       "fieldsChanged": "{count} trường thay đổi",
-      "actions": { "CREATE": "Tạo mới", "UPDATE": "Cập nhật", "DELETE": "Xóa" },
-      "summaries": { "CREATE": "Bản ghi được tạo mới", "DELETE": "Bản ghi đã bị xóa" },
-      "entities": { "Product": "Sản phẩm", "Order": "Đơn hàng", "Category": "Danh mục", "User": "Người dùng", "Collection": "Bộ sưu tập", "Brand": "Thương hiệu", "Size": "Quy cách", "Career": "Tin tuyển dụng", "Policy": "Chính sách", "HomepageBanner": "Banner trang chủ", "Distributor": "Nhà phân phối" },
-      "fields": { "basePrice": "Giá gốc", "salePrice": "Giá khuyến mãi", "variantIds": "ID biến thể", "productName": "Tên sản phẩm", "status": "Trạng thái" },
-      "metadataFields": { "ip": "Địa chỉ IP", "userAgent": "User agent", "method": "Phương thức", "path": "Đường dẫn" },
-      "detail": { "title": "Chi tiết nhật ký" }
+      "actions": {
+        "CREATE": "Tạo mới",
+        "UPDATE": "Cập nhật",
+        "DELETE": "Xóa"
+      },
+      "summaries": {
+        "CREATE": "Bản ghi được tạo mới",
+        "DELETE": "Bản ghi đã bị xóa"
+      },
+      "entities": {
+        "Product": "Sản phẩm",
+        "Order": "Đơn hàng",
+        "Category": "Danh mục",
+        "User": "Người dùng",
+        "Collection": "Bộ sưu tập",
+        "Brand": "Thương hiệu",
+        "Size": "Quy cách",
+        "Career": "Tin tuyển dụng",
+        "Policy": "Chính sách",
+        "HomepageBanner": "Banner trang chủ",
+        "Distributor": "Nhà phân phối"
+      },
+      "fields": {
+        "basePrice": "Giá gốc",
+        "salePrice": "Giá khuyến mãi",
+        "variantIds": "ID biến thể",
+        "productName": "Tên sản phẩm",
+        "status": "Trạng thái"
+      },
+      "metadataFields": {
+        "ip": "Địa chỉ IP",
+        "userAgent": "User agent",
+        "method": "Phương thức",
+        "path": "Đường dẫn"
+      },
+      "detail": {
+        "title": "Chi tiết nhật ký"
+      }
     }
   },
   "points": {
@@ -137,7 +169,8 @@
       "title": "Mingo đã nhận được chia sẻ của bạn!",
       "description": "Cảm ơn bạn đã liên hệ. Đội ngũ Mingo sẽ phản hồi trong thời gian sớm nhất.",
       "sendAnother": "Gửi tin khác"
-    }
+    },
+    "error": "Gửi liên hệ thất bại, vui lòng thử lại hoặc gọi hotline."
   },
   "locale": {
     "switch": "Chuyển ngôn ngữ / Switch language",
@@ -334,7 +367,13 @@
     "otpResendIn": "Gửi lại mã sau {seconds}s",
     "otpResent": "Đã gửi lại mã xác thực đến email của bạn.",
     "otpInvalid": "Mã xác thực không đúng hoặc đã hết hạn.",
-    "otpChangeEmail": "Đổi email"
+    "otpChangeEmail": "Đổi email",
+    "resetTitle": "Đặt mật khẩu mới",
+    "resetDescription": "Chúng tôi đã gửi mã gồm 6 chữ số đến {email}. Nhập mã và mật khẩu mới để hoàn tất.",
+    "newPassword": "Mật khẩu mới",
+    "resetSubmit": "Đặt lại mật khẩu",
+    "resetSubmitting": "Đang đặt lại...",
+    "resetSuccess": "Đặt lại mật khẩu thành công. Vui lòng đăng nhập bằng mật khẩu mới."
   },
   "account": {
     "title": "Tài khoản của tôi",
@@ -568,7 +607,9 @@
     "delivery": "Hình thức giao hàng",
     "direct": "Giao trực tiếp bởi Mingo",
     "dealer": "Giao qua đại lý phụ trách khu vực",
-    "address": "Địa chỉ nhận hàng"
+    "address": "Địa chỉ nhận hàng",
+    "payAgainTitle": "Thanh toán lại đơn này",
+    "payAgainDescription": "Đơn đang chờ thanh toán. Quét lại mã QR bên dưới và chuyển đúng số tiền, nội dung chuyển khoản là mã đơn."
   },
   "vnpayReturn": {
     "checkingTitle": "Đang kiểm tra thanh toán",
@@ -611,7 +652,8 @@
     "increaseQuantity": "Tăng số lượng",
     "variants": "Danh sách biến thể",
     "skuLabel": "SKU: {sku}",
-    "availableCount": "{count} sản phẩm"
+    "availableCount": "{count} sản phẩm",
+    "phoneLabel": "SĐT"
   },
   "notFound": {
     "title": "Không tìm thấy trang",

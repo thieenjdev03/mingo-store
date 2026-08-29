@@ -12,9 +12,14 @@ interface ContentPageProps {
 }
 
 export function ContentPage({ eyebrow, title, intro, body, cta, ctaHref, children }: ContentPageProps) {
+  // ctaHref có thể là link ngoài do admin cấu hình -> dùng <a> thường, i18n Link sẽ chèn prefix locale.
+  const isExternalCta = /^https?:\/\//.test(ctaHref);
+  const CtaTag = isExternalCta ? 'a' : Link;
+  const ctaTargetProps = isExternalCta ? { target: '_blank', rel: 'noopener noreferrer' } : {};
+
   return (
     <div className="bg-ivory py-14 sm:py-20 lg:py-24">
-      <div className="mx-auto max-w-[1200px] px-5 sm:px-8">
+      <div className="mx-auto max-w-[1440px] px-5 sm:px-8">
         <section className="overflow-hidden rounded-xl bg-card shadow-sm">
           <div className="grid lg:grid-cols-[1.2fr_0.8fr]">
             <div className="px-6 py-12 sm:px-12 sm:py-16 lg:px-16 lg:py-20">
@@ -22,10 +27,14 @@ export function ContentPage({ eyebrow, title, intro, body, cta, ctaHref, childre
               <h1 className="max-w-3xl font-display text-4xl font-bold leading-tight text-primary sm:text-5xl lg:text-6xl">{title}</h1>
               <p className="mt-6 max-w-2xl text-xl font-semibold leading-relaxed text-foreground">{intro}</p>
               <p className="mt-4 max-w-2xl leading-7 text-muted-foreground">{body}</p>
-              <Link href={ctaHref} className="mt-8 inline-flex h-12 items-center justify-center gap-2 rounded-lg bg-primary px-6 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary-dark">
+              <CtaTag
+                href={ctaHref}
+                {...ctaTargetProps}
+                className="mt-8 inline-flex h-12 items-center justify-center gap-2 rounded-lg bg-primary px-6 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary-dark"
+              >
                 {cta}
                 <ArrowRight className="size-4" aria-hidden="true" />
-              </Link>
+              </CtaTag>
             </div>
             <div className="relative hidden min-h-full overflow-hidden bg-sand lg:block" aria-hidden="true">
               <div className="absolute -right-20 -top-20 size-72 rounded-full bg-primary/15" />

@@ -17,6 +17,15 @@ import type {
   LocalizedStringDto,
 } from '@/lib/api/generated/ecomAPI.schemas';
 
+/**
+ * Tồn kho thật của sản phẩm: có biến thể thì backend không lưu `stock_quantity`
+ * (từ chối khi gửi kèm) nên tồn nằm ở từng biến thể.
+ */
+export function productStockTotal(product: Pick<ProductResponseDto, 'stock_quantity' | 'variants'>): number {
+  if (!product.variants?.length) return Number(product.stock_quantity) || 0;
+  return product.variants.reduce((sum, variant) => sum + (Number(variant.stock) || 0), 0);
+}
+
 export type ProductWithUsage = ProductResponseDto & {
   nutrition_information?: string | null;
   usage_instructions?: string | null;

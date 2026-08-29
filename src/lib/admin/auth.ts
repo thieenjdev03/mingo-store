@@ -1,9 +1,5 @@
-/**
- * Phiên đăng nhập admin — tách khỏi auth storefront (chưa hoàn thiện).
- * Access token dùng chung key với customFetch (lib/auth/token.ts) để request tự đính kèm Bearer.
- * Thông tin user (role) lưu riêng để guard `/admin/**`.
- */
-import { getAccessToken, setAccessToken, clearAccessToken } from '@/lib/auth/token';
+/** Token localStorage chỉ giữ tương thích với API client; quyền route nằm ở session HttpOnly. */
+import { setAccessToken, clearAccessToken } from '@/lib/auth/token';
 
 const ADMIN_USER_KEY = 'mingo-admin-user';
 
@@ -44,9 +40,4 @@ export function clearAdminSession(): void {
       // Không chặn logout nếu storage không khả dụng.
     }
   }
-}
-
-/** Có token + role admin. Guard client-side dựa vào đây (backend vẫn là nguồn chân lý qua 401/403). */
-export function isAdminAuthenticated(): boolean {
-  return !!getAccessToken() && getAdminUser()?.role === 'admin';
 }

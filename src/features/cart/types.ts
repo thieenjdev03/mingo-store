@@ -3,6 +3,7 @@ import type {
   CartResponseDto,
   UpdateCartItemDto,
 } from '@/lib/api/generated/ecomAPI.schemas';
+import { PRODUCT_PLACEHOLDER_IMAGE } from '@/features/product/types';
 
 export type { AddCartItemDto, CartResponseDto, UpdateCartItemDto };
 
@@ -53,7 +54,7 @@ export function toCartView(cart: CartResponseDto): CartView {
       lineTotal: Number(item.lineTotal),
       product: {
         ...item.product,
-        image: item.product.image ?? null,
+        image: item.product.image ?? PRODUCT_PLACEHOLDER_IMAGE,
         stock: Number(item.product.stock),
       },
     })),

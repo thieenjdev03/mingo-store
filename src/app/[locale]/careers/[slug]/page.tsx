@@ -69,7 +69,7 @@ export default async function CareerDetailPage({ params }: { params: Promise<{ l
       }} />
       <section className="relative isolate min-h-[320px] overflow-hidden bg-card sm:min-h-[410px] lg:min-h-[468px]" aria-labelledby="career-title">
         <CareersBannerMark />
-        <header className="relative z-10 mx-auto flex min-h-[320px] max-w-[1200px] items-center px-5 sm:min-h-[410px] sm:px-8 lg:min-h-[468px]">
+        <header className="relative z-10 mx-auto flex min-h-[320px] max-w-[1440px] items-center px-5 sm:min-h-[410px] sm:px-8 lg:min-h-[468px]">
           <div className="max-w-[600px] sm:max-w-[52%]">
             <h1 id="career-title" className="font-display text-4xl font-bold uppercase leading-[1.05] text-primary sm:text-5xl lg:text-[56px]">
               {job.title}
@@ -87,7 +87,7 @@ export default async function CareerDetailPage({ params }: { params: Promise<{ l
         </header>
       </section>
 
-      <main className="mx-auto grid max-w-[1200px] items-start gap-12 px-5 py-12 sm:px-8 sm:py-16 lg:grid-cols-[minmax(0,760px)_minmax(280px,360px)] lg:gap-16 lg:py-20">
+      <main className="mx-auto grid max-w-[1440px] items-start gap-12 px-5 py-12 sm:px-8 sm:py-16 lg:grid-cols-[minmax(0,1fr)_minmax(280px,360px)] lg:gap-16 lg:py-20">
         <div className="min-w-0">
           <Link href="/careers" className="mb-8 inline-flex text-sm font-bold text-muted-foreground transition-colors hover:text-primary">
             {t('detail.back')}

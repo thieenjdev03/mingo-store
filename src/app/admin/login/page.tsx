@@ -8,6 +8,7 @@ import { zodResolver } from '@/lib/admin/zod-resolver';
 import { authControllerLogin } from '@/lib/api/generated/auth/auth';
 import { ApiError } from '@/lib/api/fetcher';
 import { saveAdminSession } from '@/lib/admin/auth';
+import { syncAdminSession } from '@/lib/admin/session-client';
 import { Field } from '@/components/admin/ui/field';
 import { Input } from '@/components/admin/ui/input';
 import { Button } from '@/components/admin/ui/button';
@@ -33,7 +34,12 @@ export default function AdminLoginPage() {
     try {
       const res = await authControllerLogin(values);
       if (res.user.role !== 'admin') {
+        await syncAdminSession(res.accessToken);
         setServerError('Tài khoản này không có quyền quản trị.');
+        return;
+      }
+      if (!(await syncAdminSession(res.accessToken))) {
+        setServerError('Không thể xác thực phiên quản trị. Vui lòng thử lại.');
         return;
       }
       saveAdminSession(res.accessToken, { id: res.user.id, email: res.user.email, role: res.user.role });

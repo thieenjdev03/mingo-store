@@ -35,7 +35,7 @@ export async function BrandShowcase({
 
   return (
     <div className="bg-ivory">
-      <section className="mx-auto max-w-[1200px] px-5 py-16 sm:px-8 lg:py-20">
+      <section className="mx-auto max-w-[1440px] px-5 py-16 sm:px-8 lg:py-20">
         <header className="flex flex-col items-center text-center">
           <span className="rounded-full bg-primary/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.25em] text-foreground/80">
             {eyebrow}

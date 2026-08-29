@@ -8,6 +8,7 @@ import { Button } from '@/components/admin/ui/button';
 import { Badge } from '@/components/admin/ui/badge';
 import { useToast } from '@/components/admin/ui/toast';
 import { getProducts } from '@/features/product/api';
+import { productStockTotal } from '@/features/admin/products/api';
 import { resolveLocalized } from '@/types/localized';
 import { cn } from '@/lib/utils';
 import {
@@ -75,7 +76,7 @@ export function CollectionProductsDialog({ open, onOpenChange, collection }: Pro
             name: resolveLocalized(product.name, 'vi'),
             slug: resolveLocalized(product.slug, 'vi'),
             image: product.images[0] ?? null,
-            stock: Number(product.stock_quantity),
+            stock: productStockTotal(product),
             status: product.status,
           })),
       );

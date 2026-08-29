@@ -16,25 +16,24 @@ export interface ProductListCard {
   /** Nhãn quy cách đại diện (vd "100ml | 24 cây | thùng"). */
   spec?: string | null;
   specOutOfStock?: boolean;
-  /** Cờ "Nổi bật" (is_featured) => ẩn giá, hiển thị nhãn liên hệ thay giá. */
+  /** Bật "LH Báo Giá" => ẩn giá lẫn quy cách/biến thể, chỉ hiện nhãn liên hệ. */
   priceOnRequest?: boolean;
 }
 
 interface ProductShowcaseGridProps {
   products: ProductListCard[];
   outOfStockLabel: string;
-  /** Nhãn hiển thị thay cho giá khi sản phẩm ở chế độ liên hệ nhận giá. */
+  /** Nhãn thay cho cả hàng quy cách + giá khi sản phẩm ở chế độ liên hệ. */
   contactLabel: string;
-  unavailableContactLabel: string;
 }
 
 /**
  * Lưới sản phẩm theo design: packshot đặt thẳng trên nền trang (không khung/viền),
  * tên bên dưới, và hàng "quy cách | giá" nhỏ màu xám.
  */
-export function ProductShowcaseGrid({ products, outOfStockLabel, contactLabel, unavailableContactLabel }: ProductShowcaseGridProps) {
+export function ProductShowcaseGrid({ products, outOfStockLabel, contactLabel }: ProductShowcaseGridProps) {
   return (
-    <div className="mx-auto grid max-w-[1200px] grid-cols-2 gap-x-6 gap-y-12 px-5 sm:gap-x-8 sm:gap-y-16 sm:px-8 lg:grid-cols-4 min-[1264px]:px-0">
+    <div className="mx-auto grid max-w-[1440px] grid-cols-2 gap-x-6 gap-y-12 px-5 sm:gap-x-8 sm:gap-y-16 sm:px-8 lg:grid-cols-4 min-[1504px]:px-0">
       {products.map((product) => (
         <Link
           key={product.id}
@@ -63,14 +62,15 @@ export function ProductShowcaseGrid({ products, outOfStockLabel, contactLabel, u
           </h2>
 
           {product.available === false ? (
-            <p className="mt-2 text-sm font-semibold text-primary-dark">{unavailableContactLabel}</p>
-          ) : product.spec || product.price || product.priceOnRequest ? (
+            <p className="mt-2 text-sm font-semibold text-muted-foreground">{outOfStockLabel}</p>
+          ) : product.priceOnRequest ? (
+            /* LH Báo Giá: chỉ còn nhãn liên hệ, không lộ quy cách/biến thể lẫn giá. */
+            <p className="mt-2 text-sm font-semibold text-primary-dark">{contactLabel}</p>
+          ) : product.spec || product.price ? (
             <div className="mt-2 flex items-baseline justify-between gap-3 text-xs text-muted-foreground sm:text-sm">
               {!product.specOutOfStock ? <span className="truncate">{product.spec ?? ''}</span> : <span />}
               {product.specOutOfStock ? (
                 <span className="shrink-0 font-semibold text-muted-foreground">{outOfStockLabel}</span>
-              ) : product.priceOnRequest ? (
-                <span className="shrink-0 font-semibold text-primary-dark">{contactLabel}</span>
               ) : product.price ? (
                 <span className="flex shrink-0 items-baseline gap-2">
                   {product.compareAtPrice ? <span className="line-through opacity-70">{fCurrencyVND(product.compareAtPrice)}</span> : null}

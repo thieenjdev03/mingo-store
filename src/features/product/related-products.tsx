@@ -15,7 +15,7 @@ export async function RelatedProducts({
   const t = await getTranslations('product');
 
   return (
-    <section className="mx-auto w-full max-w-[1200px] px-4 pb-20 pt-20 sm:px-8 lg:pb-[140px] lg:pt-[145px] xl:px-0">
+    <section className="mx-auto w-full max-w-[1440px] px-4 pb-20 pt-20 sm:px-8 lg:pb-[140px] lg:pt-[145px] min-[1504px]:px-0">
       <h2 className="text-center text-[24px] font-bold leading-[60px] text-primary lg:text-[60px]">
         {title}
       </h2>
@@ -40,14 +40,20 @@ export async function RelatedProducts({
             <h3 className="mt-8 line-clamp-2 min-h-12 text-center font-sans text-[20px] font-bold leading-6 transition-colors group-hover:text-primary lg:mt-12 lg:min-h-[4.5rem] lg:text-[32px] lg:leading-9">
               {product.name}
             </h3>
-            {product.available ? <div className="mt-3 flex items-baseline justify-between gap-2 text-[10px] font-light leading-6 lg:mt-5 lg:text-[14px]">
-              {!product.specOutOfStock ? <span className="truncate">{product.spec ?? ''}</span> : <span />}
-              {product.specOutOfStock ? (
-                <span className="shrink-0 font-semibold text-muted-foreground">{t('temporarilyOutOfStock')}</span>
-              ) : (
-                <span className="shrink-0">{fCurrencyVND(product.price)}</span>
-              )}
-            </div> : <p className="mt-3 text-sm font-semibold leading-6 text-primary lg:mt-5">{t('contactForInfo')}</p>}
+            {!product.available ? (
+              <p className="mt-3 text-sm font-semibold leading-6 text-muted-foreground lg:mt-5">{t('temporarilyOutOfStock')}</p>
+            ) : product.priceOnRequest ? (
+              <p className="mt-3 text-sm font-semibold leading-6 text-primary lg:mt-5">{t('contactForInfo')}</p>
+            ) : (
+              <div className="mt-3 flex items-baseline justify-between gap-2 text-[10px] font-light leading-6 lg:mt-5 lg:text-[14px]">
+                {!product.specOutOfStock ? <span className="truncate">{product.spec ?? ''}</span> : <span />}
+                {product.specOutOfStock ? (
+                  <span className="shrink-0 font-semibold text-muted-foreground">{t('temporarilyOutOfStock')}</span>
+                ) : (
+                  <span className="shrink-0">{fCurrencyVND(product.price)}</span>
+                )}
+              </div>
+            )}
           </Link>
         ))}
       </div>

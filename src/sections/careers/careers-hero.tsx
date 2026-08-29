@@ -9,7 +9,7 @@ export async function CareersHero({ query = '' }: { query?: string }) {
   return (
     <section className="relative isolate min-h-[320px] overflow-hidden bg-card sm:min-h-[410px] lg:min-h-[468px]" aria-labelledby="careers-title">
       <CareersBannerMark />
-      <div className="relative z-10 mx-auto flex min-h-[320px] max-w-[1200px] items-center px-5 sm:min-h-[410px] sm:px-8 lg:min-h-[468px]">
+      <div className="relative z-10 mx-auto flex min-h-[320px] max-w-[1440px] items-center px-5 sm:min-h-[410px] sm:px-8 lg:min-h-[468px]">
         <div className="w-full max-w-[390px] lg:max-w-[370px]">
           <h1 id="careers-title" className="font-display text-3xl font-bold uppercase text-primary sm:text-4xl lg:text-[40px]">{t('hero.title')}</h1>
           <form action={action} method="get" className="mt-9 flex h-12 w-full items-center rounded-full bg-muted lg:h-14">

@@ -6,14 +6,14 @@ import { Controller, useForm, type FieldErrors, type Resolver } from 'react-hook
 import { Link } from '@/i18n/navigation';
 import { FormField } from '@/components/ui/form-field';
 import { SelectField } from '@/components/ui/select';
-import { createContactFormSchema, type ContactFormValues } from './schema';
+import { getApiErrorMessage } from '@/lib/api/error-message';
+import { CONTACT_DEPARTMENTS, createContactFormSchema, type ContactFormValues } from './schema';
 import { useSubmitContact } from './use-submit-contact';
-
-const DEPARTMENTS = ['customerCare', 'business', 'orderComplaint', 'other'] as const;
 
 export function ContactForm() {
   const t = useTranslations('contact');
   const [submitted, setSubmitted] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const { isSubmitting, submitContact } = useSubmitContact();
   const schema = useMemo(
     () =>
@@ -53,7 +53,13 @@ export function ContactForm() {
   } = useForm<ContactFormValues>({ resolver, mode: 'onBlur', shouldFocusError: true });
 
   const onSubmit = async (values: ContactFormValues) => {
-    await submitContact(values);
+    setErrorMessage(null);
+    try {
+      await submitContact(values);
+    } catch (error) {
+      setErrorMessage(getApiErrorMessage(error, t('error')));
+      return;
+    }
     reset();
     setSubmitted(true);
   };
@@ -121,14 +127,13 @@ export function ContactForm() {
           <Controller
             name="department"
             control={control}
-            defaultValue=""
             render={({ field }) => (
               <SelectField
                 id="department"
-                value={field.value}
+                value={field.value ?? ''}
                 onValueChange={field.onChange}
                 placeholder={t('fields.department')}
-                options={DEPARTMENTS.map((department) => ({
+                options={CONTACT_DEPARTMENTS.map((department) => ({
                   value: department,
                   label: t(`departments.${department}`),
                 }))}
@@ -170,6 +175,12 @@ export function ContactForm() {
             </Link>
           </p>
         </div>
+
+        {errorMessage ? (
+          <p className="bg-destructive/10 px-4 py-3 text-sm font-semibold text-destructive" role="alert">
+            {errorMessage}
+          </p>
+        ) : null}
 
         <button
           type="submit"

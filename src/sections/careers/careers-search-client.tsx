@@ -73,7 +73,7 @@ export function CareersSearchClient({
   };
 
   return (
-    <section className="mx-auto max-w-[1200px] px-5 py-12 sm:px-8 sm:py-16 lg:py-20">
+    <section className="mx-auto max-w-[1440px] px-5 py-12 sm:px-8 sm:py-16 lg:py-20">
       <div className="mb-8 lg:hidden">
         <CareersFilterMobile
           groups={filterGroups}
