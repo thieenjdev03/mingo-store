@@ -58,7 +58,7 @@ export const ADMIN_NAV: AdminNavGroup[] = [
     items: [
       { label: 'Banner trang chủ', href: '/admin/homepage-banners', icon: Images },
       { label: 'Chính sách', href: '/admin/policies', icon: FileText },
-      { label: 'Liên kết', href: '/admin/settings', icon: Link2 },
+      { label: 'Liên kết hợp tác', href: '/admin/settings', icon: Link2 },
     ],
   },
   {

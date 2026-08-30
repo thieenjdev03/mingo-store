@@ -54,7 +54,7 @@ export default function AdminSettingsPage() {
   return (
     <div>
       <PageHeader
-        title="Liên kết"
+        title="Liên kết hợp tác"
         description="Các đường dẫn ngoài do khách hàng cung cấp. Chỉ lưu link, không upload file."
       />
 
