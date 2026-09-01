@@ -21,6 +21,12 @@ const nextConfig: NextConfig = {
   },
   // Scaffold chưa kèm ESLint config — bật lại khi team chốt rule (npm run lint vẫn dùng được sau khi thêm eslint-config-next)
   eslint: { ignoreDuringBuilds: true },
+  experimental: {
+    // App có nhiều root layout (storefront [locale] + admin), không có root layout chung ở app/.
+    // globalNotFound cho phép app/global-not-found.tsx tự render <html>/<body> làm 404 cho URL
+    // không khớp bất kỳ segment nào — thay cho app/not-found.tsx (vốn cần một root layout phía trên).
+    globalNotFound: true,
+  },
 };
 
 export default withNextIntl(nextConfig);

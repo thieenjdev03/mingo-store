@@ -15,6 +15,7 @@ import { clearAdminSessionCookie } from '@/lib/admin/session-client';
 import { CustomerAuthForm } from './customer-auth-form';
 import { OrderHistory, type MyOrder } from './order-history';
 import { PointsSection } from '@/features/points/points-section';
+import { MingoPointsLogo } from '@/features/points/mingo-points-logo';
 import { usePointsBalance } from '@/features/points/use-points-balance';
 import { FREE_ICE_CREAM_REWARD } from '@/config/free-ice-cream-reward';
 import { toAccountView, type AccountView } from './types';
@@ -333,9 +334,9 @@ export function AccountPageView() {
             <div className="relative grid gap-9 lg:grid-cols-[minmax(230px,0.75fr)_minmax(0,2fr)] lg:items-center lg:gap-12">
               <div className="lg:border-r lg:border-border lg:pr-10">
                 <div className="flex items-center gap-4">
-                  <span className="size-11 shrink-0 rounded-full bg-primary shadow-[0_8px_18px_rgba(254,80,0,0.2)] sm:size-12" aria-hidden="true" />
+                  <MingoPointsLogo className="size-11 sm:size-12" />
                   <h2 id="loyalty-points-title" className="text-xs font-bold uppercase tracking-[0.18em] text-muted-foreground sm:text-sm">
-                    {t('availablePoints')}
+                    {t('rewardsTitle')}
                   </h2>
                 </div>
                 {pointsLoading && pointsBalance === null ? (
@@ -343,7 +344,7 @@ export function AccountPageView() {
                 ) : (
                   <p className="mt-7 font-display text-2xl font-extrabold leading-none text-primary sm:text-3xl">
                     {availablePoints.toLocaleString(locale)}
-                    <span className="ml-2 text-xl font-semibold sm:text-2xl">{t('pointsUnit')}</span>
+                    <span className="ml-2 text-xl font-semibold sm:text-2xl">{t('pointsShortUnit')}</span>
                   </p>
                 )}
               </div>

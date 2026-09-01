@@ -1,9 +1,10 @@
 import '@/styles/globals.css';
 
 /**
- * 404 toàn cục: dùng cho các URL nằm ngoài [locale] (vd /admin/khong-ton-tai).
- * App không có root layout chung (storefront và admin mỗi bên một root layout),
- * nên file này phải tự render <html>/<body>.
+ * 404 toàn cục (Next `experimental.globalNotFound`): dùng cho các URL không khớp bất kỳ
+ * segment nào, kể cả ngoài [locale] (vd /admin/khong-ton-tai). App không có root layout
+ * chung (storefront và admin mỗi bên một root layout) nên file này phải tự render <html>/<body>.
+ * 404 trong phạm vi storefront vẫn do src/app/[locale]/not-found.tsx đảm nhận (có bản dịch).
  */
 export const metadata = { title: '404 — Không tìm thấy trang' };
 

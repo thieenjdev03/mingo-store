@@ -160,7 +160,7 @@ export function PurchasePanel({ product }: { product: ProductDetailView }) {
           )}
           {product.isOutOfStock ? (
             <span
-              className={`block px-1 text-right text-sm font-semibold text-muted-foreground sm:px-2 ${
+              className={`block px-1 text-right text-sm font-semibold text-destructive sm:px-2 ${
                 useVariantChips ? "pt-3" : "border-t border-[#e5beb2]/30 py-3"
               }`}
             >
@@ -179,7 +179,7 @@ export function PurchasePanel({ product }: { product: ProductDetailView }) {
             </span>
           </div>
           {product.isOutOfStock ? (
-            <span className="shrink-0 text-sm font-semibold text-muted-foreground">
+            <span className="shrink-0 text-sm font-semibold text-destructive">
               {t("productOutOfStock")}
             </span>
           ) : null}
@@ -200,10 +200,8 @@ export function PurchasePanel({ product }: { product: ProductDetailView }) {
           {/* Bấm vào là gọi luôn trên mobile; số hiển thị giữ nguyên cách nhóm chữ số của tổng đài. */}
           <a href={`tel:${CONTACT_PHONE.replace(/\s/g, "")}`}>
             <span className="flex flex-col items-center">
-              <span>{t("contactForPrice")}</span>
-              <span className="font-bold">
-                {t("phoneLabel")}: {CONTACT_PHONE}
-              </span>
+                
+              <span>{t("contactForPrice")} - {t("phoneLabel")}: {CONTACT_PHONE}</span>
             </span>
           </a>
         </Button>

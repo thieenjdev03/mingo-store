@@ -192,6 +192,39 @@
     outline: 2px solid var(--color-ring);
     outline-offset: 2px;
   }
+
+  /* ------------------------------------------------------------
+     Thanh cuộn toàn dự án — bám design tokens, mảnh & bo tròn.
+     Dùng var(--foreground)/(--primary) nên tự đổi theo storefront/admin.
+     `.no-scrollbar` (layer utilities) vẫn thắng ở nơi cố tình ẩn thanh cuộn.
+     ------------------------------------------------------------ */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in srgb, var(--foreground) 30%, transparent) transparent;
+  }
+  *::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  *::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  *::-webkit-scrollbar-thumb {
+    /* viền trong suốt + background-clip tạo khoảng đệm -> thumb mảnh, không dính mép */
+    background-color: color-mix(in srgb, var(--foreground) 30%, transparent);
+    border: 2px solid transparent;
+    border-radius: 9999px;
+    background-clip: padding-box;
+  }
+  *::-webkit-scrollbar-thumb:hover {
+    background-color: color-mix(in srgb, var(--primary) 65%, var(--foreground));
+  }
+  *::-webkit-scrollbar-thumb:active {
+    background-color: var(--primary);
+  }
+  *::-webkit-scrollbar-corner {
+    background: transparent;
+  }
 }
 
 @layer utilities {

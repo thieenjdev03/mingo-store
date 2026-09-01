@@ -166,8 +166,8 @@
       "messageMin": "Nội dung cần có ít nhất 10 ký tự."
     },
     "success": {
-      "title": "Mingo đã nhận được chia sẻ của bạn!",
-      "description": "Cảm ơn bạn đã liên hệ. Đội ngũ Mingo sẽ phản hồi trong thời gian sớm nhất.",
+      "title": "Mingo Ice Cream Vietnam đã nhận được thông tin chia sẻ của bạn!",
+      "description": "Cảm ơn bạn đã liên hệ, đội ngũ sẽ phản hồi trong thời gian sớm nhất.",
       "sendAnother": "Gửi tin khác"
     },
     "error": "Gửi liên hệ thất bại, vui lòng thử lại hoặc gọi hotline."
@@ -409,9 +409,10 @@
     "memberTier": "Thành viên Vibrant",
     "badgePremium": "Premium Member",
     "badgeFlavorTaster": "Flavor Taster",
-    "rewardsTitle": "Mingo Rewards",
+    "rewardsTitle": "Mingo Points",
     "availablePoints": "Điểm khả dụng",
     "pointsUnit": "điểm",
+    "pointsShortUnit": "pts",
     "pointsRule": "Cứ 10Đ trong các đơn hàng đã thanh toán, bạn nhận được 1 điểm thưởng.",
     "eligibleSpend": "Chi tiêu hợp lệ",
     "eligibleOrders": "Đơn tích điểm",

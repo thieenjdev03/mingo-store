@@ -81,14 +81,14 @@ export function ProductCarousel({ products }: { products: ProductCardView[] }) {
               {product.name}
             </h3>
             {!product.available ? (
-              <p className="mt-2 min-h-6 text-sm font-semibold leading-6 text-muted-foreground text-center">{t('temporarilyOutOfStock')}</p>
+              <p className="mt-2 min-h-6 text-sm font-semibold leading-6 text-destructive text-center sm:mt-5">{t('temporarilyOutOfStock')}</p>
             ) : product.priceOnRequest ? (
-              <p className="mt-2 min-h-6 text-sm font-semibold leading-6 text-primary-dark text-center">{t('contactForInfo')}</p>
+              <p className="mt-2 min-h-6 text-sm font-semibold leading-6 text-primary-dark text-center sm:mt-5">{t('contactForInfo')}</p>
             ) : (
               <div className="mt-2 flex min-h-6 items-baseline text-center justify-between gap-2 text-xs font-light leading-6 text-[#563e2b] sm:mt-5 sm:gap-3 sm:text-[14px]">
                 {!product.specOutOfStock ? <span className="truncate">{product.spec ?? ''}</span> : <span />}
                 {product.specOutOfStock ? (
-                <span className="shrink-0 font-semibold text-muted-foreground">{t('temporarilyOutOfStock')}</span>
+                <span className="shrink-0 font-semibold text-destructive">{t('temporarilyOutOfStock')}</span>
                 ) : (
                   <>
                     <span className="shrink-0">{fCurrencyVND(product.price)}</span>

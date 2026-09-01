@@ -41,14 +41,14 @@ export async function RelatedProducts({
               {product.name}
             </h3>
             {!product.available ? (
-              <p className="mt-3 text-sm font-semibold leading-6 text-muted-foreground lg:mt-5">{t('temporarilyOutOfStock')}</p>
+              <p className="mt-3 text-sm font-semibold leading-6 text-destructive lg:mt-5">{t('temporarilyOutOfStock')}</p>
             ) : product.priceOnRequest ? (
               <p className="mt-3 text-sm font-semibold leading-6 text-primary lg:mt-5">{t('contactForInfo')}</p>
             ) : (
               <div className="mt-3 flex items-baseline justify-between gap-2 text-[10px] font-light leading-6 lg:mt-5 lg:text-[14px]">
                 {!product.specOutOfStock ? <span className="truncate">{product.spec ?? ''}</span> : <span />}
                 {product.specOutOfStock ? (
-                  <span className="shrink-0 font-semibold text-muted-foreground">{t('temporarilyOutOfStock')}</span>
+                  <span className="shrink-0 font-semibold text-destructive">{t('temporarilyOutOfStock')}</span>
                 ) : (
                   <span className="shrink-0">{fCurrencyVND(product.price)}</span>
                 )}

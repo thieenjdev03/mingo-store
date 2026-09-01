@@ -156,13 +156,6 @@ export async function SiteFooter() {
           <p className="mt-4 text-[14px] font-bold uppercase text-black lg:text-[16px]">
             {t("tagline")}
           </p>
-          <Image
-            src="/assets/mingo/Logo-Da-Thong-Bao-Bo-Cong-Thuong.webp"
-            alt="Đã thông báo Bộ Công Thương"
-            width={988}
-            height={398}
-            className="mt-4 h-auto w-50 shrink-0"
-          />
         </div>
       </div>
 

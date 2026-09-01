@@ -26,15 +26,11 @@ function fallbackLabel(status: string): string {
 export function OrderHistory({ orders }: { orders: OrderView[] | null }) {
   const t = useTranslations('account');
   const ts = useTranslations('account.orderStatus');
-  const tp = useTranslations('account.paymentStatus');
   const [showAll, setShowAll] = useState(false);
   const visibleOrders = orders ? (showAll ? orders : orders.slice(0, 2)) : [];
   const hasMoreOrders = (orders?.length ?? 0) > 2;
   const orderLabel = (status: string) => {
     try { return ts(status); } catch { return fallbackLabel(status); }
-  };
-  const paymentLabel = (status: string) => {
-    try { return tp(status); } catch { return fallbackLabel(status); }
   };
 
   return (
@@ -52,14 +48,13 @@ export function OrderHistory({ orders }: { orders: OrderView[] | null }) {
         <>
           <ul id="profile-order-history-list" className="mt-5 space-y-4">
             {visibleOrders.map((order) => (
-              <li key={order.id} className="rounded-xl border border-border bg-background p-4 sm:p-5">
+              <li key={order.id} className="rounded-xl border border-border p-4 sm:p-5">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
                     <Link href={`/orders/${order.orderNumber}`} className="font-bold text-foreground hover:text-primary">{t('orderNumber', { id: order.orderNumber })}</Link>
                     <p className="mt-0.5 text-sm text-muted-foreground">{new Date(order.createdAt).toLocaleString('vi-VN')}</p>
                   </div>
                   <div className="flex flex-wrap gap-2">
-                    <span className={`rounded-full px-3 py-1 text-xs font-bold ${badgeStyle(order.paymentStatus)}`}>{paymentLabel(order.paymentStatus)}</span>
                     <span className={`rounded-full px-3 py-1 text-xs font-bold ${badgeStyle(order.status)}`}>{orderLabel(order.status)}</span>
                   </div>
                 </div>
