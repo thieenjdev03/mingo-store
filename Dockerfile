@@ -9,8 +9,10 @@ FROM node:22-alpine AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-# NEXT_PUBLIC_* được inline vào bundle lúc build -> phải truyền qua build args, không phải env runtime
-ARG NEXT_PUBLIC_API_URL
+# API_URL chỉ dùng phía server; truyền ở build nếu có trang cần fetch lúc build và luôn
+# cấu hình lại dưới dạng runtime env khi chạy container.
+ARG API_URL
+ENV API_URL=$API_URL
 ARG NEXT_PUBLIC_SITE_URL
 ARG NEXT_PUBLIC_SHIPPING_FEE
 ARG NEXT_PUBLIC_VIETQR_BANK_ID
