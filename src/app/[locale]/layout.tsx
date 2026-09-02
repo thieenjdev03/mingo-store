@@ -8,6 +8,7 @@ import { routing } from '@/i18n/routing';
 import { CartProvider } from '@/features/cart/cart-context';
 import { SiteHeader } from '@/components/layout/site-header';
 import { SiteFooter } from '@/components/layout/site-footer';
+import { ApiCacheProvider } from '@/components/providers/api-cache-provider';
 import { JsonLd } from '@/components/seo/json-ld';
 import { absoluteUrl, pageMetadata, SEO_COPY, SITE_NAME, SITE_URL, toSeoLocale } from '@/lib/seo';
 import '@/styles/globals.css';
@@ -74,11 +75,13 @@ export default async function LocaleLayout({
           }}
         />
         <NextIntlClientProvider>
-          <CartProvider>
-            <SiteHeader />
-            <main className="flex-1">{children}</main>
-            <SiteFooter />
-          </CartProvider>
+          <ApiCacheProvider>
+            <CartProvider>
+              <SiteHeader />
+              <main className="flex-1">{children}</main>
+              <SiteFooter />
+            </CartProvider>
+          </ApiCacheProvider>
         </NextIntlClientProvider>
         <Analytics />
       </body>

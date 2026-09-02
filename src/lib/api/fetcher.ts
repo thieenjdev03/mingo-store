@@ -4,8 +4,7 @@
  * TODO(auth): port logic refresh-token interceptor từ repo cũ (src/auth/context/jwt).
  */
 import { getAccessToken } from '@/lib/auth/token';
-
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? '';
+import { buildServerApiUrl } from '@/lib/api/server-url';
 
 export interface FetchConfig {
   url: string;
@@ -28,13 +27,20 @@ export class ApiError extends Error {
 }
 
 function buildUrl(url: string, params?: Record<string, unknown>): string {
-  const full = new URL(url, BASE_URL || 'http://localhost');
+  const normalizedPath = url.replace(/^\/+/, '');
+  const browserRequest = typeof window !== 'undefined';
+  const target = browserRequest
+    ? `/api/backend/${normalizedPath}`
+    : buildServerApiUrl(normalizedPath);
+  if (!target) throw new ApiError(503, { message: 'Backend API is not configured' });
+
+  const full = new URL(target, 'http://localhost');
   if (params) {
     for (const [k, v] of Object.entries(params)) {
       if (v !== undefined && v !== null) full.searchParams.set(k, String(v));
     }
   }
-  return BASE_URL ? full.toString() : `${full.pathname}${full.search}`;
+  return browserRequest ? `${full.pathname}${full.search}` : full.toString();
 }
 
 export async function customFetch<T>(config: FetchConfig): Promise<T> {
@@ -56,7 +62,8 @@ export async function customFetch<T>(config: FetchConfig): Promise<T> {
     method,
     signal,
     cache,
-    next,
+    ...(typeof window === 'undefined' ? { next } : {}),
+    credentials: 'same-origin',
     headers: mergedHeaders,
     body: isFormData ? (data as FormData) : data !== undefined ? JSON.stringify(data) : undefined,
   });

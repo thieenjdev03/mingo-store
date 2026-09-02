@@ -1,17 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 import createMiddleware from 'next-intl/middleware';
 import { routing } from './i18n/routing';
+import { ADMIN_SESSION_COOKIE, verifyAdminSession } from './lib/admin/server-session';
+import { buildServerApiUrl } from './lib/api/server-url';
 
 const intlMiddleware = createMiddleware(routing);
-const ADMIN_SESSION_COOKIE = 'mingo-admin-session';
 const AUTH_SESSION_COOKIE = 'mingo-session';
 
 async function getSessionRole(accessToken: string): Promise<string | null> {
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, '');
-  if (!apiUrl) return null;
+  const meUrl = buildServerApiUrl('me');
+  if (!meUrl) return null;
 
   try {
-    const response = await fetch(`${apiUrl}/me`, {
+    const response = await fetch(meUrl, {
       headers: { Authorization: `Bearer ${accessToken}` },
       cache: 'no-store',
     });
@@ -35,6 +36,14 @@ function clearCookie(response: NextResponse, name: string): NextResponse {
   return response;
 }
 
+function secureAdminResponse(response: NextResponse): NextResponse {
+  response.headers.set('Cache-Control', 'private, no-store, max-age=0');
+  response.headers.set('X-Frame-Options', 'DENY');
+  response.headers.set('X-Content-Type-Options', 'nosniff');
+  response.headers.set('Referrer-Policy', 'same-origin');
+  return response;
+}
+
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const isAdminRoute = pathname === '/admin' || pathname.startsWith('/admin/');
@@ -44,34 +53,33 @@ export async function middleware(request: NextRequest) {
     if (!isAuthRoute) return intlMiddleware(request);
 
     const accessToken = request.cookies.get(AUTH_SESSION_COOKIE)?.value;
-    const adminToken = request.cookies.get(ADMIN_SESSION_COOKIE)?.value;
+    const adminSession = await verifyAdminSession(request.cookies.get(ADMIN_SESSION_COOKIE)?.value);
     const role = accessToken ? await getSessionRole(accessToken) : null;
-    const adminRole = adminToken ? await getSessionRole(adminToken) : null;
-    if (role === 'admin' || adminRole === 'admin') return NextResponse.redirect(new URL('/admin', request.url));
+    if (role === 'admin' || adminSession) return NextResponse.redirect(new URL('/admin', request.url));
     if (role === 'user') return NextResponse.redirect(new URL(homePath(pathname), request.url));
 
     const response = intlMiddleware(request);
     if (accessToken) clearCookie(response, AUTH_SESSION_COOKIE);
-    if (adminToken) clearCookie(response, ADMIN_SESSION_COOKIE);
+    if (request.cookies.has(ADMIN_SESSION_COOKIE)) clearCookie(response, ADMIN_SESSION_COOKIE);
     return response;
   }
 
   const isLoginRoute = pathname === '/admin/login';
-  const accessToken = request.cookies.get(ADMIN_SESSION_COOKIE)?.value;
-  const valid = accessToken && (await getSessionRole(accessToken)) === 'admin';
+  const hasSessionCookie = request.cookies.has(ADMIN_SESSION_COOKIE);
+  const session = await verifyAdminSession(request.cookies.get(ADMIN_SESSION_COOKIE)?.value);
 
   if (isLoginRoute) {
-    if (valid) return NextResponse.redirect(new URL('/admin', request.url));
-    if (!accessToken) return NextResponse.next();
-    const response = NextResponse.next();
+    if (session) return secureAdminResponse(NextResponse.redirect(new URL('/admin', request.url)));
+    if (!hasSessionCookie) return secureAdminResponse(NextResponse.next());
+    const response = secureAdminResponse(NextResponse.next());
     response.cookies.delete(ADMIN_SESSION_COOKIE);
     return response;
   }
 
-  if (valid) return NextResponse.next();
+  if (session) return secureAdminResponse(NextResponse.next());
 
-  const response = NextResponse.redirect(new URL('/admin/login', request.url));
-  if (accessToken) response.cookies.delete(ADMIN_SESSION_COOKIE);
+  const response = secureAdminResponse(NextResponse.redirect(new URL('/admin/login', request.url)));
+  if (hasSessionCookie) response.cookies.delete(ADMIN_SESSION_COOKIE);
   return response;
 }
 
