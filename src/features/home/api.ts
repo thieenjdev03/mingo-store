@@ -58,7 +58,7 @@ async function fetchHeroBanners(): Promise<HeroBannerView[]> {
     next: { revalidate: 300 },
   });
   return banners
-    .filter((banner) => banner.is_active && banner.image_url)
+    .filter((banner) => banner.is_active && Boolean(banner.image_url || banner.video_url))
     .sort((a, b) => a.display_order - b.display_order)
     .map(toHeroBannerView);
 }

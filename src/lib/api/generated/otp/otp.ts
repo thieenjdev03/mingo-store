@@ -33,7 +33,7 @@ export const otpControllerSendOtp = (
     sendOtpDto: SendOtpDto,
  ) => {
     return customFetch<void>(
-    {url: `/api/v1/otp/send`, method: 'POST',
+    {url: `/otp/send`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
       data: sendOtpDto
     },
@@ -47,7 +47,7 @@ export const getOtpControllerSendOtpMutationFetcher = ( ) => {
     return otpControllerSendOtp(arg);
   }
 }
-export const getOtpControllerSendOtpMutationKey = () => [`/api/v1/otp/send`] as const;
+export const getOtpControllerSendOtpMutationKey = () => [`/otp/send`] as const;
 
 export type OtpControllerSendOtpMutationResult = NonNullable<Awaited<ReturnType<typeof otpControllerSendOtp>>>
 export type OtpControllerSendOtpMutationError = unknown
@@ -78,7 +78,7 @@ export const otpControllerSendPasswordResetOtp = (
     sendOtpDto: SendOtpDto,
  ) => {
     return customFetch<void>(
-    {url: `/api/v1/otp/send-password-reset`, method: 'POST',
+    {url: `/otp/send-password-reset`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
       data: sendOtpDto
     },
@@ -92,7 +92,7 @@ export const getOtpControllerSendPasswordResetOtpMutationFetcher = ( ) => {
     return otpControllerSendPasswordResetOtp(arg);
   }
 }
-export const getOtpControllerSendPasswordResetOtpMutationKey = () => [`/api/v1/otp/send-password-reset`] as const;
+export const getOtpControllerSendPasswordResetOtpMutationKey = () => [`/otp/send-password-reset`] as const;
 
 export type OtpControllerSendPasswordResetOtpMutationResult = NonNullable<Awaited<ReturnType<typeof otpControllerSendPasswordResetOtp>>>
 export type OtpControllerSendPasswordResetOtpMutationError = unknown
@@ -123,7 +123,7 @@ export const otpControllerResetPassword = (
     resetPasswordDto: ResetPasswordDto,
  ) => {
     return customFetch<void>(
-    {url: `/api/v1/otp/reset-password`, method: 'POST',
+    {url: `/otp/reset-password`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
       data: resetPasswordDto
     },
@@ -137,7 +137,7 @@ export const getOtpControllerResetPasswordMutationFetcher = ( ) => {
     return otpControllerResetPassword(arg);
   }
 }
-export const getOtpControllerResetPasswordMutationKey = () => [`/api/v1/otp/reset-password`] as const;
+export const getOtpControllerResetPasswordMutationKey = () => [`/otp/reset-password`] as const;
 
 export type OtpControllerResetPasswordMutationResult = NonNullable<Awaited<ReturnType<typeof otpControllerResetPassword>>>
 export type OtpControllerResetPasswordMutationError = unknown
@@ -168,7 +168,7 @@ export const otpControllerVerifyOtp = (
     verifyOtpDto: VerifyOtpDto,
  ) => {
     return customFetch<void>(
-    {url: `/api/v1/otp/verify`, method: 'POST',
+    {url: `/otp/verify`, method: 'POST',
       headers: {'Content-Type': 'application/json', },
       data: verifyOtpDto
     },
@@ -182,7 +182,7 @@ export const getOtpControllerVerifyOtpMutationFetcher = ( ) => {
     return otpControllerVerifyOtp(arg);
   }
 }
-export const getOtpControllerVerifyOtpMutationKey = () => [`/api/v1/otp/verify`] as const;
+export const getOtpControllerVerifyOtpMutationKey = () => [`/otp/verify`] as const;
 
 export type OtpControllerVerifyOtpMutationResult = NonNullable<Awaited<ReturnType<typeof otpControllerVerifyOtp>>>
 export type OtpControllerVerifyOtpMutationError = unknown

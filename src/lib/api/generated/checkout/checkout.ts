@@ -26,7 +26,7 @@ import { customFetch } from '../../fetcher';
   
   
 /**
- * @summary Create a VIETQR order from the current cart for manual approval
+ * @summary Create an order (VIETQR or COD) from the current cart. Works without login — a guest is identified by shipping_address.recipient_phone and gets a lightweight account so the order can later be claimed.
  */
 export const checkoutControllerCreateOrder = (
     createVietQrOrderDto: CreateVietQrOrderDto,
@@ -54,7 +54,7 @@ export type CheckoutControllerCreateOrderMutationResult = NonNullable<Awaited<Re
 export type CheckoutControllerCreateOrderMutationError = unknown
 
 /**
- * @summary Create a VIETQR order from the current cart for manual approval
+ * @summary Create an order (VIETQR or COD) from the current cart. Works without login — a guest is identified by shipping_address.recipient_phone and gets a lightweight account so the order can later be claimed.
  */
 export const useCheckoutControllerCreateOrder = <TError = unknown>(
   params: CheckoutControllerCreateOrderParams, options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof checkoutControllerCreateOrder>>, TError, Key, CreateVietQrOrderDto, Awaited<ReturnType<typeof checkoutControllerCreateOrder>>> & { swrKey?: string }, }

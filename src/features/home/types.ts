@@ -30,8 +30,8 @@ export interface CursorPage<T> {
 /** TẦNG 1 — shape của GET /homepage/banners (findAll chưa được backend gõ kiểu, tự khai báo). */
 export interface HomepageBannerDto {
   id: string;
-  image_url: string;
-  /** Video nền tuỳ chọn (mp4). Có -> hero phát autoplay/muted/loop, image_url làm poster. */
+  image_url?: string | null;
+  /** Video nền tuỳ chọn (mp4). Có -> hero phát autoplay/muted/loop, image_url làm poster nếu có. */
   video_url?: string | null;
   alt_text?: string | null;
   link_url?: string | null;
@@ -41,7 +41,7 @@ export interface HomepageBannerDto {
 
 export interface HeroBannerView {
   id: string;
-  imageUrl: string;
+  imageUrl: string | null;
   mobileImageUrl: string | null;
   /** Video nền (mp4) nếu admin cấu hình; null -> dùng ảnh tĩnh. */
   videoUrl: string | null;
@@ -53,7 +53,7 @@ export interface HeroBannerView {
 export function toHeroBannerView(banner: HomepageBannerDto): HeroBannerView {
   return {
     id: banner.id,
-    imageUrl: banner.image_url,
+    imageUrl: banner.image_url ?? null,
     mobileImageUrl: null,
     videoUrl: banner.video_url ?? null,
     alt: banner.alt_text ?? '',

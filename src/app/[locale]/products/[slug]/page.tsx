@@ -3,8 +3,6 @@ import { notFound } from 'next/navigation';
 import { ChevronRight } from 'lucide-react';
 import { setRequestLocale, getTranslations } from 'next-intl/server';
 import { hasLocale } from 'next-intl';
-import { Chip } from '@/components/ui/chip';
-import { fWeight } from '@/lib/format';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { PurchasePanel } from '@/features/product/purchase-panel';
 import { ProductGallery } from '@/features/product/product-gallery';
@@ -21,19 +19,6 @@ const richHtmlClass =
   'space-y-2 [&_a]:text-primary [&_a]:underline [&_li]:ml-5 [&_ol]:list-decimal [&_table]:w-full [&_table]:border-collapse [&_table]:border-0 [&_table_*]:border-0 [&_td]:p-2 [&_th]:p-2 [&_ul]:list-disc';
 
 export const dynamic = 'force-dynamic';
-
-/** Chip thông tin dưới tên sản phẩm; có href thì bấm được để tới trang brand/collection/category. */
-function InfoChip({ label, href }: { label: string | null; href?: string | null }) {
-  if (!label) return null;
-  const chip = <Chip className="rounded-l-none text-primary">{label}</Chip>;
-  return href ? (
-    <Link href={href} className="transition-opacity hover:opacity-70">
-      {chip}
-    </Link>
-  ) : (
-    chip
-  );
-}
 
 async function resolveProduct(slug: string, locale: 'vi' | 'en') {
   return getProductBySlug(slug, locale).catch(() => null);
@@ -86,13 +71,6 @@ export default async function ProductDetailPage({
   const apiProduct = await resolveProduct(slug, safeLocale);
   if (!apiProduct || !isPublicCatalogProduct(apiProduct)) notFound();
   const product = toProductDetailView(apiProduct, safeLocale);
-  const specLabel =
-    product.spec ??
-    (product.weightGrams != null
-      ? `${product.weightGrams} g`
-      : product.weightKg != null
-        ? fWeight(product.weightKg)
-        : null);
 
   // "Gợi ý cho bạn": sản phẩm cùng category với sản phẩm đang xem (loại chính nó), tối đa 8.
   const suggestions = product.categoryId
@@ -179,13 +157,6 @@ export default async function ProductDetailPage({
           <h1 className="mt-4 font-sans text-[28px] font-bold leading-[34px] text-[#653819] lg:mt-[30px] lg:text-[60px] lg:leading-[60px]">
             {product.name}
           </h1>
-          <div className="mt-4 flex flex-wrap gap-2 lg:mt-[30px] lg:gap-[25px]">
-            <InfoChip label={product.collectionName} href={product.collectionSlug ? `/collections/${product.collectionSlug}` : null} />
-            <InfoChip label={specLabel} />
-            <InfoChip label={product.brandName} href={product.brandSlug ? `/brands/${product.brandSlug}` : null} />
-            <InfoChip label={product.categoryName} href={product.categorySlug ? `/categories/${product.categorySlug}` : null} />
-          </div>
-
           {!product.descriptionHtml ? (
             <p className="mt-5 max-w-2xl text-sm leading-7 text-muted-foreground lg:text-base">
               {safeLocale === 'vi'

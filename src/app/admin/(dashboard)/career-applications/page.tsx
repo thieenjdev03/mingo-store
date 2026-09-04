@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import useSWR from 'swr';
-import { FileText } from 'lucide-react';
+import { FileText, Trash2 } from 'lucide-react';
 import type {
   CareerApplicationDtoStatus,
   CareerApplicationsControllerFindAllStatus,
@@ -12,6 +12,8 @@ import { DataTable, type Column } from '@/components/admin/ui/data-table';
 import { Input } from '@/components/admin/ui/input';
 import { NativeSelect } from '@/components/admin/ui/native-select';
 import { Pagination } from '@/components/admin/ui/pagination';
+import { Button } from '@/components/admin/ui/button';
+import { ConfirmDialog } from '@/components/admin/ui/confirm-dialog';
 import { useToast } from '@/components/admin/ui/toast';
 import {
   careersKey,
@@ -19,6 +21,7 @@ import {
   allApplicationsKey,
   listAllApplications,
   updateApplicationStatus,
+  deleteApplication,
   type AdminApplication,
 } from '@/features/admin/careers/api';
 import { ApplicationDetailDialog } from '@/features/admin/careers/application-detail-dialog';
@@ -33,6 +36,8 @@ export default function AdminCareerApplicationsPage() {
   const [careerId, setCareerId] = useState('');
   const [page, setPage] = useState(1);
   const [detail, setDetail] = useState<AdminApplication | null>(null);
+  const [deleting, setDeleting] = useState<AdminApplication | null>(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
 
   // Danh sách tin tuyển dụng chỉ để đổ vào bộ lọc "Vị trí".
   const careersParams = { limit: 100 };
@@ -62,6 +67,21 @@ export default function AdminCareerApplicationsPage() {
       mutate();
     } catch {
       toast({ title: 'Cập nhật thất bại', tone: 'error' });
+    }
+  };
+
+  const confirmDelete = async () => {
+    if (!deleting) return;
+    setDeleteLoading(true);
+    try {
+      await deleteApplication(deleting.id);
+      toast({ title: 'Đã xoá đơn ứng tuyển', tone: 'success' });
+      setDeleting(null);
+      mutate();
+    } catch {
+      toast({ title: 'Xoá thất bại', tone: 'error' });
+    } finally {
+      setDeleteLoading(false);
     }
   };
 
@@ -105,14 +125,19 @@ export default function AdminCareerApplicationsPage() {
       header: '',
       align: 'right',
       render: (a) => (
-        <a
-          href={a.cv_url}
-          target="_blank"
-          rel="noreferrer"
-          className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary hover:underline"
-        >
-          <FileText className="size-4" /> CV
-        </a>
+        <div className="flex items-center justify-end gap-1">
+          <a
+            href={a.cv_url}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary hover:underline"
+          >
+            <FileText className="size-4" /> CV
+          </a>
+          <Button variant="ghost" size="icon" aria-label="Xoá" onClick={() => setDeleting(a)}>
+            <Trash2 className="size-4 text-destructive" />
+          </Button>
+        </div>
       ),
     },
   ];
@@ -153,6 +178,15 @@ export default function AdminCareerApplicationsPage() {
       <Pagination page={page} totalPages={totalPages} total={total} onPageChange={setPage} />
 
       <ApplicationDetailDialog application={detail} onClose={() => setDetail(null)} />
+
+      <ConfirmDialog
+        open={!!deleting}
+        onOpenChange={(open) => !open && setDeleting(null)}
+        title="Xoá đơn ứng tuyển?"
+        description={deleting ? `Xoá đơn của "${deleting.full_name}" cho vị trí "${deleting.career_title}". Hành động này không thể hoàn tác.` : undefined}
+        loading={deleteLoading}
+        onConfirm={confirmDelete}
+      />
     </div>
   );
 }

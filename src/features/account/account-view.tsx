@@ -17,11 +17,8 @@ import { OrderHistory, type MyOrder } from './order-history';
 import { PointsSection } from '@/features/points/points-section';
 import { MingoPointsLogo } from '@/features/points/mingo-points-logo';
 import { usePointsBalance } from '@/features/points/use-points-balance';
-import { FREE_ICE_CREAM_REWARD } from '@/config/free-ice-cream-reward';
 import { toAccountView, type AccountView } from './types';
 import { MeltingIceCreamLoader } from '@/components/ui/melting-ice-cream-loader';
-
-const REWARD_START_POINTS = 1_000;
 
 /** Địa chỉ giao hàng mặc định — dùng chung field/enpoint với checkout. */
 interface AddressDraft {
@@ -240,14 +237,6 @@ export function AccountPageView() {
 
   // Backend là nguồn dữ liệu duy nhất cho điểm: đã bao gồm quy tắc cộng/trừ và hoàn điểm.
   const availablePoints = pointsBalance?.balance ?? 0;
-  const freeIceCreamRewardEnabled = FREE_ICE_CREAM_REWARD.isEnabled;
-  const rewardTargetPoints = FREE_ICE_CREAM_REWARD.targetPoints;
-  const pointsUntilReward = freeIceCreamRewardEnabled
-    ? Math.max(rewardTargetPoints - availablePoints, 0)
-    : Number.POSITIVE_INFINITY;
-  const rewardProgress = freeIceCreamRewardEnabled
-    ? Math.min((availablePoints / rewardTargetPoints) * 100, 100)
-    : 0;
 
   const navItems: Array<{ key: string; label: string; icon: LucideIcon; href: string | null; current: boolean }> = [
     { key: 'overview', label: t('nav.overview'), icon: LayoutGrid, href: null, current: true },
@@ -331,7 +320,7 @@ export function AccountPageView() {
           >
             <span className="pointer-events-none absolute -right-32 -top-40 size-80 rounded-full bg-primary/[0.035]" aria-hidden="true" />
 
-            <div className="relative grid gap-9 lg:grid-cols-[minmax(230px,0.75fr)_minmax(0,2fr)] lg:items-center lg:gap-12">
+            <div className="relative grid gap-9 lg:grid-cols-[minmax(215px,0.7fr)_minmax(0,2fr)] lg:items-center lg:gap-12">
               <div className="lg:border-r lg:border-border lg:pr-10">
                 <div className="flex items-center gap-4">
                   <MingoPointsLogo className="size-11 sm:size-12" />
@@ -350,46 +339,21 @@ export function AccountPageView() {
               </div>
 
               <div>
-                <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between sm:gap-6">
-                  <p className="font-display text-2xl font-extrabold text-foreground sm:text-3xl">
-                    {!freeIceCreamRewardEnabled
-                      ? t('rewardProgramEndedTitle')
-                      : pointsUntilReward > 0 ? t('almostThere') : t('rewardsTitle')}
-                  </p>
-                  <p className="text-sm font-bold text-primary sm:text-right sm:text-base">
-                    {!freeIceCreamRewardEnabled
-                      ? t('rewardProgramEndedDescription')
-                      : pointsUntilReward > 0
-                      ? t('pointsToNext', { count: pointsUntilReward.toLocaleString(locale) })
-                      : t('rewardUnlocked')}
-                  </p>
+                <p className="font-display text-2xl font-extrabold text-foreground sm:text-3xl">
+                  {t('pointsProgressTitle')}
+                </p>
+
+                {/* Chưa có mốc thưởng thật (sẽ build sau) — thanh luôn đầy, chỉ mang tính placeholder trực quan. */}
+                <div
+                  className="mt-6 h-4 overflow-hidden rounded-full bg-primary/20 sm:h-5"
+                  role="progressbar"
+                  aria-label={t('rewardsTitle')}
+                  aria-valuemin={0}
+                  aria-valuemax={100}
+                  aria-valuenow={100}
+                >
+                  <div className="h-full w-full rounded-full bg-primary transition-[width] duration-700 ease-out motion-reduce:transition-none" />
                 </div>
-
-                {freeIceCreamRewardEnabled ? (
-                  <>
-                    <div
-                      className="mt-6 h-4 overflow-hidden rounded-full bg-muted sm:h-5"
-                      role="progressbar"
-                      aria-label={t('rewardsTitle')}
-                      aria-valuemin={0}
-                      aria-valuemax={rewardTargetPoints}
-                      aria-valuenow={Math.min(availablePoints, rewardTargetPoints)}
-                      aria-valuetext={pointsUntilReward > 0
-                        ? t('pointsToNext', { count: pointsUntilReward.toLocaleString(locale) })
-                        : t('rewardUnlocked')}
-                    >
-                      <div
-                        className="h-full rounded-full bg-primary transition-[width] duration-700 ease-out motion-reduce:transition-none"
-                        style={{ width: pointsBalance === null ? '0%' : `${rewardProgress}%` }}
-                      />
-                    </div>
-
-                    <div className="mt-3 flex items-center justify-between text-xs font-bold text-muted-foreground sm:text-sm">
-                      <span>{Math.min(REWARD_START_POINTS, rewardTargetPoints).toLocaleString(locale)} {t('pointsUnit')}</span>
-                      <span>{rewardTargetPoints.toLocaleString(locale)} {t('pointsUnit')}</span>
-                    </div>
-                  </>
-                ) : null}
               </div>
             </div>
           </section>

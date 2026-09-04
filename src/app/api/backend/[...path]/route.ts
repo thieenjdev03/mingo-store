@@ -13,6 +13,7 @@ const ALLOWED_ROOTS = new Set([
   'auth',
   'brands',
   'careers',
+  'career-applications',
   'cart',
   'categories',
   'checkout',
@@ -42,7 +43,7 @@ const ALLOWED_ROOTS = new Set([
   'users',
 ]);
 
-const ADMIN_ONLY_ROOTS = new Set(['admin', 'audit-logs', 'files', 'mail', 'users']);
+const ADMIN_ONLY_ROOTS = new Set(['admin', 'audit-logs', 'career-applications', 'files', 'mail', 'users']);
 const ADMIN_MUTATION_ROOTS = new Set([
   'brands',
   'categories',

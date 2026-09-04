@@ -14,6 +14,7 @@ import { getApiErrorMessage } from '@/lib/api/error-message';
 import { fCurrencyVND } from '@/lib/format';
 import { MeltingIceCreamLoader } from '@/components/ui/melting-ice-cream-loader';
 import { provinces, type Province } from '@/lib/vn-address';
+import { SHIPPING_CONFIG } from '@/config/shipping';
 import { VietQrPanel } from './vietqr-panel';
 import { createCheckoutOrder, getShippingAddresses, upsertShippingAddress } from './api';
 import { getShippingAreas, type ShippingAreaOption } from './shipping-locations';
@@ -25,9 +26,6 @@ interface VietQrPaymentOrder {
   orderCode: string;
   total: number;
 }
-
-/** Phí vận chuyển cố định, công khai ở storefront qua biến môi trường. */
-const DEFAULT_SHIPPING_FEE = Number(process.env.NEXT_PUBLIC_SHIPPING_FEE) || 0;
 
 export function CheckoutView() {
   const locale = useLocale();
@@ -127,7 +125,7 @@ export function CheckoutView() {
   }
 
   // Flow 1 click: validate -> lưu địa chỉ -> tạo đơn -> hiển thị bước thanh toán tương ứng.
-  // Phí ship được cấu hình cố định bằng env nên không gọi /shipping/quote.
+  // Phí ship lấy từ config dùng chung nên không gọi /shipping/quote.
   async function handleCheckout(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const form = new FormData(event.currentTarget);
@@ -195,14 +193,24 @@ export function CheckoutView() {
 
   if (step === 'completed' && completedOrderCode) {
     return (
-      <div className="bg-ivory py-16 sm:py-24">
-        <section className="mx-auto max-w-lg px-5 text-center sm:px-8">
-          <CheckCircle2 className="mx-auto size-16 text-primary" strokeWidth={1.5} aria-hidden="true" />
-          <h1 className="mt-5 font-display text-3xl font-bold text-foreground">{t('codSuccessTitle')}</h1>
-          <p className="mt-3 leading-7 text-muted-foreground">{t('codSuccessDescription', { orderCode: completedOrderCode })}</p>
-          <div className="mt-7 flex flex-col justify-center gap-3 sm:flex-row">
-            {userId ? <Link href={`/orders/${completedOrderCode}`} className="inline-flex h-11 items-center justify-center border-2 border-primary px-6 text-sm font-bold text-primary">{t('viewOrder')}</Link> : null}
-            <Link href="/products" className="inline-flex h-11 items-center justify-center bg-primary px-6 text-sm font-bold text-primary-foreground hover:bg-primary-dark">{t('continueShopping')}</Link>
+      <div className="min-h-screen bg-ivory py-16 sm:py-24">
+        <section className="mx-auto max-w-xl px-5 sm:px-8">
+          <div className="bg-card p-5 shadow-sm sm:p-8">
+            <div className="flex items-start gap-4 border-b border-border pb-5">
+              <span className="flex size-12 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+                <CheckCircle2 className="size-7" strokeWidth={1.75} aria-hidden="true" />
+              </span>
+              <div>
+                <p className="text-sm font-bold text-primary">{t('codPendingBadge')}</p>
+                <h1 className="mt-1 font-display text-3xl font-bold text-foreground">{t('codSuccessTitle')}</h1>
+                <p className="mt-2 text-sm leading-6 text-muted-foreground">{t('codSuccessDescription', { orderCode: completedOrderCode })}</p>
+              </div>
+            </div>
+
+            <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:justify-center">
+              {userId ? <Link href={`/orders/${completedOrderCode}`} className="inline-flex h-11 items-center justify-center border-2 border-primary px-6 text-sm font-bold text-primary">{t('viewOrder')}</Link> : null}
+              <Link href="/products" className="inline-flex h-11 items-center justify-center bg-primary px-6 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary-dark">{t('continueShopping')}</Link>
+            </div>
           </div>
         </section>
       </div>
@@ -251,7 +259,7 @@ export function CheckoutView() {
 
   const subtotal = cart.subtotal;
   const productDiscount = 0; // Không còn /checkout/quote — giảm giá SP do backend áp lúc tạo đơn.
-  const shippingFee = DEFAULT_SHIPPING_FEE;
+  const shippingFee = SHIPPING_CONFIG.feeVnd;
   const voucherDiscount = 0; // Chưa có tính năng voucher — hiển thị 0đ theo design.
   const total = subtotal - productDiscount - voucherDiscount + shippingFee;
   const busy = step === 'submitting' || step === 'redirecting';
@@ -348,7 +356,7 @@ export function CheckoutView() {
                   </div>
                   <div className="mt-3 flex items-center justify-between gap-3 bg-primary/10 px-4 py-3 text-sm text-primary" aria-live="polite">
                     <span className="font-semibold">{t('shippingFee')}</span>
-                    <span className="font-bold">{fCurrencyVND(DEFAULT_SHIPPING_FEE)}</span>
+                    <span className="font-bold">{fCurrencyVND(SHIPPING_CONFIG.feeVnd)}</span>
                   </div>
                 </div>
               </section>

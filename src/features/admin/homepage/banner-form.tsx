@@ -41,15 +41,15 @@ export function BannerForm({ open, onOpenChange, banner, onSaved }: BannerFormPr
   }, [open, banner]);
 
   const onSubmit = async () => {
-    if (!imageUrl) {
-      setError('Vui lòng tải ảnh banner.');
+    if (!imageUrl && !videoUrl) {
+      setError('Vui lòng tải ảnh banner hoặc video nền.');
       return;
     }
     setSaving(true);
     try {
       const payload = {
-        image_url: imageUrl,
-        // Gửi null (không phải undefined) để xoá video ở bản ghi đang sửa.
+        // Gửi null (không phải undefined) để xoá media ở bản ghi đang sửa.
+        image_url: imageUrl || null,
         video_url: videoUrl || null,
         alt_text: altText || undefined,
         link_url: linkUrl || undefined,
@@ -93,7 +93,8 @@ export function BannerForm({ open, onOpenChange, banner, onSaved }: BannerFormPr
           id="image"
           label="Ảnh banner"
           error={error ?? undefined}
-          hint="Bắt buộc. Nếu có video, ảnh này dùng làm poster (hiện khi video đang tải / trên thiết bị không tự phát)."
+          required={false}
+          hint="Tuỳ chọn. Có thể dùng ảnh, video hoặc cả hai; ảnh sẽ làm poster khi có video."
         >
           <ImageUpload value={imageUrl} onChange={setImageUrl} folder="homepage/banners" />
         </Field>
@@ -101,7 +102,7 @@ export function BannerForm({ open, onOpenChange, banner, onSaved }: BannerFormPr
           id="video"
           label="Video nền (tuỳ chọn)"
           required={false}
-          hint="MP4 — storefront sẽ tự phát (muted, lặp lại) khi mở trang chủ. Bỏ trống để dùng ảnh tĩnh."
+          hint="MP4 hoặc link YouTube — storefront tự phát không tiếng và ẩn controller. Bỏ trống để dùng ảnh tĩnh."
         >
           <VideoUpload value={videoUrl} onChange={setVideoUrl} folder="homepage/banners" />
         </Field>

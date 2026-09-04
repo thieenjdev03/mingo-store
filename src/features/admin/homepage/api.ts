@@ -12,7 +12,7 @@ import type { CreateHomepageBannerDto } from '@/lib/api/generated/ecomAPI.schema
 
 export interface BannerDto {
   id: string;
-  image_url: string;
+  image_url?: string | null;
   /** Video nền tuỳ chọn (mp4). Có -> storefront phát autoplay/muted/loop, image_url làm poster. */
   video_url?: string | null;
   alt_text?: string;
@@ -21,9 +21,11 @@ export interface BannerDto {
   is_active: boolean;
 }
 
-// `video_url` post-date lần gen openapi gần nhất (backend vừa thêm) nên chưa có trong
-// CreateHomepageBannerDto generated — mở rộng ở đây và cast ở call site (giống pattern hand-declared của feature này).
-export type SaveBannerInput = Omit<CreateHomepageBannerDto, 'video_url'> & {
+// Contract admin cho phép `image_url`/`video_url` dùng độc lập: banner chỉ cần
+// có ít nhất một loại media. Generated DTO cũ vẫn yêu cầu image_url nên mở rộng
+// type ở đây và cast ở call site.
+export type SaveBannerInput = Omit<CreateHomepageBannerDto, 'image_url' | 'video_url'> & {
+  image_url?: string | null;
   video_url?: string | null;
 };
 

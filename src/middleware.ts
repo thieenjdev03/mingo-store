@@ -61,6 +61,8 @@ function buildCsp(nonce: string): string {
     `img-src 'self' https: data:`,
     `font-src 'self' data:`,
     `connect-src 'self'${isDev ? ' ws:' : ''}`,
+    `media-src 'self' https:`,
+    `frame-src 'self' https://www.youtube-nocookie.com https://www.youtube.com`,
     `object-src 'none'`,
     `base-uri 'self'`,
     `form-action 'self'`,

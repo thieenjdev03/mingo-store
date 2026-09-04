@@ -1,16 +1,20 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { Link } from '@/i18n/navigation';
 import type { HeroBannerView } from '@/features/home/types';
+import { buildYouTubeEmbedUrl } from '@/lib/media/youtube';
 
 interface HeroCarouselProps {
   /** Banner active từ backend (/homepage/banners), đã sort theo display_order. */
   banners: HeroBannerView[];
 }
+
+/** Tự động lướt sang banner kế tiếp sau mỗi khoảng thời gian này. */
+const AUTOPLAY_INTERVAL_MS = 3000;
 
 const PRIMARY_BANNER = {
   background: '/assets/mingo/home/hero-background.jpg',
@@ -66,9 +70,31 @@ function PrimaryBanner() {
   );
 }
 
-function BackendBanner({ banner }: { banner: HeroBannerView }) {
-  // Có video -> tự phát nền (muted + playsInline để iOS/Chrome cho autoplay), lặp lại;
-  // dùng ảnh làm poster để có khung hình ngay khi video chưa tải xong / thiết bị chặn autoplay.
+function BackendBanner({ banner, onVideoEnded }: { banner: HeroBannerView; onVideoEnded?: () => void }) {
+  // Link YouTube dùng iframe embed để autoplay không tiếng, ẩn controller/nút fullscreen/link ra ngoài.
+  const youtubeEmbedUrl = banner.videoUrl ? buildYouTubeEmbedUrl(banner.videoUrl) : null;
+  if (youtubeEmbedUrl) {
+    return (
+      <div className="absolute inset-0 overflow-hidden">
+        {/*
+          Iframe YouTube không hỗ trợ object-fit: cover như <video> — phóng to theo tỉ lệ
+          16:9 cố định (vw/vh) rồi crop bằng overflow-hidden của wrapper để lấp kín full-bleed
+          thay vì bị viền đen (letterbox) theo khung hero không phải 16:9.
+          pointer-events-none: banner chỉ trang trí nền, chặn hẳn tương tác/click ra YouTube.
+        */}
+        <iframe
+          src={youtubeEmbedUrl}
+          title={banner.alt || 'Mingo banner video'}
+          className="pointer-events-none absolute left-1/2 top-1/2 h-[56.25vw] min-h-[100dvh] w-[100vw] min-w-[177.78vh] -translate-x-1/2 -translate-y-1/2 border-0"
+          allow="autoplay; encrypted-media; picture-in-picture"
+          referrerPolicy="strict-origin-when-cross-origin"
+          tabIndex={-1}
+        />
+      </div>
+    );
+  }
+  // MP4 tự phát nền (muted + playsInline để iOS/Chrome cho autoplay), không lặp khi
+  // carousel có nhiều slide để chuyển sang slide kế tiếp khi phát xong.
   if (banner.videoUrl) {
     return (
       <video
@@ -77,13 +103,16 @@ function BackendBanner({ banner }: { banner: HeroBannerView }) {
         poster={banner.imageUrl || undefined}
         autoPlay
         muted
-        loop
+        controls={false}
+        loop={!onVideoEnded}
         playsInline
         preload="metadata"
         aria-label={banner.alt || undefined}
+        onEnded={onVideoEnded}
       />
     );
   }
+  if (!banner.imageUrl) return null;
   return (
     <picture className="absolute inset-0">
       {banner.mobileImageUrl ? <source media="(max-width: 639px)" srcSet={banner.mobileImageUrl} /> : null}
@@ -98,15 +127,29 @@ export function HeroCarousel({ banners }: HeroCarouselProps) {
   const t = useTranslations('home');
   const [slide, setSlide] = useState(0);
 
-  // Slide đầu luôn là campaign chính local; banner admin nối tiếp từ slide thứ hai.
-  const slideCount = banners.length + 1;
+  // Có banner từ API -> dùng đúng banner đó, KHÔNG tự chèn ảnh mockup campaign nữa.
+  // API rỗng (chưa cấu hình / lỗi tạm thời) -> fallback về mockup local để trang chủ
+  // không bao giờ trống banner.
+  const hasApiBanners = banners.length > 0;
+  const slideCount = hasApiBanners ? banners.length : 1;
   // Phòng thủ khi banners đổi độ dài (SWR revalidate) mà slide index còn trỏ ra ngoài.
   const activeIndex = Math.min(slide, slideCount - 1);
-  const isPrimaryBanner = activeIndex === 0;
-  const banner = isPrimaryBanner ? undefined : banners[activeIndex - 1];
+  const isPrimaryBanner = !hasApiBanners;
+  const banner = hasApiBanners ? banners[activeIndex] : undefined;
+  const isVideoSlide = Boolean(banner?.videoUrl);
 
   const ctaHref = isPrimaryBanner ? PRIMARY_BANNER.href : banner?.linkUrl;
   const ctaLabel = banner?.ctaLabel ?? t('seeProduct');
+
+  const advance = () => setSlide((current) => (current + 1) % slideCount);
+
+  // Tự động lướt sang slide kế tiếp: ảnh sau AUTOPLAY_INTERVAL_MS cố định; video thì
+  // đợi phát xong (onEnded ở BackendBanner gọi advance trực tiếp) thay vì cắt ngang bằng timer.
+  useEffect(() => {
+    if (slideCount <= 1 || isVideoSlide) return;
+    const timer = setTimeout(advance, AUTOPLAY_INTERVAL_MS);
+    return () => clearTimeout(timer);
+  }, [slideCount, activeIndex, isVideoSlide, advance]);
 
   return (
     <section
@@ -117,7 +160,20 @@ export function HeroCarousel({ banners }: HeroCarouselProps) {
       aria-roledescription="carousel"
       aria-label="Sản phẩm nổi bật"
     >
-      {isPrimaryBanner ? <PrimaryBanner /> : banner ? <BackendBanner banner={banner} /> : null}
+      {isPrimaryBanner ? (
+        <PrimaryBanner />
+      ) : banner ? (
+        // key=id -> remount hẳn node <video>/<picture> khi đổi slide, tránh việc chỉ đổi
+        // src trên node cũ không tự autoplay lại ở một số trình duyệt.
+        <BackendBanner key={banner.id} banner={banner} onVideoEnded={slideCount > 1 ? advance : undefined} />
+      ) : null}
+
+      {isVideoSlide ? (
+        <div
+          className="pointer-events-auto absolute inset-0 z-10 cursor-default bg-transparent"
+          aria-hidden="true"
+        />
+      ) : null}
 
       {ctaHref && (
         <Link

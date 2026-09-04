@@ -1322,9 +1322,9 @@ export interface UpdateBrandDto {
 }
 
 export interface CreateHomepageBannerDto {
-  /** Banner image URL, from /files/upload(-multiple) */
-  image_url: string;
-  /** Optional background video (mp4). When set, storefront autoplays it (muted/loop) with image_url as poster/fallback. */
+  /** Optional banner image URL, from /files/upload(-multiple). At least one of image_url or video_url is required. */
+  image_url?: string;
+  /** Optional background video (mp4). At least one of image_url or video_url is required; both may be provided. */
   video_url?: string;
   alt_text?: string;
   /** Optional CTA target when the banner is clicked */
@@ -1511,15 +1511,25 @@ export interface UpdateCartItemDto {
   quantity: number;
 }
 
+export interface CheckoutShippingAddressDto {
+  recipient_name?: string;
+  recipient_phone?: string;
+  province?: string;
+  district?: string;
+  ward?: string;
+  street_line_1?: string;
+}
+
 /**
- * Legacy storefront field name. Only VIETQR is accepted.
+ * Legacy storefront field name. Defaults to VIETQR when omitted.
  */
-export type VietQrPaymentMethod = typeof VietQrPaymentMethod[keyof typeof VietQrPaymentMethod];
+export type CheckoutPaymentMethod = typeof CheckoutPaymentMethod[keyof typeof CheckoutPaymentMethod];
 
 
 // eslint-disable-next-line @typescript-eslint/no-redeclare
-export const VietQrPaymentMethod = {
+export const CheckoutPaymentMethod = {
   VIETQR: 'VIETQR',
+  COD: 'COD',
 } as const;
 
 export interface CreateVietQrOrderDto {
@@ -1527,15 +1537,19 @@ export interface CreateVietQrOrderDto {
   shipping_address_id?: string;
   /** Saved shipping address ID. */
   shippingAddressId?: string;
+  /** Raw shipping address, used when there is no saved address book entry. Required for guest checkout (no Authorization header). */
+  shipping_address?: CheckoutShippingAddressDto;
+  /** Contact email. Optional for guest checkout (phone is the primary identifier). */
+  email?: string;
   /** Legacy checkout geo field. The saved shipping address is authoritative. */
   province_code?: string;
   /** Legacy checkout geo field. The saved shipping address is authoritative. */
   district_code?: string;
   notes?: string;
-  /** Legacy storefront field name. Only VIETQR is accepted. */
-  payment_method?: VietQrPaymentMethod;
-  /** Only VIETQR is accepted. */
-  paymentMethod?: VietQrPaymentMethod;
+  /** Legacy storefront field name. Defaults to VIETQR when omitted. */
+  payment_method?: CheckoutPaymentMethod;
+  /** Defaults to VIETQR when omitted. */
+  paymentMethod?: CheckoutPaymentMethod;
 }
 
 export type ContactDepartment = typeof ContactDepartment[keyof typeof ContactDepartment];
@@ -1556,6 +1570,19 @@ export interface CreateContactDto {
   department: ContactDepartment;
   subject: string;
   message: string;
+}
+
+export interface SiteSettingsDto {
+  /**
+   * Link file PDF hồ sơ hợp tác do khách cung cấp. null = chưa cấu hình.
+   * @nullable
+   */
+  partnership_pdf_url: string | null;
+}
+
+export interface UpdateSiteSettingsDto {
+  /** Chuỗi rỗng để xoá link. */
+  partnership_pdf_url?: string;
 }
 
 export interface Object { [key: string]: unknown }

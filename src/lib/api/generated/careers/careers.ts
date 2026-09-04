@@ -462,3 +462,46 @@ export const useCareerApplicationsControllerUpdate = <TError = unknown>(
     ...query
   }
 }
+/**
+ * @summary Delete an application (admin)
+ */
+export const careerApplicationsControllerRemove = (
+    id: string,
+ ) => {
+    return customFetch<void>(
+    {url: `/career-applications/${id}`, method: 'DELETE'
+    },
+    );
+  }
+
+
+
+export const getCareerApplicationsControllerRemoveMutationFetcher = (id: string, ) => {
+  return (_: Key, __: { arg: Arguments }) => {
+    return careerApplicationsControllerRemove(id);
+  }
+}
+export const getCareerApplicationsControllerRemoveMutationKey = (id: string,) => [`/career-applications/${id}`] as const;
+
+export type CareerApplicationsControllerRemoveMutationResult = NonNullable<Awaited<ReturnType<typeof careerApplicationsControllerRemove>>>
+export type CareerApplicationsControllerRemoveMutationError = unknown
+
+/**
+ * @summary Delete an application (admin)
+ */
+export const useCareerApplicationsControllerRemove = <TError = unknown>(
+  id: string, options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof careerApplicationsControllerRemove>>, TError, Key, Arguments, Awaited<ReturnType<typeof careerApplicationsControllerRemove>>> & { swrKey?: string }, }
+) => {
+
+  const {swr: swrOptions} = options ?? {}
+
+  const swrKey = swrOptions?.swrKey ?? getCareerApplicationsControllerRemoveMutationKey(id);
+  const swrFn = getCareerApplicationsControllerRemoveMutationFetcher(id);
+
+  const query = useSWRMutation(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}

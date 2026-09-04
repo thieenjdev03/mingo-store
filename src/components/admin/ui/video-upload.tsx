@@ -1,9 +1,11 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Film, Loader2, X } from 'lucide-react';
 import { filesControllerUploadFile } from '@/lib/api/generated/files/files';
 import { cn } from '@/lib/utils';
+import { buildYouTubeEmbedUrl } from '@/lib/media/youtube';
+import { Input } from './input';
 import { useToast } from './toast';
 
 /** Lấy URL từ response Cloudinary (backend có thể trả secure_url/url/string). */
@@ -28,11 +30,16 @@ interface VideoUploadProps {
 
 const MAX_MB = 50;
 
-/** Upload 1 video (mp4) lên Cloudinary qua /files/upload (resourceType='video'), trả URL tuyệt đối. */
+/** Upload 1 video (mp4) hoặc nhận link video/YouTube, trả URL tuyệt đối. */
 export function VideoUpload({ value, onChange, folder, className }: VideoUploadProps) {
   const { toast } = useToast();
   const inputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
+  const [urlDraft, setUrlDraft] = useState(value ?? '');
+
+  useEffect(() => {
+    setUrlDraft(value ?? '');
+  }, [value]);
 
   const handleFile = async (file: File) => {
     if (!file.type.startsWith('video/')) {
@@ -57,12 +64,38 @@ export function VideoUpload({ value, onChange, folder, className }: VideoUploadP
     }
   };
 
+  const applyVideoUrl = () => {
+    const nextUrl = urlDraft.trim();
+    if (!nextUrl) {
+      onChange(null);
+      return;
+    }
+    try {
+      const parsed = new URL(nextUrl);
+      if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') throw new Error('unsupported protocol');
+      onChange(nextUrl);
+    } catch {
+      toast({ title: 'Link video không hợp lệ', tone: 'error' });
+    }
+  };
+
+  const youtubeEmbedUrl = value ? buildYouTubeEmbedUrl(value) : null;
+
   return (
     <div className={cn('flex items-center gap-4', className)}>
       <div className="relative flex h-24 w-40 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-border bg-muted">
         {value ? (
           <>
-            <video src={value} muted playsInline className="size-full object-cover" />
+            {youtubeEmbedUrl ? (
+              <iframe
+                src={youtubeEmbedUrl}
+                title="Video banner"
+                className="pointer-events-none size-full"
+                allow="autoplay; encrypted-media"
+              />
+            ) : (
+              <video src={value} muted playsInline className="size-full object-cover" />
+            )}
             <button
               type="button"
               onClick={() => onChange(null)}
@@ -90,7 +123,31 @@ export function VideoUpload({ value, onChange, folder, className }: VideoUploadP
         >
           {value ? 'Đổi video' : 'Tải video lên'}
         </button>
-        <p className="mt-1 text-xs text-muted-foreground">MP4, tối đa {MAX_MB}MB. Nên dùng clip ngắn, đã nén.</p>
+        <p className="mt-1 text-xs text-muted-foreground">MP4, tối đa {MAX_MB}MB hoặc dán link YouTube.</p>
+        <div className="mt-2 flex max-w-[360px] gap-2">
+          <Input
+            id="video-url"
+            type="url"
+            value={urlDraft}
+            onChange={(event) => setUrlDraft(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter') {
+                event.preventDefault();
+                applyVideoUrl();
+              }
+            }}
+            placeholder="Dán link YouTube"
+            aria-label="Link YouTube"
+          />
+          <button
+            type="button"
+            onClick={applyVideoUrl}
+            disabled={uploading}
+            className="shrink-0 rounded-md border border-border bg-white px-3 py-2 text-xs font-semibold text-foreground transition-colors hover:bg-muted disabled:opacity-60"
+          >
+            Dùng link
+          </button>
+        </div>
       </div>
       <input
         ref={inputRef}

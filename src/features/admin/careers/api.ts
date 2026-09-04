@@ -7,6 +7,7 @@ import {
   careersControllerFindApplications,
   careerApplicationsControllerFindAll,
   careerApplicationsControllerUpdate,
+  careerApplicationsControllerRemove,
 } from '@/lib/api/generated/careers/careers';
 import type {
   CareersControllerFindAllParams,
@@ -41,6 +42,10 @@ export function listApplications(careerId: string) {
 }
 export function updateApplicationStatus(id: string, dto: UpdateCareerApplicationDto) {
   return careerApplicationsControllerUpdate(id, dto);
+}
+
+export function deleteApplication(id: string) {
+  return careerApplicationsControllerRemove(id);
 }
 
 /**
