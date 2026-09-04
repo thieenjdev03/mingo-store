@@ -100,7 +100,7 @@ export function pageMetadata({
 export const SEO_COPY = {
   vi: {
     home: {
-      title: 'Mingo Ice Cream Việt Nam — Kem que, kem hộp và kem ốc quế',
+      title: 'Mingo Ice Cream Viet Nam',
       description: 'Khám phá kem Mingo tại Việt Nam: kem que, kem hộp, kem ốc quế và nhiều hương vị mát lạnh cho mọi khoảnh khắc.',
     },
     products: {
