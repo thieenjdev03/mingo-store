@@ -1,5 +1,5 @@
-/** JWT admin chỉ nằm trong cookie HttpOnly; localStorage chỉ giữ metadata không nhạy cảm. */
-import { clearAccessToken } from '@/lib/auth/token';
+/** Token localStorage chỉ giữ tương thích với API client; quyền route nằm ở session HttpOnly. */
+import { setAccessToken, clearAccessToken } from '@/lib/auth/token';
 
 const ADMIN_USER_KEY = 'mingo-admin-user';
 
@@ -9,7 +9,8 @@ export interface AdminUser {
   role: string;
 }
 
-export function saveAdminSession(user: AdminUser): void {
+export function saveAdminSession(token: string, user: AdminUser): void {
+  setAccessToken(token);
   if (typeof window !== 'undefined') {
     try {
       window.localStorage.setItem(ADMIN_USER_KEY, JSON.stringify(user));

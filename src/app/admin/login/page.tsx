@@ -5,8 +5,10 @@ import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@/lib/admin/zod-resolver';
+import { authControllerLogin } from '@/lib/api/generated/auth/auth';
+import { ApiError } from '@/lib/api/fetcher';
 import { saveAdminSession } from '@/lib/admin/auth';
-import { AdminSessionError, loginAdminSession } from '@/lib/admin/session-client';
+import { syncAdminSession } from '@/lib/admin/session-client';
 import { Field } from '@/components/admin/ui/field';
 import { Input } from '@/components/admin/ui/input';
 import { Button } from '@/components/admin/ui/button';
@@ -30,14 +32,21 @@ export default function AdminLoginPage() {
   const onSubmit = async (values: FormValues) => {
     setServerError(null);
     try {
-      const user = await loginAdminSession(values);
-      saveAdminSession(user);
+      const res = await authControllerLogin(values);
+      if (res.user.role !== 'admin') {
+        await syncAdminSession(res.accessToken);
+        setServerError('Tài khoản này không có quyền quản trị.');
+        return;
+      }
+      if (!(await syncAdminSession(res.accessToken))) {
+        setServerError('Không thể xác thực phiên quản trị. Vui lòng thử lại.');
+        return;
+      }
+      saveAdminSession(res.accessToken, { id: res.user.id, email: res.user.email, role: res.user.role });
       router.replace('/admin');
     } catch (err) {
-      if (err instanceof AdminSessionError && err.status === 401) {
+      if (err instanceof ApiError && err.status === 401) {
         setServerError('Email hoặc mật khẩu không đúng.');
-      } else if (err instanceof AdminSessionError && err.status === 403) {
-        setServerError('Tài khoản này không có quyền quản trị.');
       } else {
         setServerError('Đăng nhập thất bại. Vui lòng thử lại.');
       }

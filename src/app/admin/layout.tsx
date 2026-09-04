@@ -2,7 +2,6 @@ import type { Metadata } from 'next';
 import { NextIntlClientProvider } from 'next-intl';
 import viMessages from '../../../messages/vi.json';
 import { ToastProvider } from '@/components/admin/ui/toast';
-import { ApiCacheProvider } from '@/components/providers/api-cache-provider';
 import '@/styles/globals.css';
 
 /**
@@ -20,9 +19,7 @@ export default function AdminRootLayout({ children }: { children: React.ReactNod
     <html lang="vi" suppressHydrationWarning>
       <body className="font-sans antialiased" suppressHydrationWarning>
         <NextIntlClientProvider locale="vi" messages={viMessages}>
-          <ApiCacheProvider>
-            <ToastProvider>{children}</ToastProvider>
-          </ApiCacheProvider>
+          <ToastProvider>{children}</ToastProvider>
         </NextIntlClientProvider>
       </body>
     </html>

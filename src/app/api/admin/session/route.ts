@@ -1,13 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import {
-  ADMIN_SESSION_COOKIE,
-  ADMIN_SESSION_MAX_AGE,
-  createAdminSession,
-  verifyAdminSession,
-} from '@/lib/admin/server-session';
-import { buildServerApiUrl } from '@/lib/api/server-url';
-import { isSameOriginMutation } from '@/lib/api/proxy-security';
 
+const ADMIN_SESSION_COOKIE = 'mingo-admin-session';
 const AUTH_SESSION_COOKIE = 'mingo-session';
 const SESSION_MAX_AGE = 60 * 60 * 24 * 30;
 
@@ -38,11 +31,11 @@ function clearAuthCookies(response: NextResponse): NextResponse {
 }
 
 async function getUser(accessToken: string): Promise<SessionUser | null> {
-  const meUrl = buildServerApiUrl('me');
-  if (!meUrl) return null;
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, '');
+  if (!apiUrl) return null;
 
   try {
-    const response = await fetch(meUrl, {
+    const response = await fetch(`${apiUrl}/me`, {
       headers: { Authorization: `Bearer ${accessToken}` },
       cache: 'no-store',
     });
@@ -57,9 +50,6 @@ async function getUser(accessToken: string): Promise<SessionUser | null> {
 }
 
 export async function POST(request: NextRequest) {
-  if (!isSameOriginMutation(request)) {
-    return NextResponse.json({ message: 'Cross-origin request blocked' }, { status: 403 });
-  }
   const body = (await request.json().catch(() => null)) as { accessToken?: unknown } | null;
   const accessToken = typeof body?.accessToken === 'string' ? body.accessToken : '';
   const user = accessToken ? await getUser(accessToken) : null;
@@ -72,39 +62,19 @@ export async function POST(request: NextRequest) {
   setCookie(response, AUTH_SESSION_COOKIE, accessToken, SESSION_MAX_AGE);
   if (user.role !== 'admin') return clearCookie(response, ADMIN_SESSION_COOKIE);
 
-  const sealedSession = await createAdminSession(accessToken, user);
-  if (!sealedSession) {
-    return clearAuthCookies(NextResponse.json({ message: 'Admin session security is not configured' }, { status: 503 }));
-  }
-  response.cookies.set(ADMIN_SESSION_COOKIE, sealedSession, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'strict',
-    path: '/',
-    maxAge: ADMIN_SESSION_MAX_AGE,
-  });
+  setCookie(response, ADMIN_SESSION_COOKIE, accessToken, SESSION_MAX_AGE);
   return response;
 }
 
 export async function GET(request: NextRequest) {
-  const session = await verifyAdminSession(request.cookies.get(ADMIN_SESSION_COOKIE)?.value);
-  if (!session) {
+  const accessToken = request.cookies.get(ADMIN_SESSION_COOKIE)?.value;
+  const user = accessToken ? await getUser(accessToken) : null;
+  if (!user || user.role !== 'admin') {
     return clearCookie(NextResponse.json({ message: 'Admin session required' }, { status: 401 }), ADMIN_SESSION_COOKIE);
   }
-  // One revocation/role check per hard admin load. Middleware navigation remains
-  // local-only, while a disabled or demoted account cannot keep using the shell.
-  const currentUser = await getUser(session.accessToken);
-  if (!currentUser || currentUser.role !== 'admin' || currentUser.id !== session.user.id) {
-    return clearCookie(NextResponse.json({ message: 'Admin session expired' }, { status: 401 }), ADMIN_SESSION_COOKIE);
-  }
-  const response = NextResponse.json({ user: currentUser });
-  response.headers.set('Cache-Control', 'private, no-store, max-age=0');
-  return response;
+  return NextResponse.json({ user });
 }
 
-export async function DELETE(request: NextRequest) {
-  if (!isSameOriginMutation(request)) {
-    return NextResponse.json({ message: 'Cross-origin request blocked' }, { status: 403 });
-  }
+export async function DELETE() {
   return clearAuthCookies(NextResponse.json({ success: true }));
 }

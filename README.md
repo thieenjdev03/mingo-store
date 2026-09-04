@@ -15,31 +15,8 @@ npm run dev            # http://localhost:3001 (đổi port nếu backend đang 
 Biến môi trường frontend:
 
 ```dotenv
-API_URL=http://localhost:3000
-ADMIN_SESSION_SECRET=<chuỗi-ngẫu-nhiên-tối-thiểu-32-ký-tự>
+NEXT_PUBLIC_API_URL=http://localhost:3000
 ```
-
-`API_URL` là biến server-only. Browser chỉ gọi cùng origin qua `/api/backend/*`,
-vì vậy hostname backend không nằm trong JavaScript bundle. Khi chạy Docker,
-backend chỉ được expose trong network nội bộ qua `http://api:3000`; Caddy không
-publish API domain riêng.
-
-## Bảo mật admin và cache API
-
-- Admin login đi qua BFF `/api/admin/login`; JWT được bọc trong cookie HttpOnly,
-  `Secure`, `SameSite=Strict` và ký HMAC bằng `ADMIN_SESSION_SECRET`. JWT không
-  được trả về JavaScript hay lưu trong `localStorage`.
-- Middleware xác minh chữ ký session tại Next.js, không gọi `/me` ở mỗi lần điều
-  hướng. API proxy tự gắn Bearer token ở server và chặn mutation khác origin.
-- Proxy chỉ cho phép các API root đã khai báo, giới hạn body 10 MB, không forward
-  cookie/header tùy ý và không trả header `Set-Cookie` từ upstream.
-- GET công khai nhận CDN cache 5 phút + stale-while-revalidate 10 phút. Request có
-  session, Authorization, cart token và mọi mutation luôn `private, no-store`.
-- SWR cache trong memory dedupe request giống nhau trong 30 giây; cache bị hủy
-  hoàn toàn khi admin đăng xuất bằng hard navigation.
-
-Trong production bắt buộc tạo secret riêng, ví dụ `openssl rand -base64 48`, và
-luân chuyển secret khi nghi ngờ rò rỉ (mọi phiên admin hiện tại sẽ bị đăng xuất).
 
 ## Generate types từ backend
 

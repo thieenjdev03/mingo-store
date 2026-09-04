@@ -2,7 +2,7 @@
 
 import { useState, type ReactNode } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { LogOut, Menu, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -20,14 +20,14 @@ function isActive(pathname: string, href: string): boolean {
 export function AdminShell({ children }: { children: ReactNode }) {
   const t = useTranslations('admin');
   const pathname = usePathname();
+  const router = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
   const user = getAdminUser();
 
   const handleLogout = async () => {
     clearAdminSession();
     await clearAdminSessionCookie();
-    // Hard navigation also destroys the in-memory SWR cache for the previous admin.
-    window.location.replace('/admin/login');
+    router.replace('/admin/login');
   };
 
   const nav = (

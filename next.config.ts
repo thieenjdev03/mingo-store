@@ -6,35 +6,6 @@ const withNextIntl = createNextIntlPlugin();
 const nextConfig: NextConfig = {
   output: 'standalone', // build ra .next/standalone cho Docker
   outputFileTracingRoot: process.cwd(),
-  poweredByHeader: false,
-  async headers() {
-    const baselineSecurityHeaders = [
-      { key: 'X-Content-Type-Options', value: 'nosniff' },
-      { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
-      { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' },
-    ];
-    return [
-      {
-        source: '/:path*',
-        headers: baselineSecurityHeaders,
-      },
-      {
-        source: '/admin/:path*',
-        headers: [
-          ...baselineSecurityHeaders,
-          { key: 'Cache-Control', value: 'private, no-store, max-age=0' },
-          { key: 'X-Frame-Options', value: 'DENY' },
-        ],
-      },
-      {
-        source: '/api/admin/:path*',
-        headers: [
-          { key: 'Cache-Control', value: 'private, no-store, max-age=0' },
-          { key: 'X-Frame-Options', value: 'DENY' },
-        ],
-      },
-    ];
-  },
   images: {
     formats: ['image/avif', 'image/webp'],
     minimumCacheTTL: 2592000,
