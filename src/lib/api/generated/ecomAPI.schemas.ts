@@ -41,6 +41,20 @@ export interface LoginResponseDto {
   user: LoginUserDto;
 }
 
+export interface CheckExistsDto {
+  /** Primary identifier for guest accounts. */
+  phone?: string;
+  email?: string;
+}
+
+export interface SetPasswordDto {
+  phone?: string;
+  email?: string;
+  password: string;
+  firstName?: string;
+  lastName?: string;
+}
+
 /**
  * User role
  */

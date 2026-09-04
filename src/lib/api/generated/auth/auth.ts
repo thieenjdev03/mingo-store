@@ -15,10 +15,12 @@ import type {
 } from 'swr/mutation';
 
 import type {
+  CheckExistsDto,
   LoginDto,
   LoginResponseDto,
   LoginUserDto,
-  RegisterDto
+  RegisterDto,
+  SetPasswordDto
 } from '../ecomAPI.schemas';
 
 import { customFetch } from '../../fetcher';
@@ -109,6 +111,96 @@ export const useAuthControllerLogin = <TError = void>(
 
   const swrKey = swrOptions?.swrKey ?? getAuthControllerLoginMutationKey();
   const swrFn = getAuthControllerLoginMutationFetcher();
+
+  const query = useSWRMutation(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
+/**
+ * @summary Look up an account by phone or email before registering. Used by the storefront to route "Đăng ký" to either normal registration or claiming an existing guest account (exists && !hasPassword).
+ */
+export const authControllerCheckExists = (
+    checkExistsDto: CheckExistsDto,
+ ) => {
+    return customFetch<void>(
+    {url: `/auth/check-exists`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: checkExistsDto
+    },
+    );
+  }
+
+
+
+export const getAuthControllerCheckExistsMutationFetcher = ( ) => {
+  return (_: Key, { arg }: { arg: CheckExistsDto }) => {
+    return authControllerCheckExists(arg);
+  }
+}
+export const getAuthControllerCheckExistsMutationKey = () => [`/auth/check-exists`] as const;
+
+export type AuthControllerCheckExistsMutationResult = NonNullable<Awaited<ReturnType<typeof authControllerCheckExists>>>
+export type AuthControllerCheckExistsMutationError = unknown
+
+/**
+ * @summary Look up an account by phone or email before registering. Used by the storefront to route "Đăng ký" to either normal registration or claiming an existing guest account (exists && !hasPassword).
+ */
+export const useAuthControllerCheckExists = <TError = unknown>(
+   options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof authControllerCheckExists>>, TError, Key, CheckExistsDto, Awaited<ReturnType<typeof authControllerCheckExists>>> & { swrKey?: string }, }
+) => {
+
+  const {swr: swrOptions} = options ?? {}
+
+  const swrKey = swrOptions?.swrKey ?? getAuthControllerCheckExistsMutationKey();
+  const swrFn = getAuthControllerCheckExistsMutationFetcher();
+
+  const query = useSWRMutation(swrKey, swrFn, swrOptions)
+
+  return {
+    swrKey,
+    ...query
+  }
+}
+/**
+ * @summary Claim a passwordless guest account (created from a guest checkout) by setting its first password. Logs the caller in on success.
+ */
+export const authControllerSetPassword = (
+    setPasswordDto: SetPasswordDto,
+ ) => {
+    return customFetch<LoginResponseDto>(
+    {url: `/auth/set-password`, method: 'POST',
+      headers: {'Content-Type': 'application/json', },
+      data: setPasswordDto
+    },
+    );
+  }
+
+
+
+export const getAuthControllerSetPasswordMutationFetcher = ( ) => {
+  return (_: Key, { arg }: { arg: SetPasswordDto }) => {
+    return authControllerSetPassword(arg);
+  }
+}
+export const getAuthControllerSetPasswordMutationKey = () => [`/auth/set-password`] as const;
+
+export type AuthControllerSetPasswordMutationResult = NonNullable<Awaited<ReturnType<typeof authControllerSetPassword>>>
+export type AuthControllerSetPasswordMutationError = void
+
+/**
+ * @summary Claim a passwordless guest account (created from a guest checkout) by setting its first password. Logs the caller in on success.
+ */
+export const useAuthControllerSetPassword = <TError = void>(
+   options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof authControllerSetPassword>>, TError, Key, SetPasswordDto, Awaited<ReturnType<typeof authControllerSetPassword>>> & { swrKey?: string }, }
+) => {
+
+  const {swr: swrOptions} = options ?? {}
+
+  const swrKey = swrOptions?.swrKey ?? getAuthControllerSetPasswordMutationKey();
+  const swrFn = getAuthControllerSetPasswordMutationFetcher();
 
   const query = useSWRMutation(swrKey, swrFn, swrOptions)
 

@@ -358,6 +358,7 @@
     "successNote": "Chúng tôi đã gửi hướng dẫn khôi phục đến email của bạn (nếu tài khoản tồn tại).",
     "genericError": "Có lỗi xảy ra, vui lòng thử lại.",
     "passwordMismatch": "Mật khẩu xác nhận không khớp.",
+    "phoneAlreadyRegistered": "Số điện thoại này đã có tài khoản, vui lòng đăng nhập.",
     "otpTitle": "Xác thực email",
     "otpDescription": "Chúng tôi đã gửi mã xác thực gồm 6 chữ số đến {email}. Nhập mã để hoàn tất đăng ký.",
     "otpLabel": "Mã xác thực",

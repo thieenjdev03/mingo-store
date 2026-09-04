@@ -362,6 +362,7 @@
     "successNote": "If an account exists for that email, recovery instructions are on the way.",
     "genericError": "Something went wrong, please try again.",
     "passwordMismatch": "Passwords do not match.",
+    "phoneAlreadyRegistered": "This phone number already has an account. Please log in instead.",
     "otpTitle": "Verify your email",
     "otpDescription": "We sent a 6-digit verification code to {email}. Enter it to finish creating your account.",
     "otpLabel": "Verification code",

@@ -11,6 +11,7 @@ import {
   otpControllerSendPasswordResetOtp,
   otpControllerResetPassword,
 } from '@/lib/api/generated/otp/otp';
+import { checkAccountExists, claimGuestAccount } from './api';
 import { clearAccessToken, getAccessToken, setAccessToken } from '@/lib/auth/token';
 import { syncAdminSession } from '@/lib/admin/session-client';
 import { ApiError } from '@/lib/api/fetcher';
@@ -122,7 +123,26 @@ export function CustomerAuthForm({ mode }: CustomerAuthFormProps) {
           setErrorMessage(t('passwordMismatch'));
           return;
         }
-        // Xác thực email trước khi tạo tài khoản: gửi OTP rồi chuyển sang bước nhập mã.
+        const firstName = String(data.get('firstName') ?? '');
+        const lastName = String(data.get('lastName') ?? '');
+        const phoneNumber = String(data.get('phoneNumber') ?? '');
+
+        // SĐT đã có đơn hàng guest (checkout không cần đăng nhập) -> tài khoản passwordless
+        // đã tồn tại. Claim thẳng bằng set-password (không cần OTP, theo quyết định sản phẩm:
+        // ai biết SĐT của đơn hàng thì được nhận tài khoản đó) thay vì đăng ký mới.
+        const account = await checkAccountExists({ phone: phoneNumber });
+        if (account.exists && account.hasPassword) {
+          setErrorMessage(t('phoneAlreadyRegistered'));
+          return;
+        }
+        if (account.exists && !account.hasPassword) {
+          const loginRes = await claimGuestAccount({ phone: phoneNumber, email, password, firstName, lastName });
+          await completeAuthentication(loginRes.accessToken, loginRes.user.role);
+          return;
+        }
+
+        // Chưa có tài khoản nào -> xác thực email trước khi tạo tài khoản: gửi OTP rồi
+        // chuyển sang bước nhập mã.
         try {
           await otpControllerSendOtp({ email });
         } catch (error) {
@@ -132,13 +152,7 @@ export function CustomerAuthForm({ mode }: CustomerAuthFormProps) {
           if (!isOtpStillValidError(error)) throw error;
         }
         setAccountCreated(false);
-        setPending({
-          email,
-          password,
-          firstName: String(data.get('firstName') ?? ''),
-          lastName: String(data.get('lastName') ?? ''),
-          phoneNumber: String(data.get('phoneNumber') ?? ''),
-        });
+        setPending({ email, password, firstName, lastName, phoneNumber });
         setOtpValue('');
         setResendCooldown(OTP_RESEND_COOLDOWN);
         return;
