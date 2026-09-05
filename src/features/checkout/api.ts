@@ -33,6 +33,7 @@ interface CheckoutShippingAddressDto {
 interface CreateCheckoutOrderDto {
   shipping_address_id?: string;
   shipping_address?: CheckoutShippingAddressDto;
+  email?: string;
   province_code?: string;
   district_code?: string;
   notes?: string;
@@ -63,6 +64,7 @@ function toCheckoutDto(input: CheckoutRequestInput): CreateCheckoutOrderDto {
   return {
     shipping_address_id: input.shippingAddressId,
     shipping_address: input.shippingAddress ? toCheckoutAddress(input.shippingAddress) : undefined,
+    email: input.email,
     province_code: input.provinceCode,
     district_code: input.districtCode,
     notes: input.notes,

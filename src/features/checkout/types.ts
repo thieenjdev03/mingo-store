@@ -81,6 +81,8 @@ export interface ShippingAddressView extends ShippingAddressInput {
 export interface CheckoutRequestInput {
   shippingAddressId?: string;
   shippingAddress?: ShippingAddressInput;
+  /** Guest-only: lets a guest receive the order confirmation email. Ignored when logged in (account email is used instead). */
+  email?: string;
   provinceCode: string;
   districtCode: string;
   notes?: string;

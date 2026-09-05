@@ -16,7 +16,7 @@ import { MeltingIceCreamLoader } from '@/components/ui/melting-ice-cream-loader'
 import { provinces, type Province } from '@/lib/vn-address';
 import { SHIPPING_CONFIG } from '@/config/shipping';
 import { VietQrPanel } from './vietqr-panel';
-import { createCheckoutOrder, getShippingAddresses, upsertShippingAddress } from './api';
+import { createCheckoutOrder, getShippingAddresses } from './api';
 import { getShippingAreas, type ShippingAreaOption } from './shipping-locations';
 import type { CheckoutPaymentMethod, CheckoutRequestInput, SavedShippingAddress, ShippingAddressInput } from './types';
 
@@ -41,6 +41,7 @@ export function CheckoutView() {
   const [recipientMatchesBuyer, setRecipientMatchesBuyer] = useState(true);
   const [recipientName, setRecipientName] = useState('');
   const [recipientPhone, setRecipientPhone] = useState('');
+  const [guestEmail, setGuestEmail] = useState('');
   const [addressLine, setAddressLine] = useState('');
   const [paymentMethod, setPaymentMethod] = useState<CheckoutPaymentMethod>('VIETQR');
   const [invoiceRequested, setInvoiceRequested] = useState(false);
@@ -116,11 +117,14 @@ export function CheckoutView() {
     const phone = String(form.get('recipientPhone') ?? '').trim();
     const addressLine = String(form.get('addressLine') ?? '').trim();
     const invoiceEmail = String(form.get('invoiceEmail') ?? '').trim();
+    const guestEmailValue = String(form.get('guestEmail') ?? '').trim();
     if (!fullName) return t('nameRequired');
     if (!/^(?:0|\+84)\d{9,10}$/.test(phone)) return t('phoneInvalid');
     if (!province || !area) return t('addressRequired');
     if (!addressLine) return t('addressLineRequired');
     if (invoiceRequested && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(invoiceEmail)) return t('invoiceEmailInvalid');
+    // Optional — only validated when the guest actually typed something.
+    if (!userId && guestEmailValue && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(guestEmailValue)) return t('guestEmailInvalid');
     return null;
   }
 
@@ -138,6 +142,7 @@ export function CheckoutView() {
 
     const customerNote = String(form.get('note') ?? '').trim() || undefined;
     const invoiceEmail = String(form.get('invoiceEmail') ?? '').trim();
+    const guestEmailValue = String(form.get('guestEmail') ?? '').trim() || undefined;
     const address: ShippingAddressInput = {
       recipientName: String(form.get('recipientName') ?? '').trim(),
       recipientPhone: String(form.get('recipientPhone') ?? '').trim(),
@@ -155,10 +160,12 @@ export function CheckoutView() {
     setStep('submitting');
     setErrorMessage(null);
     try {
-      const shippingAddressId = userId ? (await upsertShippingAddress(userId, address)).id : undefined;
+      // Gửi thẳng địa chỉ trong payload tạo đơn, kể cả khi đã đăng nhập: backend nhận
+      // shipping_address cho user có auth và bỏ qua lookup địa chỉ đã lưu, nên không cần
+      // lưu địa chỉ trước rồi mới đặt hàng (bớt một round-trip có thể làm hỏng cả checkout).
       const request: CheckoutRequestInput = {
-        shippingAddressId,
-        shippingAddress: userId ? undefined : address,
+        shippingAddress: address,
+        email: userId ? undefined : guestEmailValue,
         provinceCode: province.id,
         districtCode: area.id,
         notes: buildOrderNotes(customerNote, paymentMethod, invoiceRequested, invoiceEmail),
@@ -331,6 +338,19 @@ export function CheckoutView() {
                   <div className="grid gap-x-4 gap-y-4 sm:grid-cols-2">
                     <CheckoutInput id="recipientName" name="recipientName" label={t('fullName')} autoComplete="name" value={recipientName} onChange={(event) => setRecipientName(event.target.value)} readOnly={recipientMatchesBuyer} required />
                     <CheckoutInput id="recipientPhone" name="recipientPhone" type="tel" label={t('phone')} autoComplete="tel" value={recipientPhone} onChange={(event) => setRecipientPhone(event.target.value)} readOnly={recipientMatchesBuyer} pattern="(?:0|\+84)[0-9]{9,10}" required />
+                    {!userId ? (
+                      <CheckoutInput
+                        id="guestEmail"
+                        name="guestEmail"
+                        type="email"
+                        label={t('guestEmailLabel')}
+                        placeholder={t('guestEmailPlaceholder')}
+                        autoComplete="email"
+                        value={guestEmail}
+                        onChange={(event) => setGuestEmail(event.target.value)}
+                        className="sm:col-span-2"
+                      />
+                    ) : null}
                     <CheckoutSelect id="province" label={t('province')} value={province?.id ?? ''} onChange={(id) => {
                       setProvince(provinces.find((item) => item.id === id) ?? null);
                       setArea(null);
