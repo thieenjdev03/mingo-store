@@ -31,7 +31,8 @@ export interface LoginUserDto {
 }
 
 export interface LoginDto {
-  email: string;
+  email?: string;
+  phone?: string;
   password: string;
 }
 

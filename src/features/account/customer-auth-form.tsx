@@ -20,6 +20,19 @@ import { notifyCartUpdated } from '@/features/cart/cart-token';
 
 type AuthMode = 'login' | 'register' | 'forgot';
 
+/**
+ * Đăng nhập theo kiểu identifier-first. Bắt buộc phải có bước hỏi định danh trước:
+ * khách mua hàng guest được định danh bằng SĐT và có thể KHÔNG có email nào, nên form
+ * chỉ-email sẽ khoá họ khỏi chính tài khoản chứa đơn hàng của mình.
+ */
+type LoginStage = 'identifier' | 'password' | 'create-password';
+
+/** Phân biệt email với SĐT để gửi đúng field cho backend (backend nhận cả hai). */
+function toIdentifierPayload(raw: string): { email?: string; phone?: string } {
+  const value = raw.trim();
+  return value.includes('@') ? { email: value } : { phone: value };
+}
+
 /** Dữ liệu đăng ký giữ lại giữa bước điền form và bước xác thực OTP. */
 interface PendingRegistration {
   email: string;
@@ -57,6 +70,10 @@ export function CustomerAuthForm({ mode }: CustomerAuthFormProps) {
   // Backend verifyOtp sẽ tự tạo tài khoản, nên phải register (đặt đúng mật khẩu) TRƯỚC khi
   // verify. Cờ này đảm bảo chỉ register 1 lần dù người dùng nhập sai OTP rồi thử lại.
   const [accountCreated, setAccountCreated] = useState(false);
+  // Đăng nhập 2 bước (identifier-first): nhập email/SĐT -> check-exists -> rẽ nhánh sang
+  // nhập mật khẩu (tài khoản thường) hoặc tạo mật khẩu (tài khoản guest từ checkout).
+  const [loginIdentifier, setLoginIdentifier] = useState('');
+  const [loginStage, setLoginStage] = useState<LoginStage>('identifier');
 
   // Đếm ngược cooldown gửi lại OTP.
   useEffect(() => {
@@ -112,7 +129,32 @@ export function CustomerAuthForm({ mode }: CustomerAuthFormProps) {
 
     try {
       if (mode === 'login') {
-        const res = await authControllerLogin({ email, password });
+        const identifier = toIdentifierPayload(loginIdentifier);
+
+        // Bước 1: hỏi định danh, chưa hỏi mật khẩu — vì chưa biết tài khoản đã có
+        // mật khẩu hay là tài khoản guest chưa từng đặt mật khẩu.
+        if (loginStage === 'identifier') {
+          const account = await checkAccountExists(identifier);
+          if (!account.exists) {
+            setErrorMessage(t('accountNotFound'));
+            return;
+          }
+          setLoginStage(account.hasPassword ? 'password' : 'create-password');
+          return;
+        }
+
+        // Tài khoản guest (checkout không đăng nhập) -> đặt mật khẩu đầu tiên rồi vào luôn.
+        if (loginStage === 'create-password') {
+          if (password !== String(data.get('confirmPassword') ?? '')) {
+            setErrorMessage(t('passwordMismatch'));
+            return;
+          }
+          const claimed = await claimGuestAccount({ ...identifier, password });
+          await completeAuthentication(claimed.accessToken, claimed.user.role);
+          return;
+        }
+
+        const res = await authControllerLogin({ ...identifier, password });
         await completeAuthentication(res.accessToken, res.user.role);
         return;
       }
@@ -260,6 +302,13 @@ export function CustomerAuthForm({ mode }: CustomerAuthFormProps) {
     setAccountCreated(false);
   }
 
+  /** Quay lại bước nhập định danh của luồng đăng nhập (đổi email/SĐT). */
+  function backToIdentifier() {
+    setLoginStage('identifier');
+    setErrorMessage(null);
+    setInfoMessage(null);
+  }
+
   return (
     <div className="bg-ivory py-12 sm:py-16 lg:py-20">
       <div className="mx-auto max-w-2xl px-5 sm:px-8">
@@ -393,25 +442,69 @@ export function CustomerAuthForm({ mode }: CustomerAuthFormProps) {
                   <AuthInput id="lastName" name="lastName" label={t('lastName')} autoComplete="family-name" required />
                 </div>
               ) : null}
-              <AuthInput id="email" name="email" type="email" label={t('email')} placeholder={t('emailPlaceholder')} autoComplete="email" required />
+              {mode === 'login' ? (
+                <AuthInput
+                  id="loginIdentifier"
+                  name="loginIdentifier"
+                  label={t('identifierLabel')}
+                  placeholder={t('identifierPlaceholder')}
+                  autoComplete="username"
+                  value={loginIdentifier}
+                  onChange={(event) => setLoginIdentifier(event.target.value)}
+                  readOnly={loginStage !== 'identifier'}
+                  required
+                  autoFocus
+                />
+              ) : (
+                <AuthInput id="email" name="email" type="email" label={t('email')} placeholder={t('emailPlaceholder')} autoComplete="email" required />
+              )}
               {mode === 'register' ? (
                 <AuthInput id="phoneNumber" name="phoneNumber" type="tel" label={t('phoneNumber')} autoComplete="tel" required />
               ) : null}
-              {mode !== 'forgot' ? (
+              {/* Tài khoản guest chưa từng có mật khẩu -> đổi nhãn thành "tạo mật khẩu" cho đúng thực tế. */}
+              {loginStage === 'create-password' && mode === 'login' ? (
+                <p className="rounded-lg bg-blush p-4 text-sm font-semibold leading-6 text-primary" role="status">
+                  {t('createPasswordHint')}
+                </p>
+              ) : null}
+              {mode === 'register' || (mode === 'login' && loginStage !== 'identifier') ? (
                 <div>
                   <div className="relative">
-                    <AuthInput id="password" name="password" type={showPassword ? 'text' : 'password'} label={t('password')} placeholder={t('passwordPlaceholder')} autoComplete={mode === 'login' ? 'current-password' : 'new-password'} minLength={8} required />
+                    <AuthInput
+                      id="password"
+                      name="password"
+                      type={showPassword ? 'text' : 'password'}
+                      label={loginStage === 'create-password' && mode === 'login' ? t('createPasswordLabel') : t('password')}
+                      placeholder={t('passwordPlaceholder')}
+                      autoComplete={mode === 'login' && loginStage === 'password' ? 'current-password' : 'new-password'}
+                      minLength={8}
+                      required
+                      autoFocus
+                    />
                     <button type="button" onClick={() => setShowPassword((current) => !current)} aria-label={showPassword ? 'Hide password' : 'Show password'} className="absolute bottom-3 right-3 rounded p-1 text-muted-foreground hover:text-primary">
                       {showPassword ? <EyeOff className="size-5" aria-hidden="true" /> : <Eye className="size-5" aria-hidden="true" />}
                     </button>
                   </div>
-                  {mode === 'login' ? <div className="mt-2 text-right"><Link href="/forgot-password" className="text-sm font-semibold text-primary hover:text-primary-dark">{t('forgotPassword')}</Link></div> : null}
+                  {mode === 'login' && loginStage === 'password' ? <div className="mt-2 text-right"><Link href="/forgot-password" className="text-sm font-semibold text-primary hover:text-primary-dark">{t('forgotPassword')}</Link></div> : null}
                 </div>
               ) : null}
-              {mode === 'register' ? <AuthInput id="confirmPassword" name="confirmPassword" type="password" label={t('confirmPassword')} autoComplete="new-password" minLength={8} required /> : null}
+              {mode === 'register' || (mode === 'login' && loginStage === 'create-password') ? (
+                <AuthInput id="confirmPassword" name="confirmPassword" type="password" label={t('confirmPassword')} autoComplete="new-password" minLength={8} required />
+              ) : null}
               <button type="submit" disabled={submitting} className="flex h-12 w-full items-center justify-center rounded-lg bg-primary px-6 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary-dark disabled:cursor-wait disabled:opacity-60">
-                {submitting ? t('submitting') : config.submit}
+                {submitting
+                  ? t('submitting')
+                  : mode === 'login' && loginStage === 'identifier'
+                    ? t('identifierContinue')
+                    : mode === 'login' && loginStage === 'create-password'
+                      ? t('createPasswordSubmit')
+                      : config.submit}
               </button>
+              {mode === 'login' && loginStage !== 'identifier' ? (
+                <button type="button" onClick={backToIdentifier} className="w-full text-center text-sm font-semibold text-muted-foreground hover:text-primary">
+                  {t('identifierChange')}
+                </button>
+              ) : null}
             </form>
           )}
 

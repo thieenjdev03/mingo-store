@@ -13,7 +13,9 @@ const SESSION_MAX_AGE = 60 * 60 * 24 * 30;
 
 interface SessionUser {
   id: string;
-  email: string;
+  /** Null for customers who arrived through guest checkout: they are keyed by phone
+   *  and may never have supplied an email (see AuthService.setPassword). */
+  email: string | null;
   role: string;
 }
 
@@ -50,7 +52,9 @@ async function getUser(accessToken: string): Promise<SessionUser | null> {
     const payload = (await response.json()) as { data?: SessionUser } | SessionUser;
     const user = 'data' in payload ? payload.data : payload;
     const candidate = user as SessionUser | undefined;
-    return candidate?.id && candidate.email && candidate.role ? candidate : null;
+    // Email is deliberately NOT required: a claimed guest account has none, and
+    // rejecting it here would 401 the customer straight after a successful login.
+    return candidate?.id && candidate.role ? candidate : null;
   } catch {
     return null;
   }
@@ -70,9 +74,11 @@ export async function POST(request: NextRequest) {
 
   const response = NextResponse.json({ user });
   setCookie(response, AUTH_SESSION_COOKIE, accessToken, SESSION_MAX_AGE);
-  if (user.role !== 'admin') return clearCookie(response, ADMIN_SESSION_COOKIE);
+  // Only admins get the signed admin-session cookie; they always carry an email,
+  // unlike claimed guest accounts which are keyed by phone alone.
+  if (user.role !== 'admin' || !user.email) return clearCookie(response, ADMIN_SESSION_COOKIE);
 
-  const sealedSession = await createAdminSession(accessToken, user);
+  const sealedSession = await createAdminSession(accessToken, { ...user, email: user.email });
   if (!sealedSession) {
     return clearAuthCookies(NextResponse.json({ message: 'Admin session security is not configured' }, { status: 503 }));
   }

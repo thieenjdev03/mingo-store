@@ -75,7 +75,7 @@ export const useAuthControllerRegister = <TError = void>(
   }
 }
 /**
- * @summary Login to get access token
+ * @summary Login with email or phone to get access token
  */
 export const authControllerLogin = (
     loginDto: LoginDto,
@@ -101,7 +101,7 @@ export type AuthControllerLoginMutationResult = NonNullable<Awaited<ReturnType<t
 export type AuthControllerLoginMutationError = void
 
 /**
- * @summary Login to get access token
+ * @summary Login with email or phone to get access token
  */
 export const useAuthControllerLogin = <TError = void>(
    options?: { swr?:SWRMutationConfiguration<Awaited<ReturnType<typeof authControllerLogin>>, TError, Key, LoginDto, Awaited<ReturnType<typeof authControllerLogin>>> & { swrKey?: string }, }
