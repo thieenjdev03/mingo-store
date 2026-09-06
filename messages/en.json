@@ -258,9 +258,11 @@
     "defaultAddress": "Default",
     "fullName": "Recipient full name",
     "phone": "Phone number",
-    "guestEmailLabel": "Email (optional)",
+    "guestEmailLabel": "Email",
+    "emailLabel": "Email",
     "guestEmailPlaceholder": "Get an order confirmation email",
-    "guestEmailInvalid": "Please enter a valid email or leave it blank.",
+    "guestTrackingEmail": "Your tracking link will be emailed to you. Guest orders earn no points and are not linked to an account.",
+    "guestEmailInvalid": "Enter a valid email to receive your order tracking link.",
     "province": "Province/City",
     "provincePlaceholder": "Select Province/City",
     "ward": "Ward",
@@ -609,6 +611,9 @@
     }
   },
   "orders": {
+    "invalidTrackingLink": "Unable to load this order. Check your connection and reopen the link in your confirmation email.",
+    "continueShopping": "Continue shopping",
+    "trackingNumber": "Tracking number",
     "loading": "Loading order...",
     "loadError": "We could not load this order.",
     "back": "Back to orders",
@@ -623,7 +628,33 @@
     "dealer": "Delivered by the dealer serving your area",
     "address": "Delivery address",
     "payAgainTitle": "Pay for this order",
-    "payAgainDescription": "This order is awaiting payment. Scan the QR code below and transfer the exact amount, using the order code as the transfer note."
+    "payAgainDescription": "This order is awaiting payment. Scan the QR code below and transfer the exact amount, using the order code as the transfer note.",
+    "statusLabel": {
+      "NEW": "New",
+      "PENDING_PAYMENT": "Awaiting payment",
+      "PAID": "Paid / confirmed",
+      "PROCESSING": "Warehouse check",
+      "PACKED": "Packed",
+      "READY_TO_GO": "Packed & ready to ship",
+      "CONFIRMED": "Confirmed",
+      "AT_CARRIER_FACILITY": "At carrier facility",
+      "IN_TRANSIT": "In transit",
+      "DELIVERING": "Out for delivery",
+      "ARRIVED_IN_COUNTRY": "Arrived in destination country",
+      "AT_LOCAL_FACILITY": "At local facility",
+      "OUT_FOR_DELIVERY": "Out for delivery",
+      "DELIVERED": "Delivered",
+      "CANCELLED": "Cancelled",
+      "FAILED": "Returned",
+      "REFUNDED": "Refunded"
+    },
+    "paymentStatusLabel": {
+      "PENDING": "Awaiting payment",
+      "PENDING_MANUAL_APPROVAL": "Awaiting manual approval",
+      "PAID": "Paid",
+      "FAILED": "Failed",
+      "REFUNDED": "Refunded"
+    }
   },
   "vnpayReturn": {
     "checkingTitle": "Checking your payment",

@@ -139,7 +139,11 @@ export function OrderDetailDialog({ open, onOpenChange, orderId, onChanged }: Pr
                   ) : null}
                 </>
               ) : (
-                <p className="text-muted-foreground">Chưa có địa chỉ giao hàng.</p>
+                order.shippingSnapshot ? <>
+                  <p className="font-semibold">{order.shippingSnapshot.receiver_name}</p>
+                  <p>{order.shippingSnapshot.phone}</p>
+                  <p className="mt-1 text-muted-foreground">{[order.shippingSnapshot.address_line, order.shippingSnapshot.ward_name, order.shippingSnapshot.district_name, order.shippingSnapshot.province_name].filter(Boolean).join(', ')}</p>
+                </> : <p className="text-muted-foreground">Chưa có địa chỉ giao hàng.</p>
               )}
             </div>
 
@@ -154,7 +158,11 @@ export function OrderDetailDialog({ open, onOpenChange, orderId, onChanged }: Pr
                   {order.user.phoneNumber ? <p className="text-muted-foreground">{order.user.phoneNumber}</p> : null}
                 </>
               ) : (
-                <p className="text-muted-foreground">Khách vãng lai.</p>
+                <>
+                  <p className="text-muted-foreground">Khách vãng lai · Không tích điểm</p>
+                  {order.guestEmail ? <p>{order.guestEmail}</p> : null}
+                  {order.guestPhone ? <p>{order.guestPhone}</p> : null}
+                </>
               )}
               {order.paidAt ? (
                 <p className="mt-2 text-muted-foreground">

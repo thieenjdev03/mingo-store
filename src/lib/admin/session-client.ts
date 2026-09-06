@@ -1,4 +1,7 @@
-const SESSION_URL = '/api/admin/session';
+import { authControllerLogin } from '@/lib/api/generated/auth/auth';
+import { meControllerGetMe } from '@/lib/api/generated/me/me';
+import { setAccessToken } from '@/lib/auth/token';
+import { ApiError } from '@/lib/api/fetcher';
 
 export interface AuthSessionUser {
   id: string;
@@ -12,35 +15,27 @@ export class AdminSessionError extends Error {
   }
 }
 
-/** Admin credentials go only to the same-origin BFF; the JWT never reaches browser JavaScript. */
+/** Đăng nhập thẳng vào backend; JWT được lưu localStorage (xem src/lib/auth/token.ts). */
 export async function loginAdminSession(credentials: { email: string; password: string }): Promise<AuthSessionUser> {
-  const response = await fetch('/api/admin/login', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(credentials),
-    cache: 'no-store',
-  });
-  if (!response.ok) throw new AdminSessionError(response.status);
-  const body = (await response.json()) as { user?: AuthSessionUser };
-  if (!body.user || body.user.role !== 'admin') throw new AdminSessionError(403);
-  return body.user;
+  let accessToken: string;
+  let user: AuthSessionUser;
+  try {
+    const res = await authControllerLogin(credentials);
+    accessToken = res.accessToken;
+    user = res.user;
+  } catch (err) {
+    throw new AdminSessionError(err instanceof ApiError ? err.status : 500);
+  }
+  if (!user || user.role !== 'admin') throw new AdminSessionError(403);
+  setAccessToken(accessToken);
+  return user;
 }
 
-export async function syncAdminSession(accessToken: string): Promise<AuthSessionUser | null> {
+/** Xác thực token hiện có trong localStorage bằng cách hỏi lại backend `/me`. */
+export async function fetchCurrentUser(): Promise<AuthSessionUser | null> {
   try {
-    const response = await fetch(SESSION_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ accessToken }),
-    });
-    if (!response.ok) return null;
-    const body = (await response.json()) as { user?: AuthSessionUser };
-    return body.user ?? null;
+    return await meControllerGetMe();
   } catch {
     return null;
   }
-}
-
-export async function clearAdminSessionCookie(): Promise<void> {
-  await fetch(SESSION_URL, { method: 'DELETE', keepalive: true }).catch(() => undefined);
 }

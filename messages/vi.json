@@ -258,9 +258,11 @@
     "defaultAddress": "Mặc định",
     "fullName": "Họ và tên",
     "phone": "Số điện thoại",
-    "guestEmailLabel": "Email (không bắt buộc)",
+    "guestEmailLabel": "Email",
+    "emailLabel": "Email",
     "guestEmailPlaceholder": "Nhận email xác nhận đơn hàng",
-    "guestEmailInvalid": "Vui lòng nhập email hợp lệ hoặc để trống.",
+    "guestTrackingEmail": "Link theo dõi đơn hàng sẽ được gửi tới email bạn đã nhập. Đơn khách không tích điểm và không gắn với tài khoản.",
+    "guestEmailInvalid": "Vui lòng nhập email hợp lệ để nhận link theo dõi đơn hàng.",
     "province": "Tỉnh/Thành phố",
     "provincePlaceholder": "Chọn Tỉnh/Thành phố",
     "ward": "Phường/Xã",
@@ -606,6 +608,9 @@
     }
   },
   "orders": {
+    "invalidTrackingLink": "Không thể tải đơn hàng. Vui lòng kiểm tra kết nối và mở lại link trong email xác nhận.",
+    "continueShopping": "Tiếp tục mua hàng",
+    "trackingNumber": "Mã vận đơn",
     "loading": "Đang tải đơn hàng...",
     "loadError": "Chưa thể tải chi tiết đơn hàng.",
     "back": "Quay lại đơn hàng",
@@ -620,7 +625,33 @@
     "dealer": "Giao qua đại lý phụ trách khu vực",
     "address": "Địa chỉ nhận hàng",
     "payAgainTitle": "Thanh toán lại đơn này",
-    "payAgainDescription": "Đơn đang chờ thanh toán. Quét lại mã QR bên dưới và chuyển đúng số tiền, nội dung chuyển khoản là mã đơn."
+    "payAgainDescription": "Đơn đang chờ thanh toán. Quét lại mã QR bên dưới và chuyển đúng số tiền, nội dung chuyển khoản là mã đơn.",
+    "statusLabel": {
+      "NEW": "Mới tạo",
+      "PENDING_PAYMENT": "Chờ thanh toán",
+      "PAID": "Đã thanh toán / xác nhận",
+      "PROCESSING": "Đang kiểm tra kho",
+      "PACKED": "Đã đóng gói",
+      "READY_TO_GO": "Đã đóng gói, sẵn sàng giao",
+      "CONFIRMED": "Đã xác nhận",
+      "AT_CARRIER_FACILITY": "Tại kho vận chuyển",
+      "IN_TRANSIT": "Đang vận chuyển",
+      "DELIVERING": "Đang giao hàng",
+      "ARRIVED_IN_COUNTRY": "Đã đến nước nhận",
+      "AT_LOCAL_FACILITY": "Tại kho nội địa",
+      "OUT_FOR_DELIVERY": "Đang giao đến bạn",
+      "DELIVERED": "Giao thành công",
+      "CANCELLED": "Đã hủy",
+      "FAILED": "Chuyển hoàn",
+      "REFUNDED": "Đã hoàn tiền"
+    },
+    "paymentStatusLabel": {
+      "PENDING": "Chờ thanh toán",
+      "PENDING_MANUAL_APPROVAL": "Chờ xác nhận thủ công",
+      "PAID": "Đã thanh toán",
+      "FAILED": "Thất bại",
+      "REFUNDED": "Đã hoàn tiền"
+    }
   },
   "vnpayReturn": {
     "checkingTitle": "Đang kiểm tra thanh toán",

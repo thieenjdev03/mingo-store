@@ -159,3 +159,13 @@ export function getCheckoutOrder(orderNumber: string): Promise<OrderView> {
     headers: cartHeaders(),
   });
 }
+
+/** The email fragment stays out of server access logs; send its secret only as a header. */
+export function getGuestOrder(orderNumber: string, token: string): Promise<OrderView> {
+  return customFetch<OrderView>({
+    url: `/guest-orders/${encodeURIComponent(orderNumber)}`,
+    method: 'GET',
+    headers: { 'X-Order-Token': token },
+    cache: 'no-store',
+  });
+}

@@ -75,7 +75,7 @@ export function CheckoutView() {
         const defaultAddress = shippingAddresses.find((address) => address.isDefault) ?? shippingAddresses[0];
         if (defaultAddress) applySavedAddress(defaultAddress);
       })
-      .catch(() => clearAccessToken())
+      .catch(() => { clearAccessToken(); setRecipientMatchesBuyer(false); })
       .finally(() => setStep('form'));
   }, []);
 
@@ -123,8 +123,7 @@ export function CheckoutView() {
     if (!province || !area) return t('addressRequired');
     if (!addressLine) return t('addressLineRequired');
     if (invoiceRequested && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(invoiceEmail)) return t('invoiceEmailInvalid');
-    // Optional — only validated when the guest actually typed something.
-    if (!userId && guestEmailValue && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(guestEmailValue)) return t('guestEmailInvalid');
+    if (!userId && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(guestEmailValue)) return t('guestEmailInvalid');
     return null;
   }
 
@@ -214,6 +213,7 @@ export function CheckoutView() {
               </div>
             </div>
 
+            {!userId ? <p className="mt-5 text-sm text-muted-foreground">{t('guestTrackingEmail')}</p> : null}
             <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:justify-center">
               {userId ? <Link href={`/orders/${completedOrderCode}`} className="inline-flex h-11 items-center justify-center border-2 border-primary px-6 text-sm font-bold text-primary">{t('viewOrder')}</Link> : null}
               <Link href="/products" className="inline-flex h-11 items-center justify-center bg-primary px-6 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary-dark">{t('continueShopping')}</Link>
@@ -242,6 +242,7 @@ export function CheckoutView() {
 
             <VietQrPanel orderCode={vietQrPaymentOrder.orderCode} total={vietQrPaymentOrder.total} />
 
+            {!userId ? <p className="mt-5 text-sm text-muted-foreground">{t('guestTrackingEmail')}</p> : null}
             <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:justify-center">
               {userId ? <Link href={`/orders/${vietQrPaymentOrder.orderCode}`} className="inline-flex h-11 items-center justify-center border-2 border-primary px-6 text-sm font-bold text-primary">{t('viewOrder')}</Link> : null}
               <Link href="/products" className="inline-flex h-11 items-center justify-center bg-primary px-6 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary-dark">{t('continueShopping')}</Link>
@@ -343,8 +344,9 @@ export function CheckoutView() {
                         id="guestEmail"
                         name="guestEmail"
                         type="email"
-                        label={t('guestEmailLabel')}
+                        label={t('emailLabel')}
                         placeholder={t('guestEmailPlaceholder')}
+                        required
                         autoComplete="email"
                         value={guestEmail}
                         onChange={(event) => setGuestEmail(event.target.value)}

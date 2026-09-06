@@ -53,6 +53,9 @@ export interface AdminOrderTrackingEntry {
 }
 
 export interface AdminOrder {
+  guestEmail?: string | null;
+  guestPhone?: string | null;
+  shippingSnapshot?: { receiver_name: string; phone: string; address_line: string; province_name?: string; district_name?: string; ward_name?: string } | null;
   id: string;
   orderNumber: string;
   status: OrderStatus;

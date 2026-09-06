@@ -11,21 +11,13 @@ import {
   otpControllerSendPasswordResetOtp,
   otpControllerResetPassword,
 } from '@/lib/api/generated/otp/otp';
-import { checkAccountExists, claimGuestAccount } from './api';
 import { clearAccessToken, getAccessToken, setAccessToken } from '@/lib/auth/token';
-import { syncAdminSession } from '@/lib/admin/session-client';
+import { fetchCurrentUser } from '@/lib/admin/session-client';
 import { ApiError } from '@/lib/api/fetcher';
 import { mergeCart } from '@/features/cart/api';
 import { notifyCartUpdated } from '@/features/cart/cart-token';
 
 type AuthMode = 'login' | 'register' | 'forgot';
-
-/**
- * Đăng nhập theo kiểu identifier-first. Bắt buộc phải có bước hỏi định danh trước:
- * khách mua hàng guest được định danh bằng SĐT và có thể KHÔNG có email nào, nên form
- * chỉ-email sẽ khoá họ khỏi chính tài khoản chứa đơn hàng của mình.
- */
-type LoginStage = 'identifier' | 'password' | 'create-password';
 
 /** Phân biệt email với SĐT để gửi đúng field cho backend (backend nhận cả hai). */
 function toIdentifierPayload(raw: string): { email?: string; phone?: string } {
@@ -70,10 +62,7 @@ export function CustomerAuthForm({ mode }: CustomerAuthFormProps) {
   // Backend verifyOtp sẽ tự tạo tài khoản, nên phải register (đặt đúng mật khẩu) TRƯỚC khi
   // verify. Cờ này đảm bảo chỉ register 1 lần dù người dùng nhập sai OTP rồi thử lại.
   const [accountCreated, setAccountCreated] = useState(false);
-  // Đăng nhập 2 bước (identifier-first): nhập email/SĐT -> check-exists -> rẽ nhánh sang
-  // nhập mật khẩu (tài khoản thường) hoặc tạo mật khẩu (tài khoản guest từ checkout).
   const [loginIdentifier, setLoginIdentifier] = useState('');
-  const [loginStage, setLoginStage] = useState<LoginStage>('identifier');
 
   // Đếm ngược cooldown gửi lại OTP.
   useEffect(() => {
@@ -82,12 +71,12 @@ export function CustomerAuthForm({ mode }: CustomerAuthFormProps) {
     return () => clearTimeout(timer);
   }, [resendCooldown]);
 
-  // Hỗ trợ session cũ chỉ còn trong localStorage: đồng bộ lại cookie trước khi hiển thị form.
+  // Nếu đã có token hợp lệ trong localStorage (đăng nhập từ trước), điều hướng thẳng đi.
   useEffect(() => {
     const accessToken = getAccessToken();
     if (!accessToken) return;
     let cancelled = false;
-    syncAdminSession(accessToken).then((user) => {
+    fetchCurrentUser().then((user) => {
       if (cancelled) return;
       if (!user) {
         clearAccessToken();
@@ -112,7 +101,7 @@ export function CustomerAuthForm({ mode }: CustomerAuthFormProps) {
 
   async function completeAuthentication(accessToken: string, role: string) {
     setAccessToken(accessToken);
-    const sessionUser = await syncAdminSession(accessToken);
+    const sessionUser = await fetchCurrentUser();
     if (!sessionUser || sessionUser.role !== role) throw new Error('Session could not be verified');
     await mergeCartAfterAuthentication(locale);
     if (role === 'admin') window.location.replace('/admin');
@@ -124,35 +113,12 @@ export function CustomerAuthForm({ mode }: CustomerAuthFormProps) {
     setErrorMessage(null);
     setSubmitting(true);
     const data = new FormData(event.currentTarget);
-    const email = String(data.get('email') ?? '');
+    const email = String(data.get('email') ?? '').trim().toLowerCase();
     const password = String(data.get('password') ?? '');
 
     try {
       if (mode === 'login') {
         const identifier = toIdentifierPayload(loginIdentifier);
-
-        // Bước 1: hỏi định danh, chưa hỏi mật khẩu — vì chưa biết tài khoản đã có
-        // mật khẩu hay là tài khoản guest chưa từng đặt mật khẩu.
-        if (loginStage === 'identifier') {
-          const account = await checkAccountExists(identifier);
-          if (!account.exists) {
-            setErrorMessage(t('accountNotFound'));
-            return;
-          }
-          setLoginStage(account.hasPassword ? 'password' : 'create-password');
-          return;
-        }
-
-        // Tài khoản guest (checkout không đăng nhập) -> đặt mật khẩu đầu tiên rồi vào luôn.
-        if (loginStage === 'create-password') {
-          if (password !== String(data.get('confirmPassword') ?? '')) {
-            setErrorMessage(t('passwordMismatch'));
-            return;
-          }
-          const claimed = await claimGuestAccount({ ...identifier, password });
-          await completeAuthentication(claimed.accessToken, claimed.user.role);
-          return;
-        }
 
         const res = await authControllerLogin({ ...identifier, password });
         await completeAuthentication(res.accessToken, res.user.role);
@@ -169,22 +135,6 @@ export function CustomerAuthForm({ mode }: CustomerAuthFormProps) {
         const lastName = String(data.get('lastName') ?? '');
         const phoneNumber = String(data.get('phoneNumber') ?? '');
 
-        // SĐT đã có đơn hàng guest (checkout không cần đăng nhập) -> tài khoản passwordless
-        // đã tồn tại. Claim thẳng bằng set-password (không cần OTP, theo quyết định sản phẩm:
-        // ai biết SĐT của đơn hàng thì được nhận tài khoản đó) thay vì đăng ký mới.
-        const account = await checkAccountExists({ phone: phoneNumber });
-        if (account.exists && account.hasPassword) {
-          setErrorMessage(t('phoneAlreadyRegistered'));
-          return;
-        }
-        if (account.exists && !account.hasPassword) {
-          const loginRes = await claimGuestAccount({ phone: phoneNumber, email, password, firstName, lastName });
-          await completeAuthentication(loginRes.accessToken, loginRes.user.role);
-          return;
-        }
-
-        // Chưa có tài khoản nào -> xác thực email trước khi tạo tài khoản: gửi OTP rồi
-        // chuyển sang bước nhập mã.
         try {
           await otpControllerSendOtp({ email });
         } catch (error) {
@@ -300,13 +250,6 @@ export function CustomerAuthForm({ mode }: CustomerAuthFormProps) {
     setInfoMessage(null);
     setResendCooldown(0);
     setAccountCreated(false);
-  }
-
-  /** Quay lại bước nhập định danh của luồng đăng nhập (đổi email/SĐT). */
-  function backToIdentifier() {
-    setLoginStage('identifier');
-    setErrorMessage(null);
-    setInfoMessage(null);
   }
 
   return (
@@ -451,7 +394,6 @@ export function CustomerAuthForm({ mode }: CustomerAuthFormProps) {
                   autoComplete="username"
                   value={loginIdentifier}
                   onChange={(event) => setLoginIdentifier(event.target.value)}
-                  readOnly={loginStage !== 'identifier'}
                   required
                   autoFocus
                 />
@@ -461,22 +403,16 @@ export function CustomerAuthForm({ mode }: CustomerAuthFormProps) {
               {mode === 'register' ? (
                 <AuthInput id="phoneNumber" name="phoneNumber" type="tel" label={t('phoneNumber')} autoComplete="tel" required />
               ) : null}
-              {/* Tài khoản guest chưa từng có mật khẩu -> đổi nhãn thành "tạo mật khẩu" cho đúng thực tế. */}
-              {loginStage === 'create-password' && mode === 'login' ? (
-                <p className="rounded-lg bg-blush p-4 text-sm font-semibold leading-6 text-primary" role="status">
-                  {t('createPasswordHint')}
-                </p>
-              ) : null}
-              {mode === 'register' || (mode === 'login' && loginStage !== 'identifier') ? (
+              {mode === 'register' || mode === 'login' ? (
                 <div>
                   <div className="relative">
                     <AuthInput
                       id="password"
                       name="password"
                       type={showPassword ? 'text' : 'password'}
-                      label={loginStage === 'create-password' && mode === 'login' ? t('createPasswordLabel') : t('password')}
+                      label={t('password')}
                       placeholder={t('passwordPlaceholder')}
-                      autoComplete={mode === 'login' && loginStage === 'password' ? 'current-password' : 'new-password'}
+                      autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
                       minLength={8}
                       required
                       autoFocus
@@ -485,26 +421,15 @@ export function CustomerAuthForm({ mode }: CustomerAuthFormProps) {
                       {showPassword ? <EyeOff className="size-5" aria-hidden="true" /> : <Eye className="size-5" aria-hidden="true" />}
                     </button>
                   </div>
-                  {mode === 'login' && loginStage === 'password' ? <div className="mt-2 text-right"><Link href="/forgot-password" className="text-sm font-semibold text-primary hover:text-primary-dark">{t('forgotPassword')}</Link></div> : null}
+                  {mode === 'login' ? <div className="mt-2 text-right"><Link href="/forgot-password" className="text-sm font-semibold text-primary hover:text-primary-dark">{t('forgotPassword')}</Link></div> : null}
                 </div>
               ) : null}
-              {mode === 'register' || (mode === 'login' && loginStage === 'create-password') ? (
+              {mode === 'register' ? (
                 <AuthInput id="confirmPassword" name="confirmPassword" type="password" label={t('confirmPassword')} autoComplete="new-password" minLength={8} required />
               ) : null}
               <button type="submit" disabled={submitting} className="flex h-12 w-full items-center justify-center rounded-lg bg-primary px-6 text-sm font-bold text-primary-foreground transition-colors hover:bg-primary-dark disabled:cursor-wait disabled:opacity-60">
-                {submitting
-                  ? t('submitting')
-                  : mode === 'login' && loginStage === 'identifier'
-                    ? t('identifierContinue')
-                    : mode === 'login' && loginStage === 'create-password'
-                      ? t('createPasswordSubmit')
-                      : config.submit}
+                {submitting ? t('submitting') : config.submit}
               </button>
-              {mode === 'login' && loginStage !== 'identifier' ? (
-                <button type="button" onClick={backToIdentifier} className="w-full text-center text-sm font-semibold text-muted-foreground hover:text-primary">
-                  {t('identifierChange')}
-                </button>
-              ) : null}
             </form>
           )}
 

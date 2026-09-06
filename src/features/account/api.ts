@@ -1,9 +1,5 @@
 import { customFetch } from '@/lib/api/fetcher';
-import { authControllerCheckExists, authControllerSetPassword } from '@/lib/api/generated/auth/auth';
 import type {
-  CheckExistsDto,
-  LoginResponseDto,
-  SetPasswordDto,
   UpdateUserDto,
   UserResponseDto,
 } from '@/lib/api/generated/ecomAPI.schemas';
@@ -26,22 +22,4 @@ export function updateMyProfile(payload: UpdateMyProfilePayload): Promise<UserRe
     method: 'PATCH',
     data: payload,
   });
-}
-
-export interface AccountExistsResult {
-  exists: boolean;
-  hasPassword: boolean;
-}
-
-/**
- * POST /auth/check-exists — backend's Swagger decorator has no response `type`,
- * so orval generates `void`; the real payload is `{ exists, hasPassword }`.
- */
-export async function checkAccountExists(dto: CheckExistsDto): Promise<AccountExistsResult> {
-  return (await authControllerCheckExists(dto)) as unknown as AccountExistsResult;
-}
-
-/** Claims a passwordless guest account (created from a guest checkout) by setting its first password. */
-export function claimGuestAccount(dto: SetPasswordDto): Promise<LoginResponseDto> {
-  return authControllerSetPassword(dto);
 }

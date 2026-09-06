@@ -1,10 +1,17 @@
 /**
  * Fetch wrapper dùng làm mutator cho orval (xem orval.config.ts).
  * Mọi request đi qua đây: gắn base URL, JSON, và JWT bearer token (nếu có).
+ * Browser gọi thẳng backend qua NEXT_PUBLIC_API_URL; server gọi qua API_URL (buildServerApiUrl).
  * TODO(auth): port logic refresh-token interceptor từ repo cũ (src/auth/context/jwt).
  */
 import { getAccessToken } from '@/lib/auth/token';
 import { buildServerApiUrl } from '@/lib/api/server-url';
+
+function buildBrowserApiUrl(pathname: string): string | null {
+  const baseUrl = process.env.NEXT_PUBLIC_API_URL?.replace(/\/+$/, '');
+  if (!baseUrl) return null;
+  return `${baseUrl}/${pathname.replace(/^\/+/, '')}`;
+}
 
 export interface FetchConfig {
   url: string;
@@ -27,20 +34,17 @@ export class ApiError extends Error {
 }
 
 function buildUrl(url: string, params?: Record<string, unknown>): string {
-  const normalizedPath = url.replace(/^\/+/, '');
   const browserRequest = typeof window !== 'undefined';
-  const target = browserRequest
-    ? `/api/backend/${normalizedPath}`
-    : buildServerApiUrl(normalizedPath);
+  const target = browserRequest ? buildBrowserApiUrl(url) : buildServerApiUrl(url);
   if (!target) throw new ApiError(503, { message: 'Backend API is not configured' });
 
-  const full = new URL(target, 'http://localhost');
+  const full = new URL(target);
   if (params) {
     for (const [k, v] of Object.entries(params)) {
       if (v !== undefined && v !== null) full.searchParams.set(k, String(v));
     }
   }
-  return browserRequest ? `${full.pathname}${full.search}` : full.toString();
+  return full.toString();
 }
 
 export async function customFetch<T>(config: FetchConfig): Promise<T> {

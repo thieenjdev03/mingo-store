@@ -171,7 +171,10 @@ export function toCreateOrderResult(response: CreateCheckoutOrderResponseDto): C
 }
 
 export interface OrderView {
-  id: string;
+  id?: string;
+  carrier?: string | null;
+  trackingNumber?: string | null;
+  trackingHistory?: { status: string; changedAt: string }[];
   orderNumber: string;
   status: MingoOrderStatus | string;
   paymentStatus: PaymentStatus | string;
