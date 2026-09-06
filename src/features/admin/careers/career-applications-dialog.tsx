@@ -12,6 +12,7 @@ import { useToast } from '@/components/admin/ui/toast';
 import type { CareerApplicationDto, CareerApplicationDtoStatus, CareerDto } from '@/lib/api/generated/ecomAPI.schemas';
 import { applicationsKey, listApplications, updateApplicationStatus, deleteApplication } from './api';
 import { APPLICATION_STATUSES, APPLICATION_STATUS_LABEL } from './status';
+import { decodeApplicationNote } from '@/features/careers/application-note';
 
 interface CareerApplicationsDialogProps {
   career: CareerDto | null;
@@ -70,12 +71,22 @@ export function CareerApplicationsDialog({ career, onOpenChange }: CareerApplica
       ) : null}
 
       <ul className="flex flex-col divide-y divide-border">
-        {rows.map((app) => (
+        {rows.map((app) => {
+          const note = decodeApplicationNote(app.cover_letter);
+          return (
           <li key={app.id} className="flex flex-col gap-3 py-4 sm:flex-row sm:items-start sm:justify-between">
             <div className="min-w-0">
               <p className="font-semibold text-foreground">{app.full_name}</p>
               <p className="text-sm text-muted-foreground">{app.email} · {app.phone}</p>
-              {app.cover_letter ? <p className="mt-2 text-sm text-foreground/80">{app.cover_letter}</p> : null}
+              {note.portfolio ? (
+                <a href={note.portfolio} target="_blank" rel="noreferrer" className="mt-2 block truncate text-sm text-primary hover:underline">
+                  {note.portfolio}
+                </a>
+              ) : null}
+              {note.message ? (
+                <p className="mt-2 whitespace-pre-wrap rounded-lg bg-muted/50 p-2 text-sm text-foreground/80">{note.message}</p>
+              ) : null}
+              {note.other ? <p className="mt-2 whitespace-pre-wrap text-sm text-foreground/80">{note.other}</p> : null}
               <a href={app.cv_url} target="_blank" rel="noreferrer" className="mt-2 inline-block text-sm font-semibold text-primary hover:underline">
                 Xem CV
               </a>
@@ -96,7 +107,8 @@ export function CareerApplicationsDialog({ career, onOpenChange }: CareerApplica
               </Button>
             </div>
           </li>
-        ))}
+          );
+        })}
       </ul>
 
       <ConfirmDialog

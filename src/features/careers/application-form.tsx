@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl';
 import { Link } from '@/i18n/navigation';
 import { useCareersControllerApply } from '@/lib/api/generated/careers/careers';
 import { ApiError } from '@/lib/api/fetcher';
+import { encodeApplicationNote } from './application-note';
 
 interface CareerApplicationFormProps {
   careerId: string;
@@ -40,13 +41,14 @@ export function CareerApplicationForm({ careerId, jobTitle }: CareerApplicationF
     const givenName = String(data.get('given_name') ?? '').trim();
     const phone = String(data.get('phone') ?? '').trim();
     const portfolio = String(data.get('portfolio') ?? '').trim();
+    const message = String(data.get('message') ?? '').trim();
 
     try {
       await trigger({
         full_name: [familyName, givenName].filter(Boolean).join(' '),
         email: String(data.get('email') ?? '').trim(),
         phone: phone.startsWith('0') ? `+84${phone.slice(1)}` : phone,
-        cover_letter: portfolio ? `Portfolio / social profile: ${portfolio}` : undefined,
+        cover_letter: encodeApplicationNote({ portfolio, message }),
         cv,
       });
       setSubmitted(true);
@@ -127,6 +129,16 @@ export function CareerApplicationForm({ careerId, jobTitle }: CareerApplicationF
           autoComplete="url"
           labelAlign="start"
         />
+
+        <FormRow id="message" label={t('message')} align="start">
+          <textarea
+            id="message"
+            name="message"
+            rows={4}
+            placeholder={t('messagePlaceholder')}
+            className="w-full resize-y rounded-2xl border border-border bg-card px-5 py-3 text-base text-foreground outline-none transition-[border-color,box-shadow] placeholder:text-muted-foreground/45 focus:border-primary focus:ring-2 focus:ring-primary/15"
+          />
+        </FormRow>
       </div>
 
       <label className="mt-10 flex cursor-pointer items-start gap-4 text-sm leading-6 text-muted-foreground">

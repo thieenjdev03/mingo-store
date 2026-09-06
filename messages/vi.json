@@ -336,7 +336,7 @@
     "continueShopping": "Tiếp tục mua sắm"
   },
   "auth": {
-    "loginTitle": "Chào mừng bạn trở lại",
+    "loginTitle": "Trở thành một phần của Mingo",
     "loginDescription": "Đăng nhập để lưu sản phẩm yêu thích và theo dõi đơn hàng.",
     "email": "Email",
     "password": "Mật khẩu",
@@ -528,7 +528,6 @@
         "phonePlaceholder": "Số điện thoại ứng viên",
         "email": "Email",
         "emailPlaceholder": "Email của bạn",
-        "coverLetter": "Thư giới thiệu (không bắt buộc)",
         "cv": "Cập nhật hồ sơ ứng viên",
         "chooseFile": "Chọn tệp",
         "cvHint": "Định dạng .pdf, .doc hoặc .docx, tối đa 5MB.",
@@ -536,6 +535,8 @@
         "cvTooLarge": "CV không được vượt quá 5MB.",
         "portfolio": "Liên kết portfolio và hồ sơ mạng xã hội",
         "portfolioPlaceholder": "LinkedIn / Facebook / GitHub / Design profile…",
+        "message": "Bạn muốn nhắn nhủ điều gì đến team không?",
+        "messagePlaceholder": "Chia sẻ câu hỏi, mong muốn hoặc điều bạn muốn team biết (không bắt buộc)",
         "privacyAgreement": "Bằng việc nộp đơn ứng tuyển, tôi xác nhận đã đọc hiểu và đồng ý với <policy>Chính sách bảo mật</policy>.",
         "submit": "Ứng tuyển",
         "submitting": "Đang gửi…",

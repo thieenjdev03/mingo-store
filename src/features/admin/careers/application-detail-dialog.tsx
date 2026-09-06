@@ -4,6 +4,7 @@ import { Dialog } from '@/components/admin/ui/dialog';
 import { Badge } from '@/components/admin/ui/badge';
 import type { AdminApplication } from './api';
 import { APPLICATION_STATUS_LABEL } from './status';
+import { decodeApplicationNote } from '@/features/careers/application-note';
 
 const STATUS_TONE = {
   new: 'info',
@@ -19,6 +20,8 @@ interface ApplicationDetailDialogProps {
 
 /** Xem đầy đủ một đơn ứng tuyển (thư giới thiệu thường dài, không hợp trong bảng). */
 export function ApplicationDetailDialog({ application, onClose }: ApplicationDetailDialogProps) {
+  const note = application ? decodeApplicationNote(application.cover_letter) : null;
+
   return (
     <Dialog
       open={!!application}
@@ -43,10 +46,23 @@ export function ApplicationDetailDialog({ application, onClose }: ApplicationDet
               Mở hồ sơ
             </a>
           </Row>
-          {application.cover_letter ? (
+          {note?.portfolio ? (
+            <Row label="Portfolio">
+              <a href={note.portfolio} target="_blank" rel="noreferrer" className="text-primary hover:underline break-all">
+                {note.portfolio}
+              </a>
+            </Row>
+          ) : null}
+          {note?.message ? (
             <div>
-              <dt className="mb-1 font-semibold text-muted-foreground">Thư giới thiệu</dt>
-              <dd className="whitespace-pre-wrap leading-6 text-foreground">{application.cover_letter}</dd>
+              <dt className="mb-1 font-semibold text-muted-foreground">Nhắn gửi đến team</dt>
+              <dd className="whitespace-pre-wrap rounded-lg bg-muted/50 p-3 leading-6 text-foreground">{note.message}</dd>
+            </div>
+          ) : null}
+          {note?.other ? (
+            <div>
+              <dt className="mb-1 font-semibold text-muted-foreground">Ghi chú khác</dt>
+              <dd className="whitespace-pre-wrap leading-6 text-foreground">{note.other}</dd>
             </div>
           ) : null}
         </dl>
