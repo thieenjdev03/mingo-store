@@ -1,3 +1,4 @@
+import { ImageOff } from 'lucide-react';
 import { Link } from '@/i18n/navigation';
 import { fCurrencyVND } from '@/lib/format';
 import type { ProductCardView } from './types';
@@ -34,7 +35,9 @@ export async function RelatedProducts({
                   className="object-contain transition-transform duration-300 group-hover:-translate-y-2"
                 />
               ) : (
-                <div className="flex size-full items-center justify-center text-5xl">🍦</div>
+                <div className="flex size-full items-center justify-center text-muted-foreground">
+                  <ImageOff className="size-10" aria-label="Chưa có ảnh sản phẩm" />
+                </div>
               )}
             </div>
             <h3 className="mt-8 line-clamp-2 min-h-12 text-center font-sans text-[20px] font-bold leading-6 transition-colors group-hover:text-primary lg:mt-12 lg:min-h-[4.5rem] lg:text-[32px] lg:leading-9">

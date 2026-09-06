@@ -1,3 +1,4 @@
+import { ImageOff } from 'lucide-react';
 import { Link } from '@/i18n/navigation';
 import { fCurrencyVND } from '@/lib/format';
 import { ProgressiveImage } from '@/components/ui/progressive-image';
@@ -52,7 +53,9 @@ export function ProductShowcaseGrid({ products, outOfStockLabel, contactLabel }:
                 className="object-contain"
               />
             ) : (
-              <div className="flex h-full items-center justify-center text-5xl">🍦</div>
+              <div className="flex h-full items-center justify-center text-muted-foreground">
+                <ImageOff className="size-10" aria-label="Chưa có ảnh sản phẩm" />
+              </div>
             )}
           </div>
 

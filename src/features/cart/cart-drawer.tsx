@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { useEffect } from "react";
 import { createPortal } from "react-dom";
-import { Minus, Plus, ShoppingBag, Trash2, X } from "lucide-react";
+import { ImageOff, Minus, Plus, ShoppingBag, Trash2, X } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { fCurrencyVND } from "@/lib/format";
@@ -120,8 +120,8 @@ export function CartDrawer() {
                         className="object-contain p-1"
                       />
                     ) : (
-                      <span className="flex h-full items-center justify-center text-2xl">
-                        🍦
+                      <span className="flex h-full items-center justify-center text-muted-foreground">
+                        <ImageOff className="size-6" aria-label="Chưa có ảnh sản phẩm" />
                       </span>
                     )}
                   </div>

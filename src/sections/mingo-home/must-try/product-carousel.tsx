@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ImageOff } from 'lucide-react';
 import { Link } from '@/i18n/navigation';
 import type { ProductCardView } from '@/features/product/types';
 import { fCurrencyVND } from '@/lib/format';
@@ -72,8 +72,8 @@ export function ProductCarousel({ products }: { products: ProductCardView[] }) {
                   className="object-contain transition-transform duration-300 motion-reduce:transition-none group-hover:-translate-y-2 group-hover:scale-[1.02]"
                 />
               ) : (
-                <div className="flex h-full items-center justify-center rounded-lg bg-muted text-5xl text-muted-foreground">
-                  🍦
+                <div className="flex h-full items-center justify-center rounded-lg bg-muted text-muted-foreground">
+                  <ImageOff className="size-10" aria-label="Chưa có ảnh sản phẩm" />
                 </div>
               )}
             </div>

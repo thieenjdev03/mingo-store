@@ -1,7 +1,7 @@
 'use client';
 
 import Image from 'next/image';
-import { Minus, Plus, ShieldCheck, ShoppingBag, Trash2 } from 'lucide-react';
+import { ImageOff, Minus, Plus, ShieldCheck, ShoppingBag, Trash2 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { Link } from '@/i18n/navigation';
 import { fCurrencyVND } from '@/lib/format';
@@ -40,7 +40,7 @@ export function CartPageContent() {
               {cart.items.map((item) => (
                 <article key={item.id} className="flex gap-4 border-b border-border pb-5 last:border-0 last:pb-0 sm:gap-6">
                   <div className="relative size-24 shrink-0 rounded-lg bg-background sm:size-28">
-                    {item.product.image ? <Image src={item.product.image} alt={item.product.name} fill sizes="112px" className="object-contain p-2" /> : <span className="flex h-full items-center justify-center text-3xl">🍦</span>}
+                    {item.product.image ? <Image src={item.product.image} alt={item.product.name} fill sizes="112px" className="object-contain p-2" /> : <span className="flex h-full items-center justify-center text-muted-foreground"><ImageOff className="size-8" aria-label="Chưa có ảnh sản phẩm" /></span>}
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="flex items-start justify-between gap-3">

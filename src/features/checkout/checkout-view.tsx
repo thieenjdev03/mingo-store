@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import { useEffect, useMemo, useState, type FormEvent, type InputHTMLAttributes } from 'react';
-import { Banknote, CheckCircle2, CircleUserRound, QrCode, ReceiptText, ShoppingBag, Truck } from 'lucide-react';
+import { Banknote, CheckCircle2, CircleUserRound, ImageOff, QrCode, ReceiptText, ShoppingBag, Truck } from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
 import { Link } from '@/i18n/navigation';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -446,7 +446,7 @@ export function CheckoutView() {
                 {cart.items.map((item) => (
                   <li key={item.id} className="flex items-center gap-4">
                     <div className="relative h-24 w-16 shrink-0">
-                      {item.product.image ? <Image src={item.product.image} alt={item.product.name} fill sizes="80px" className="object-contain p-1" /> : <span className="flex h-full items-center justify-center text-2xl">🍦</span>}
+                      {item.product.image ? <Image src={item.product.image} alt={item.product.name} fill sizes="80px" className="object-contain p-1" /> : <span className="flex h-full items-center justify-center text-muted-foreground"><ImageOff className="size-6" aria-label="Chưa có ảnh sản phẩm" /></span>}
                       <span className="absolute -right-2 top-0 flex size-6 items-center justify-center rounded-full bg-blush text-xs font-bold text-primary">{item.quantity}</span>
                     </div>
                     <div className="min-w-0 flex-1">

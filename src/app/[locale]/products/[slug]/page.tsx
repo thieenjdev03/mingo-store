@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import { ChevronRight } from 'lucide-react';
 import { setRequestLocale, getTranslations } from 'next-intl/server';
 import { hasLocale } from 'next-intl';
+import { Chip } from '@/components/ui/chip';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { PurchasePanel } from '@/features/product/purchase-panel';
 import { ProductGallery } from '@/features/product/product-gallery';
@@ -14,6 +15,23 @@ import { routing } from '@/i18n/routing';
 import { Link } from '@/i18n/navigation';
 import { JsonLd } from '@/components/seo/json-ld';
 import { absoluteUrl, localizedPath, pageMetadata, seoDescription, toSeoLocale } from '@/lib/seo';
+
+/**
+ * Chip phân loại dưới tên sản phẩm — chỉ bộ sưu tập và thương hiệu, bấm được để
+ * sang trang tương ứng. Không dùng cho quy cách/variant: việc chọn variant đã có
+ * bộ chip riêng trong PurchasePanel, hiển thị thêm ở đây gây trùng và khó hiểu.
+ */
+function InfoChip({ label, href }: { label: string | null; href?: string | null }) {
+  if (!label) return null;
+  const chip = <Chip className="rounded-l-none text-primary">{label}</Chip>;
+  return href ? (
+    <Link href={href} className="transition-opacity hover:opacity-70">
+      {chip}
+    </Link>
+  ) : (
+    chip
+  );
+}
 
 const richHtmlClass =
   'space-y-2 [&_a]:text-primary [&_a]:underline [&_li]:ml-5 [&_ol]:list-decimal [&_table]:w-full [&_table]:border-collapse [&_table]:border-0 [&_table_*]:border-0 [&_td]:p-2 [&_th]:p-2 [&_ul]:list-disc';
@@ -157,6 +175,10 @@ export default async function ProductDetailPage({
           <h1 className="mt-4 font-sans text-[28px] font-bold leading-[34px] text-[#653819] lg:mt-[30px] lg:text-[60px] lg:leading-[60px]">
             {product.name}
           </h1>
+          <div className="mt-4 flex flex-wrap gap-2 lg:mt-[30px] lg:gap-[25px]">
+            <InfoChip label={product.collectionName} href={product.collectionSlug ? `/collections/${product.collectionSlug}` : null} />
+            <InfoChip label={product.brandName} href={product.brandSlug ? `/brands/${product.brandSlug}` : null} />
+          </div>
           {!product.descriptionHtml ? (
             <p className="mt-5 max-w-2xl text-sm leading-7 text-muted-foreground lg:text-base">
               {safeLocale === 'vi'

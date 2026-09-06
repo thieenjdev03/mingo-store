@@ -1,3 +1,4 @@
+import { ImageOff } from 'lucide-react';
 import { Link } from '@/i18n/navigation';
 import { fCurrencyVND } from '@/lib/format';
 import { ProgressiveImage } from '@/components/ui/progressive-image';
@@ -36,7 +37,9 @@ export function CategoryProductGrid({ products }: { products: CategoryProductCar
                 className="object-contain transition-transform duration-300 motion-reduce:transition-none group-hover:-translate-y-2 group-hover:scale-[1.03]"
               />
             ) : (
-              <div className="flex h-full items-center justify-center text-6xl">🍦</div>
+              <div className="flex h-full items-center justify-center text-muted-foreground">
+                <ImageOff className="size-12" aria-label="Chưa có ảnh sản phẩm" />
+              </div>
             )}
           </div>
 

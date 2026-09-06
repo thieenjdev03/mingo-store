@@ -13,7 +13,7 @@ import { Button } from '@/components/admin/ui/button';
 import { MultiImageUpload } from '@/components/admin/ui/multi-image-upload';
 import { ImageUpload } from '@/components/admin/ui/image-upload';
 import { useToast } from '@/components/admin/ui/toast';
-import { Plus, Trash2 } from 'lucide-react';
+import { ImageOff, Plus, Trash2 } from 'lucide-react';
 import { slugify } from '@/lib/admin/slugify';
 import { getCategoryOptions } from '@/features/admin/shared/options';
 import { brandsKey, listBrands } from '@/features/admin/brands/api';
@@ -121,7 +121,9 @@ function ProductPreview({
           {images[0] ? (
             <img src={images[0]} alt={name || 'Ảnh sản phẩm'} className="size-full object-cover" />
           ) : (
-            <div className="flex size-full items-center justify-center text-4xl" aria-label="Chưa có ảnh sản phẩm">🍦</div>
+            <div className="flex size-full items-center justify-center text-muted-foreground" aria-label="Chưa có ảnh sản phẩm">
+              <ImageOff className="size-9" />
+            </div>
           )}
         </div>
 
