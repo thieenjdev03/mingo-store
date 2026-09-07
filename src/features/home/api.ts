@@ -63,6 +63,14 @@ async function fetchHeroBanners(): Promise<HeroBannerView[]> {
     .map(toHeroBannerView);
 }
 
+/** Nuốt lỗi để 1 nguồn hỏng không làm trắng trang, nhưng phải log — nếu không sẽ ra "trang chủ trống không rõ lý do". */
+function logAndFallback<T>(source: string, fallback: T) {
+  return (error: unknown): T => {
+    console.error(`[home] ${source} failed:`, error);
+    return fallback;
+  };
+}
+
 /**
  * Dữ liệu trang chủ: hero banner từ backend + các khối sản phẩm theo bộ sưu tập.
  * Hai nguồn độc lập — một nguồn lỗi không làm hỏng nguồn kia (banner cứng ở carousel vẫn hiển thị).
@@ -71,8 +79,8 @@ export async function getStorefrontHome(
   locale: Locale,
 ): Promise<StorefrontHomeView> {
   const [heroes, sections] = await Promise.all([
-    fetchHeroBanners().catch(() => [] as HeroBannerView[]),
-    fetchHomeSections(locale).catch(() => [] as HomeCollectionView[]),
+    fetchHeroBanners().catch(logAndFallback('heroBanners', [] as HeroBannerView[])),
+    fetchHomeSections(locale).catch(logAndFallback('homeSections', [] as HomeCollectionView[])),
   ]);
   return { heroes, sections };
 }

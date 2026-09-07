@@ -36,6 +36,7 @@ export class ApiError extends Error {
 function buildUrl(url: string, params?: Record<string, unknown>): string {
   const browserRequest = typeof window !== 'undefined';
   const target = browserRequest ? buildBrowserApiUrl(url) : buildServerApiUrl(url);
+  console.log("target", target)
   if (!target) throw new ApiError(503, { message: 'Backend API is not configured' });
 
   const full = new URL(target);
