@@ -6,7 +6,7 @@ import { Dialog } from '@/components/admin/ui/dialog';
 import { Field } from '@/components/admin/ui/field';
 import { Input } from '@/components/admin/ui/input';
 import { Textarea } from '@/components/admin/ui/textarea';
-import { NativeSelect } from '@/components/admin/ui/native-select';
+import { Combobox } from '@/components/ui/combobox';
 import { Switch } from '@/components/admin/ui/switch';
 import { Button } from '@/components/admin/ui/button';
 import { MultiSelect } from '@/components/admin/ui/multi-select';
@@ -123,31 +123,32 @@ export function DistributorForm({ open, onOpenChange, distributor, onSaved }: Di
         </Field>
         <div className="grid gap-4 sm:grid-cols-2">
           <Field id="province" label="Tỉnh / Thành">
-            <NativeSelect
+            <Combobox
               id="province"
               value={provinceCode}
-              onChange={(e) => {
-                setProvinceCode(e.target.value);
+              onChange={(id) => {
+                setProvinceCode(id);
                 setWardCode('');
               }}
-            >
-              <option value="">— Chọn —</option>
-              {provinces.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.name}
-                </option>
-              ))}
-            </NativeSelect>
+              options={provinces}
+              placeholder="— Chọn —"
+              searchPlaceholder="Gõ để tìm kiếm..."
+              emptyText="Không tìm thấy kết quả phù hợp"
+              triggerClassName="h-10 rounded-md border border-border bg-white px-3 text-sm shadow-sm focus:border-primary focus:ring-2 focus:ring-primary/20 disabled:cursor-not-allowed disabled:opacity-60"
+            />
           </Field>
           <Field id="ward" label="Phường / Xã">
-            <NativeSelect id="ward" value={wardCode} onChange={(e) => setWardCode(e.target.value)} disabled={!provinceCode}>
-              <option value="">— Chọn —</option>
-              {wards.map((w) => (
-                <option key={w.id} value={w.id}>
-                  {w.name}
-                </option>
-              ))}
-            </NativeSelect>
+            <Combobox
+              id="ward"
+              value={wardCode}
+              onChange={setWardCode}
+              options={wards}
+              disabled={!provinceCode}
+              placeholder="— Chọn —"
+              searchPlaceholder="Gõ để tìm kiếm..."
+              emptyText="Không tìm thấy kết quả phù hợp"
+              triggerClassName="h-10 rounded-md border border-border bg-white px-3 text-sm shadow-sm focus:border-primary focus:ring-2 focus:ring-primary/20 disabled:cursor-not-allowed disabled:opacity-60"
+            />
           </Field>
         </div>
         <Field id="district" label="Khu vực (tuỳ chọn)" required={false}>

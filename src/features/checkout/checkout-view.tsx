@@ -6,6 +6,7 @@ import { Banknote, CheckCircle2, CircleUserRound, ImageOff, QrCode, ReceiptText,
 import { useLocale, useTranslations } from 'next-intl';
 import { Link } from '@/i18n/navigation';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Combobox } from '@/components/ui/combobox';
 import { useCart } from '@/features/cart/cart-context';
 import { notifyCartUpdated } from '@/features/cart/cart-token';
 import { getAccessToken, clearAccessToken } from '@/lib/auth/token';
@@ -357,11 +358,11 @@ export function CheckoutView() {
                       setProvince(provinces.find((item) => item.id === id) ?? null);
                       setArea(null);
                       clearCheckoutError();
-                    }} placeholder={t('provincePlaceholder')} options={provinces} />
+                    }} placeholder={t('provincePlaceholder')} searchPlaceholder={t('addressSearchPlaceholder')} emptyText={t('addressNoResults')} options={provinces} />
                     <CheckoutSelect id="district" label={t('district')} value={area?.id ?? ''} onChange={(id) => {
                       setArea(areaOptions.find((item) => item.id === id) ?? null);
                       clearCheckoutError();
-                    }} placeholder={t('districtPlaceholder')} options={areaOptions} disabled={!province} />
+                    }} placeholder={t('districtPlaceholder')} searchPlaceholder={t('addressSearchPlaceholder')} emptyText={t('addressNoResults')} options={areaOptions} disabled={!province} />
                     <CheckoutInput id="addressLine" name="addressLine" label={t('addressLine')} autoComplete="street-address" value={addressLine} onChange={(event) => setAddressLine(event.target.value)} required className="sm:col-span-2" />
                     <CheckoutInput id="note" name="note" label={t('note')} className="sm:col-span-2" />
                   </div>
@@ -549,16 +550,21 @@ function CheckoutInput({ id, label, className, required, disabled, ...props }: I
   );
 }
 
-function CheckoutSelect({ id, label, value, onChange, placeholder, options, disabled }: { id: string; label: string; value: string; onChange: (value: string) => void; placeholder: string; options: ShippingAreaOption[]; disabled?: boolean }) {
+function CheckoutSelect({ id, label, value, onChange, placeholder, searchPlaceholder, emptyText, options, disabled }: { id: string; label: string; value: string; onChange: (value: string) => void; placeholder: string; searchPlaceholder: string; emptyText: string; options: ShippingAreaOption[]; disabled?: boolean }) {
   return (
     <div className={`px-3 pt-2 ${disabled ? 'bg-muted/60' : 'bg-blush'}`}>
       <label htmlFor={id} className={`block text-xs font-bold ${disabled ? 'text-muted-foreground' : 'text-primary'}`}>{label}</label>
-      <Select value={value || undefined} onValueChange={onChange} disabled={disabled} required>
-        <SelectTrigger id={id} className={`h-10 rounded-none border-0 border-b bg-transparent px-0 shadow-none focus:ring-0 disabled:cursor-not-allowed disabled:opacity-100 ${disabled ? 'border-muted-foreground/30 text-muted-foreground' : 'border-primary'}`}><SelectValue placeholder={placeholder} /></SelectTrigger>
-        <SelectContent>
-          {options.map((option) => <SelectItem key={option.id} value={option.id}>{option.name}</SelectItem>)}
-        </SelectContent>
-      </Select>
+      <Combobox
+        id={id}
+        value={value}
+        onChange={onChange}
+        options={options}
+        placeholder={placeholder}
+        searchPlaceholder={searchPlaceholder}
+        emptyText={emptyText}
+        disabled={disabled}
+        triggerClassName={`h-10 border-0 border-b bg-transparent px-0 text-base disabled:cursor-not-allowed disabled:opacity-100 ${disabled ? 'border-muted-foreground/30 text-muted-foreground' : 'border-primary text-foreground'}`}
+      />
     </div>
   );
 }

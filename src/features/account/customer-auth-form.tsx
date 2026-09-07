@@ -254,7 +254,7 @@ export function CustomerAuthForm({ mode }: CustomerAuthFormProps) {
 
   return (
     <div className="bg-ivory py-12 sm:py-16 lg:py-20">
-      <div className="mx-auto max-w-2xl px-5 sm:px-8">
+      <div className="mx-auto max-w-3xl px-5 sm:px-8">
         <section className="rounded-xl bg-card p-6 shadow-sm sm:p-10">
           {mode !== 'login' ? (
             <Link href="/login" className="mb-7 inline-flex items-center gap-2 text-sm font-semibold text-muted-foreground hover:text-primary">

@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Search } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { SelectField } from '@/components/ui/select';
+import { Combobox } from '@/components/ui/combobox';
 import {
   provinces,
   getWardsByProvince,
@@ -84,21 +85,25 @@ export function StoreLocator() {
             { value: 'matcha', label: t('options.matcha') },
           ]}
         />
-        <ComboSelect
+        <AddressCombobox
           value={province?.id ?? ''}
           onChange={(id) => {
             setProvince(provinces.find((p) => p.id === id) ?? null);
             setWard(null);
           }}
           placeholder={t('city')}
-          options={provinces.map((p) => ({ value: p.id, label: p.name }))}
+          searchPlaceholder={t('addressSearchPlaceholder')}
+          emptyText={t('addressNoResults')}
+          options={provinces}
         />
-        <ComboSelect
+        <AddressCombobox
           value={ward?.id ?? ''}
           onChange={(id) => setWard(wardOptions.find((w) => w.id === id) ?? null)}
           placeholder={t('ward')}
+          searchPlaceholder={t('addressSearchPlaceholder')}
+          emptyText={t('addressNoResults')}
           disabled={!province}
-          options={wardOptions.map((w) => ({ value: w.id, label: w.name }))}
+          options={wardOptions}
         />
         <button
           type="button"
@@ -171,6 +176,36 @@ function ComboSelect({ value, onChange, placeholder, options, disabled }: ComboS
         disabled={disabled}
         options={[{ value: '', label: placeholder }, ...options]}
         className="rounded-full px-5 text-sm"
+        aria-label={placeholder}
+      />
+    </label>
+  );
+}
+
+interface AddressComboboxProps {
+  value: string;
+  onChange: (value: string) => void;
+  placeholder: string;
+  searchPlaceholder: string;
+  emptyText: string;
+  options: Array<{ id: string; name: string }>;
+  disabled?: boolean;
+}
+
+/** Tỉnh/thành và phường/xã có danh sách rất dài — dùng combobox gõ-để-lọc thay vì cuộn tay. */
+function AddressCombobox({ value, onChange, placeholder, searchPlaceholder, emptyText, options, disabled }: AddressComboboxProps) {
+  return (
+    <label className="block">
+      <span className="sr-only">{placeholder}</span>
+      <Combobox
+        value={value}
+        onChange={onChange}
+        options={options}
+        placeholder={placeholder}
+        searchPlaceholder={searchPlaceholder}
+        emptyText={emptyText}
+        disabled={disabled}
+        triggerClassName="h-12 rounded-full border border-border bg-card px-5 text-sm text-foreground shadow-[0_1px_2px_rgba(51,65,85,0.04)] hover:border-primary/55 focus:border-primary focus:ring-4 focus:ring-primary/10 disabled:cursor-not-allowed disabled:bg-muted/45 disabled:opacity-60"
         aria-label={placeholder}
       />
     </label>

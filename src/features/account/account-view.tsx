@@ -9,6 +9,7 @@ import { getMyOrders, getShippingAddresses, upsertShippingAddress } from '@/feat
 import { getShippingAreas } from '@/features/checkout/shipping-locations';
 import type { SavedShippingAddress } from '@/features/checkout/types';
 import { provinces } from '@/lib/vn-address';
+import { Combobox } from '@/components/ui/combobox';
 import { updateMyProfile, type UpdateMyProfilePayload } from './api';
 import { getAccessToken, clearAccessToken } from '@/lib/auth/token';
 import { CustomerAuthForm } from './customer-auth-form';
@@ -432,30 +433,28 @@ export function AccountPageView() {
                   <div className="grid gap-4 sm:grid-cols-2">
                     <label className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
                       {tCheckout('province')}
-                      <select
+                      <Combobox
                         value={addressDraft.provinceId}
-                        onChange={(event) => setAddressDraft((current) => ({ ...current, provinceId: event.target.value, areaId: '' }))}
-                        className="mt-2 h-11 w-full rounded-lg border border-border bg-background px-3 text-sm font-medium normal-case tracking-normal text-foreground outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
-                      >
-                        <option value="">{tCheckout('provincePlaceholder')}</option>
-                        {provinces.map((province) => (
-                          <option key={province.id} value={province.id}>{province.name}</option>
-                        ))}
-                      </select>
+                        onChange={(id) => setAddressDraft((current) => ({ ...current, provinceId: id, areaId: '' }))}
+                        options={provinces}
+                        placeholder={tCheckout('provincePlaceholder')}
+                        searchPlaceholder={tCheckout('addressSearchPlaceholder')}
+                        emptyText={tCheckout('addressNoResults')}
+                        triggerClassName="mt-2 h-11 rounded-lg border border-border bg-background px-3 text-sm font-medium normal-case tracking-normal text-foreground transition focus:border-primary focus:ring-2 focus:ring-primary/20"
+                      />
                     </label>
                     <label className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
                       {tCheckout('district')}
-                      <select
+                      <Combobox
                         value={addressDraft.areaId}
                         disabled={!addressDraft.provinceId}
-                        onChange={(event) => setAddressDraft((current) => ({ ...current, areaId: event.target.value }))}
-                        className="mt-2 h-11 w-full rounded-lg border border-border bg-background px-3 text-sm font-medium normal-case tracking-normal text-foreground outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20 disabled:opacity-60"
-                      >
-                        <option value="">{tCheckout('districtPlaceholder')}</option>
-                        {areaOptions.map((area) => (
-                          <option key={area.id} value={area.id}>{area.name}</option>
-                        ))}
-                      </select>
+                        onChange={(id) => setAddressDraft((current) => ({ ...current, areaId: id }))}
+                        options={areaOptions}
+                        placeholder={tCheckout('districtPlaceholder')}
+                        searchPlaceholder={tCheckout('addressSearchPlaceholder')}
+                        emptyText={tCheckout('addressNoResults')}
+                        triggerClassName="mt-2 h-11 rounded-lg border border-border bg-background px-3 text-sm font-medium normal-case tracking-normal text-foreground transition focus:border-primary focus:ring-2 focus:ring-primary/20 disabled:opacity-60"
+                      />
                     </label>
                   </div>
                   <label className="block text-xs font-bold uppercase tracking-wide text-muted-foreground">
