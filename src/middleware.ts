@@ -24,7 +24,8 @@ function buildCsp(nonce: string): string {
     `font-src 'self' data:`,
     `connect-src 'self'${backendOrigin ? ` ${backendOrigin}` : ''}${isDev ? ' ws:' : ''}`,
     `media-src 'self' https:`,
-    `frame-src 'self' https://www.youtube-nocookie.com https://www.youtube.com`,
+    // www.google.com: iframe bản đồ cửa hàng (xem src/lib/maps-embed.ts).
+    `frame-src 'self' https://www.youtube-nocookie.com https://www.youtube.com https://www.google.com`,
     `object-src 'none'`,
     `base-uri 'self'`,
     `form-action 'self'`,
