@@ -4,8 +4,9 @@
 
 import { provinces, getWardsByProvince } from '@/lib/vn-address';
 import type { Province, Ward } from '@/lib/vn-address';
-import { distributorsPublicControllerFindAll } from '@/lib/api/generated/distributors/distributors';
-import { categoriesControllerGetCategories } from '@/lib/api/generated/categories/categories';
+// Gọi customFetch trực tiếp thay vì qua `@/lib/api/generated/**`: các module generated
+// export kèm SWR hook, import chúng từ Server Component sẽ kéo `swr` vào server bundle.
+import { customFetch } from '@/lib/api/fetcher';
 import type { DistributorDto } from '@/lib/api/generated/ecomAPI.schemas';
 
 export type { Province, Ward };
@@ -20,12 +21,17 @@ export interface StoreFilters {
 }
 
 export async function getStores(filters: StoreFilters = {}): Promise<Store[]> {
-  const res = (await distributorsPublicControllerFindAll({
-    province_code: filters.province_code || undefined,
-    ward_code: filters.ward_code || undefined,
-    category_id: filters.category_id || undefined,
-    limit: 100,
-  })) as { data?: Store[] } | undefined;
+  const res = await customFetch<{ data?: Store[] }>({
+    url: '/distributors',
+    method: 'GET',
+    params: {
+      province_code: filters.province_code || undefined,
+      ward_code: filters.ward_code || undefined,
+      category_id: filters.category_id || undefined,
+      limit: 100,
+    },
+    next: { revalidate: 300 },
+  });
   return res?.data ?? [];
 }
 
@@ -37,10 +43,11 @@ export interface CategoryOption {
 // `/categories` wraps its own { success, data, meta } envelope inside the global
 // TransformInterceptor envelope — customFetch only unwraps the outer one.
 export async function getCategoryOptions(): Promise<CategoryOption[]> {
-  const res = (await categoriesControllerGetCategories({
-    with_children_count: 'false',
-    page: '1',
-    limit: '100',
-  })) as { data?: Array<{ id: string; name: string }> } | undefined;
+  const res = await customFetch<{ data?: Array<{ id: string; name: string }> }>({
+    url: '/categories',
+    method: 'GET',
+    params: { with_children_count: 'false', page: '1', limit: '100' },
+    next: { revalidate: 300 },
+  });
   return (res?.data ?? []).map((c) => ({ id: c.id, name: c.name }));
 }

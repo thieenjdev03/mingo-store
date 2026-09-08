@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Search } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { SelectField } from '@/components/ui/select';
@@ -18,22 +18,36 @@ import {
 import { extractMapsSrc } from '@/lib/maps-embed';
 import { MeltingIceCreamLoader } from '@/components/ui/melting-ice-cream-loader';
 
-export function StoreLocator() {
+interface StoreLocatorProps {
+  /** Danh sách render sẵn từ server để bot đọc được ngay trong HTML đầu tiên. */
+  initialStores: Store[];
+  initialCategories: CategoryOption[];
+}
+
+export function StoreLocator({ initialStores, initialCategories }: StoreLocatorProps) {
   const t = useTranslations('stores');
-  const [categories, setCategories] = useState<CategoryOption[]>([]);
-  const [stores, setStores] = useState<Store[]>([]);
+  const [categories, setCategories] = useState<CategoryOption[]>(initialCategories);
+  const [stores, setStores] = useState<Store[]>(initialStores);
   const [loading, setLoading] = useState(false);
   const [categoryId, setCategoryId] = useState('');
   const [province, setProvince] = useState<Province | null>(null);
   const [ward, setWard] = useState<Ward | null>(null);
-  const [activeId, setActiveId] = useState<string | null>(null);
+  const [activeId, setActiveId] = useState<string | null>(initialStores[0]?.id ?? null);
+  // Lần chạy đầu đã có dữ liệu từ server — chỉ fetch lại khi người dùng đổi bộ lọc.
+  const skipFirstFetch = useRef(initialStores.length > 0);
 
+  // Server fetch hỏng thì client tự lấy lại, giữ đúng hành vi trước khi chuyển sang SSR.
   useEffect(() => {
+    if (initialCategories.length > 0) return;
     getCategoryOptions().then(setCategories).catch(() => setCategories([]));
-  }, []);
+  }, [initialCategories.length]);
 
   // Server-side filtering — refetch whenever a filter changes.
   useEffect(() => {
+    if (skipFirstFetch.current) {
+      skipFirstFetch.current = false;
+      return;
+    }
     let cancelled = false;
     setLoading(true);
     getStores({
@@ -122,6 +136,7 @@ export function StoreLocator() {
               {stores.map((store) => (
                 <button
                   key={store.id}
+                  id={`store-${store.slug}`}
                   type="button"
                   onClick={() => setActiveId(store.id)}
                   className={`block w-full py-5 text-left transition-colors first:pt-0 ${

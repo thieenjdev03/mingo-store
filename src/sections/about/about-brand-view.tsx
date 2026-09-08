@@ -1,6 +1,35 @@
 import { Mail, Phone } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 import { StoreLocator } from "@/sections/stores/store-locator";
+import { JsonLd } from "@/components/seo/json-ld";
+import { absoluteUrl } from "@/lib/seo";
+import { getStores, getCategoryOptions, type Store } from "@/features/distribution/data";
+
+/**
+ * LocalBusiness cho từng điểm bán — mỗi node neo vào anchor `#store-<slug>` mà
+ * StoreLocator render, và trỏ ngược về Organization của site.
+ */
+function storesJsonLd(stores: Store[]) {
+  return stores.map((store) => ({
+    '@context': 'https://schema.org',
+    '@type': 'LocalBusiness',
+    '@id': absoluteUrl(`/about#store-${store.slug}`),
+    name: store.name,
+    url: absoluteUrl(`/about#store-${store.slug}`),
+    ...(store.description ? { description: store.description } : {}),
+    address: {
+      '@type': 'PostalAddress',
+      // Địa chỉ VN sau sáp nhập chỉ còn 2 cấp: phường/xã -> tỉnh/thành.
+      // `district_text` là ghi chú khu vực tự do nên gộp vào streetAddress.
+      streetAddress: [store.address_line, store.district_text].filter(Boolean).join(', '),
+      addressLocality: store.ward_name,
+      addressRegion: store.province_name,
+      addressCountry: 'VN',
+    },
+    hasMap: store.maps_embed_src,
+    parentOrganization: { '@id': `${absoluteUrl('/')}#organization` },
+  }));
+}
 
 const MAP_ADDRESS = "232/28 Đ. Tô Hiệu, Phú Thạnh, Hồ Chí Minh, Việt Nam";
 const MAP_QUERY = encodeURIComponent(MAP_ADDRESS);
@@ -37,9 +66,12 @@ function ContactPill({ href, label, icon, compact = false }: ContactPillProps) {
 }
 
 export async function AboutBrandView() {
-  const [t, storesT] = await Promise.all([
+  const [t, storesT, stores, storeCategories] = await Promise.all([
     getTranslations("about"),
     getTranslations("stores"),
+    // Backend chết thì trang vẫn render; locator tự fetch lại phía client khi lọc.
+    getStores().catch(() => []),
+    getCategoryOptions().catch(() => []),
   ]);
 
   return (
@@ -164,7 +196,8 @@ export async function AboutBrandView() {
               {storesT("description")}
             </p>
           </div>
-          <StoreLocator />
+          {stores.length > 0 ? <JsonLd data={storesJsonLd(stores)} /> : null}
+          <StoreLocator initialStores={stores} initialCategories={storeCategories} />
         </div>
       </section>
     </div>
