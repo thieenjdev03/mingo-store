@@ -1,127 +1,237 @@
-# Mingo Store — Hướng dẫn sử dụng và quản trị dịch vụ
+# Mingo Store — Hướng dẫn sử dụng & Biên bản bàn giao
 
-> Phiên bản tài liệu: 28/08/2026
-> Đối tượng: quản trị viên và nhân viên vận hành phía khách hàng
-> Phạm vi: các chức năng hiển thị trên storefront và trang Admin
+| | |
+|---|---|
+| **Phiên bản tài liệu** | 08/09/2026 |
+| **Đối tượng** | Quản trị viên và nhân viên vận hành phía khách hàng |
+| **Phạm vi** | Toàn bộ chức năng đang chạy trên storefront và trang Admin |
+| **Cách đọc** | **Phần A** — tour nhanh cho người mới · **Phần B** — chi tiết từng module · **Phần C** — checklist, giới hạn và điểm cần biết khi tiếp nhận |
+
+---
+
+# PHẦN A — TOUR NHANH CHO NGƯỜI MỚI
+
+## A.1 Hệ thống gồm hai khu vực
+
+| Khu vực | Ai dùng | Đường dẫn |
+|---|---|---|
+| **Storefront** | Khách hàng cuối | `https://kemmingo.com` |
+| **Admin** | Nhân viên vận hành | `https://kemmingo.com/admin` |
+
+Storefront song ngữ:
+
+- Tiếng Việt: URL **không** có prefix — `/products`, `/about`…
+- English: URL có prefix `/en` — `/en/products`, `/en/about`…
+
+Admin chỉ có tiếng Việt và **không** dùng prefix ngôn ngữ.
+
+## A.2 Tour 8 bước — làm một vòng để hiểu hệ thống
+
+Làm lần lượt 8 bước dưới đây trên môi trường thật (hoặc dữ liệu thử) là đủ để
+nắm toàn bộ luồng vận hành.
+
+**Bước 1 — Đăng nhập Admin.**
+Mở `/admin/login`, đăng nhập bằng tài khoản có vai trò **Quản trị**. Sau khi vào,
+`/admin` là **Bảng điều khiển**: một lưới lối tắt tới tất cả module. Menu trái là
+nơi điều hướng chính, chia 5 nhóm: Tổng quan / Sản phẩm / Vận hành / Nội dung /
+Hệ thống.
+
+**Bước 2 — Dựng dữ liệu nền trước khi tạo sản phẩm.**
+Thứ tự bắt buộc để không phải sửa lại:
+
+```text
+Danh mục  →  Thương hiệu  →  Quy cách  →  Sản phẩm  →  Bộ sưu tập
+```
+
+Lý do: sản phẩm cần chọn danh mục/thương hiệu; biến thể sản phẩm cần quy cách
+có sẵn; bộ sưu tập cần có sản phẩm để gán.
+
+**Bước 3 — Tạo một sản phẩm hoàn chỉnh.**
+`/admin/products` → **Thêm**. Nhập nội dung tiếng Việt, chuyển tab **English**
+dịch lại, tải ảnh, chọn danh mục/thương hiệu, nhập giá + tồn + SKU, thêm biến
+thể nếu có, chọn trạng thái **Đăng bán**, bấm **Lưu**. Mở
+`/products/<slug>` trên storefront để đối chiếu.
+
+**Bước 4 — Đưa sản phẩm lên trang chủ.**
+`/admin/collections` → tạo bộ sưu tập → bật **Hiển thị trên trang chủ** + **Kích
+hoạt** → bấm icon **Sản phẩm** để gán sản phẩm vào. Mở `/` kiểm tra khối mới
+xuất hiện.
+
+**Bước 5 — Đặt thử một đơn hàng.**
+Trên storefront: thêm sản phẩm vào giỏ → `/cart` → **Thanh toán** → nhập địa chỉ
+→ **Kiểm tra khu vực và phí giao hàng** → chọn **COD** hoặc **Chuyển khoản
+VietQR** → đặt hàng. Ghi lại **mã đơn** hiện ra.
+
+**Bước 6 — Xử lý đơn vừa tạo.**
+`/admin/orders` → tìm theo mã đơn → mở chi tiết → chuyển trạng thái theo đúng
+bước kế tiếp → lưu mã vận đơn. Đây là màn hình dùng nhiều nhất hằng ngày.
+
+**Bước 7 — Cập nhật nội dung.**
+Thử mỗi module một lần: `/admin/homepage-banners` (banner trang chủ),
+`/admin/policies` (chính sách), `/admin/distributors` (điểm bán + bản đồ),
+`/admin/careers` (tin tuyển dụng), `/admin/settings` (link PDF hồ sơ hợp tác).
+
+**Bước 8 — Kiểm tra dấu vết.**
+`/admin/audit-logs` sẽ liệt kê đúng những thao tác vừa làm ở bước 2–7, kèm giá
+trị cũ/mới và người thực hiện. Đây là công cụ truy vết khi có sự cố dữ liệu.
+
+## A.3 Ba luồng nghiệp vụ chính
+
+```text
+LUỒNG BÁN HÀNG
+Khách xem sản phẩm → thêm giỏ → checkout → chọn COD/VietQR → đơn được tạo
+   → Admin xác nhận thanh toán → đóng gói → vận chuyển → giao thành công
+
+LUỒNG NỘI DUNG
+Admin tạo/sửa dữ liệu (sản phẩm, banner, chính sách, điểm bán, tuyển dụng)
+   → bật trạng thái hiển thị → kiểm tra lại trên storefront
+
+LUỒNG TUYỂN DỤNG
+Admin đăng tin (/admin/careers) → khách nộp hồ sơ (/careers/<slug>)
+   → hồ sơ về /admin/career-applications → cập nhật trạng thái hồ sơ
+```
+
+## A.4 Ba quy tắc an toàn phải nhớ
+
+1. **Ưu tiên ẩn, hạn chế xóa.** Hầu hết module có trạng thái *Ẩn / Nháp / Đã
+   đóng*. Xóa dữ liệu đang được tham chiếu (thương hiệu đang gán sản phẩm, quy
+   cách đang dùng trong biến thể) sẽ làm hỏng liên kết.
+2. **Trạng thái thanh toán ≠ trạng thái đơn.** Không đánh dấu đơn đã thanh toán
+   chỉ dựa vào ảnh chụp màn hình của khách. VietQR **không có webhook ngân
+   hàng**, mọi xác nhận đều là thủ công.
+3. **Không đổi slug sau khi đã công bố.** Slug là đường dẫn công khai; đổi slug
+   làm chết link cũ đã chia sẻ và các liên kết nội bộ trỏ tới nó.
+
+---
+
+# PHẦN B — CHI TIẾT CHỨC NĂNG
 
 ## 1. Phạm vi bàn giao
 
-Khách hàng có quyền sở hữu dịch vụ và thực hiện các thao tác vận hành hằng ngày
-qua trang Admin. Source code, bảo trì kỹ thuật và các thay đổi hệ thống do bên
-cung cấp kiểm soát.
+Khách hàng sở hữu dịch vụ và thực hiện vận hành hằng ngày qua trang Admin.
+Source code, hạ tầng, bảo trì kỹ thuật và thay đổi hệ thống do bên cung cấp
+kiểm soát.
 
-Tài liệu này chỉ hướng dẫn:
+Tài liệu này hướng dẫn:
 
 - quản lý nội dung và dữ liệu trên Admin;
 - theo dõi và xử lý đơn hàng;
-- các chức năng khách hàng có thể sử dụng trên storefront;
+- các chức năng khách hàng dùng được trên storefront;
 - kết quả của mỗi thao tác trên giao diện;
-- các giới hạn cần biết khi vận hành.
+- các giới hạn và phụ thuộc cấu hình cần biết khi vận hành.
 
-Không bao gồm source code, database, API, máy chủ, deploy hoặc cấu hình nội bộ.
+Không bao gồm hướng dẫn về source code, database, API, máy chủ hay quy trình
+deploy.
 
-## 2. Truy cập dịch vụ
+## 2. Đường dẫn truy cập
 
 | Khu vực | Đường dẫn |
 |---|---|
-| Storefront | URL triển khai do bên bàn giao cung cấp |
-| Admin | `URL storefront/admin` |
-| Đăng nhập Admin | `URL storefront/admin/login` |
-
-Storefront hỗ trợ hai ngôn ngữ:
-
-- Tiếng Việt: URL không có prefix ngôn ngữ.
-- English: URL có prefix `/en`.
-
-Admin hiện dùng tiếng Việt và không có prefix ngôn ngữ.
+| Storefront | `https://kemmingo.com` |
+| Admin | `/admin` |
+| Đăng nhập Admin | `/admin/login` |
+| Đăng nhập khách hàng | `/login` |
+| Đăng ký khách hàng | `/register` |
+| Quên mật khẩu | `/forgot-password` |
+| Tra cứu đơn (khách vãng lai) | `/orders/track/<mã đơn>#token=<mã tra cứu>` |
 
 ## 3. Vai trò sử dụng
 
 | Vai trò | Quyền sử dụng |
 |---|---|
-| Khách truy cập | Xem sản phẩm, thương hiệu, điểm bán, chính sách, tuyển dụng; dùng giỏ hàng và gửi đơn ứng tuyển |
-| Khách hàng đăng nhập | Các quyền của khách truy cập; xem tài khoản, đơn hàng, điểm thưởng và địa chỉ giao hàng |
-| Quản trị viên | Sử dụng toàn bộ module Admin, quản lý dữ liệu và vận hành đơn hàng |
+| Khách truy cập (chưa đăng nhập) | Xem sản phẩm, thương hiệu, điểm bán, chính sách, tuyển dụng; dùng giỏ hàng; **đặt hàng không cần đăng nhập**; gửi hồ sơ ứng tuyển; gửi form liên hệ |
+| Khách hàng đăng nhập | Toàn bộ quyền trên, cộng thêm: hồ sơ cá nhân, lịch sử đơn hàng, điểm thưởng, địa chỉ giao hàng đã lưu |
+| Quản trị viên | Toàn bộ module Admin |
 
-Chỉ tài khoản có vai trò **Quản trị** mới truy cập được Admin.
+Chỉ tài khoản vai trò **Quản trị** mới vào được `/admin`.
 
-## 4. Sơ đồ chức năng
+## 4. Bản đồ chức năng
 
 ### 4.1 Storefront
 
-- Trang chủ
-- Dòng sản phẩm
-- Thương hiệu
-- Tìm kiếm sản phẩm
-- Chi tiết sản phẩm và biến thể
-- Giỏ hàng
-- Thanh toán
-- Tài khoản và lịch sử đơn hàng
-- Điểm thưởng
-- Về Mingo và hệ thống phân phối
-- Hợp tác
-- Câu hỏi thường gặp
-- Chính sách
-- Tuyển dụng và ứng tuyển
-- Liên hệ
+| Trang | URL | Ghi chú |
+|---|---|---|
+| Trang chủ | `/` | Banner + thương hiệu + các khối bộ sưu tập |
+| Dòng sản phẩm | `/products` | Kèm tìm kiếm qua `?q=` |
+| Trang danh mục | `/categories/<slug>` | |
+| Thương hiệu | `/brands`, `/brands/<slug>` | |
+| Chi tiết sản phẩm | `/products/<slug>` | |
+| Bộ sưu tập | `/collections`, `/collections/<slug>` | |
+| Giỏ hàng | `/cart` | |
+| Thanh toán | `/checkout` | |
+| Tài khoản | `/account` | Cần đăng nhập |
+| Đơn hàng của tôi | `/orders`, `/orders/<mã đơn>` | Cần đăng nhập |
+| Tra cứu đơn khách vãng lai | `/orders/track/<mã đơn>` | Cần mã tra cứu trong link |
+| Về Mingo + Hệ thống phân phối | `/about`, `/about#distribution` | |
+| Điểm bán | `/stores` | **Tự chuyển hướng** về `/about#distribution` |
+| Hợp tác | `/partnership` | |
+| Liên hệ | `/contact` | |
+| Chính sách | `/policies` | |
+| Tuyển dụng | `/careers`, `/careers/<slug>` | |
+| Câu hỏi thường gặp | `/faqs` | **Chưa có trong menu**, chỉ vào bằng URL trực tiếp |
+
+**Menu chính (header):** Dòng sản phẩm · Thương hiệu · Hợp tác · Về Mingo, kèm
+ô tìm kiếm, giỏ hàng, tài khoản và nút chuyển VI/EN.
+**Menu chân trang (footer):** Về Mingo · Liên hệ · Chính sách · Tuyển dụng, kèm
+liên kết Facebook / Instagram / TikTok.
 
 ### 4.2 Admin
 
-| Nhóm | Module |
-|---|---|
-| Tổng quan | Bảng điều khiển |
-| Sản phẩm | Sản phẩm, Thương hiệu, Danh mục, Bộ sưu tập, Quy cách |
-| Vận hành | Đơn hàng, Nhà phân phối, Tuyển dụng, Đơn ứng tuyển |
-| Nội dung | Banner trang chủ, Chính sách |
-| Hệ thống | Người dùng, Nhật ký hệ thống |
+| Nhóm | Module | URL |
+|---|---|---|
+| Tổng quan | Bảng điều khiển | `/admin` |
+| Sản phẩm | Sản phẩm | `/admin/products` |
+| Sản phẩm | Thương hiệu | `/admin/brands` |
+| Sản phẩm | Danh mục | `/admin/categories` |
+| Sản phẩm | Bộ sưu tập | `/admin/collections` |
+| Sản phẩm | Quy cách | `/admin/sizes` |
+| Vận hành | Đơn hàng | `/admin/orders` |
+| Vận hành | Nhà phân phối | `/admin/distributors` |
+| Vận hành | Tuyển dụng | `/admin/careers` |
+| Vận hành | Đơn ứng tuyển | `/admin/career-applications` |
+| Nội dung | Banner trang chủ | `/admin/homepage-banners` |
+| Nội dung | Chính sách | `/admin/policies` |
+| Nội dung | Liên kết hợp tác | `/admin/settings` |
+| Hệ thống | Người dùng | `/admin/users` |
+| Hệ thống | Nhật ký hệ thống | `/admin/audit-logs` |
 
-Module **Màu sắc** hiện chưa nằm trong menu Admin và chưa dùng cho vận hành.
+Module **Màu sắc** (`/admin/colors`) tồn tại trong hệ thống nhưng **không nằm
+trong menu** và không dùng cho vận hành.
 
 ## 5. Quy tắc thao tác chung trên Admin
 
 - **Thêm**: mở form tạo dữ liệu mới.
-- **Sửa**: chọn biểu tượng bút chì ở dòng tương ứng.
-- **Xóa**: chọn biểu tượng thùng rác và xác nhận.
-- **Tìm kiếm**: nhập từ khóa vào ô tìm kiếm của module.
-- **Lọc**: chọn trạng thái hoặc nhóm dữ liệu tương ứng.
-- **Phân trang**: dùng điều hướng ở cuối bảng khi danh sách có nhiều dữ liệu.
-- **Lưu**: chờ thông báo thành công trước khi đóng form hoặc chuyển màn hình.
+- **Sửa**: icon bút chì ở dòng tương ứng.
+- **Xóa**: icon thùng rác, có bước xác nhận.
+- **Tìm kiếm**: ô tìm kiếm riêng của từng module.
+- **Lọc**: theo trạng thái hoặc nhóm dữ liệu của module đó.
+- **Phân trang**: điều hướng ở cuối bảng.
+- **Lưu**: chờ thông báo (toast) thành công rồi mới đóng form hoặc chuyển màn.
 
-Không bấm **Lưu** nhiều lần liên tiếp khi form đang hiển thị trạng thái đang xử lý.
+Không bấm **Lưu** nhiều lần khi nút đang ở trạng thái *Đang lưu…*.
 
-Khi không chắc có nên xóa dữ liệu hay không, ưu tiên dùng trạng thái **Ẩn**,
-**Nháp** hoặc **Đã đóng** nếu module có hỗ trợ.
+Khi phân vân giữa xóa và ẩn: chọn **Ẩn / Nháp / Đã đóng** nếu module hỗ trợ.
 
-## 6. Quản lý sản phẩm
+## 6. Quản lý sản phẩm — `/admin/products`
 
-Đường dẫn: `/admin/products`
+### 6.1 Danh sách
 
-### 6.1 Danh sách sản phẩm
-
-Có thể:
-
-- tìm theo tên;
-- lọc theo trạng thái;
-- lọc theo danh mục;
-- lọc theo thương hiệu;
-- xem giá, tồn kho, danh mục, thương hiệu và trạng thái;
-- sửa hoặc xóa sản phẩm.
+Cho phép: tìm theo tên; lọc theo trạng thái, danh mục, thương hiệu; xem giá,
+tồn kho, danh mục, thương hiệu, trạng thái; sửa; xóa.
 
 ### 6.2 Trạng thái sản phẩm
 
 | Trạng thái | Ý nghĩa |
 |---|---|
-| Đăng bán | Có thể hiển thị và mua nếu còn hàng |
+| Đăng bán | Hiển thị công khai và mua được nếu còn hàng |
 | Nháp | Chưa công bố |
 | Ẩn | Tạm ngừng hiển thị |
 
-Sản phẩm chỉ được mua khi đang **Đăng bán** và còn tồn kho. Nếu sản phẩm có
-biến thể, chỉ cần một biến thể còn hàng để sản phẩm có thể hiển thị; biến thể
-hết hàng sẽ không thể chọn mua.
+Sản phẩm chỉ mua được khi **Đăng bán** và còn tồn kho. Với sản phẩm nhiều biến
+thể, chỉ cần một biến thể còn hàng là sản phẩm vẫn hiển thị; biến thể hết hàng
+vẫn hiện nhưng không chọn được.
 
-### 6.3 Tạo hoặc sửa sản phẩm
-
-Form sản phẩm gồm các nhóm thông tin sau:
+### 6.3 Cấu trúc form sản phẩm
 
 | Nhóm | Trường |
 |---|---|
@@ -130,87 +240,66 @@ Form sản phẩm gồm các nhóm thông tin sau:
 | Catalog | Danh mục, thương hiệu |
 | Bán hàng | Giá, giá khuyến mãi, tồn kho, SKU |
 | Hiển thị | Trạng thái, `LH Báo Giá`, nhãn giảm giá |
-| Hình ảnh | Ảnh sản phẩm |
-| Quy cách | Các biến thể theo quy cách |
+| Hình ảnh | Ảnh sản phẩm (tối đa 5) |
+| Quy cách | Danh sách biến thể |
 
 Quy trình đề xuất:
 
 1. Nhập nội dung tiếng Việt.
-2. Mở tab **English** và thay nội dung bằng bản dịch thực tế.
-3. Tải ảnh sản phẩm.
-4. Chọn danh mục và thương hiệu nếu có.
-5. Nhập giá, tồn kho và SKU.
+2. Mở tab **English**, thay bằng bản dịch thật.
+3. Tải ảnh.
+4. Chọn danh mục và thương hiệu.
+5. Nhập giá, tồn kho, SKU.
 6. Chọn trạng thái.
-7. Bật các tùy chọn hiển thị nếu cần.
-8. Thêm biến thể nếu sản phẩm có nhiều quy cách.
-9. Dùng **Bản xem trước** để kiểm tra nội dung.
-10. Chọn **Lưu**.
+7. Bật tùy chọn hiển thị nếu cần.
+8. Thêm biến thể nếu sản phẩm nhiều quy cách.
+9. Dùng khối **Bản xem trước** ở đầu form để đối chiếu.
+10. **Lưu**.
 
 ### 6.4 Nội dung song ngữ
 
-Tên sản phẩm tiếng Việt là thông tin chính. Tên English có thể được điền sẵn
-theo tiếng Việt nhưng cần được thay bằng bản dịch trước khi công bố.
+Tên tiếng Việt là thông tin gốc. Tên English có thể được điền sẵn theo tiếng
+Việt nhưng **phải** thay bằng bản dịch trước khi công bố.
 
-Các trường nội dung dài hỗ trợ HTML cơ bản như đoạn văn, in đậm, danh sách có
-thứ tự và danh sách gạch đầu dòng. Không chèn script hoặc nội dung nhúng không
-được yêu cầu.
+Các trường nội dung dài hỗ trợ HTML cơ bản (đoạn văn, in đậm, danh sách). Không
+chèn `<script>` hay nội dung nhúng ngoài yêu cầu — hệ thống sẽ loại bỏ thẻ
+`<iframe>` trong nội dung sản phẩm.
 
 ### 6.5 Giá, tồn kho và SKU
 
-- Nhập giá bằng số, không nhập dấu chấm hoặc dấu phẩy. Ví dụ: `120000`.
-- **Giá** là giá bán thông thường.
-- **Giá KM** là giá khuyến mãi nếu có.
-- **Tồn kho** là số lượng có thể bán.
-- **SKU** là mã quản lý sản phẩm.
-- Khi có biến thể, giá và tồn kho nên được quản lý ở từng biến thể.
-- Khi có biến thể, tổng tồn sản phẩm được tính từ tồn của các biến thể.
+- Nhập giá bằng số thuần, không dấu chấm/phẩy. Ví dụ: `120000`.
+- **Giá** = giá bán thông thường; **Giá KM** = giá khuyến mãi.
+- **Tồn kho** = số lượng bán được; **SKU** = mã quản lý.
+- Có biến thể → quản lý giá và tồn ở từng biến thể; giá gốc ở cấp sản phẩm trở
+  thành tùy chọn và tổng tồn được tính từ các biến thể.
 
 ### 6.6 `LH Báo Giá`
 
-Bật **LH Báo Giá** khi sản phẩm không hiển thị giá cố định trên storefront.
-Khách sẽ thấy nút liên hệ thay cho nút mua và giá bán sẽ được ẩn.
+Bật khi sản phẩm không công bố giá. Storefront sẽ **ẩn giá** và hiển thị “Liên
+hệ để nhận báo giá” thay cho nút mua.
 
-Khi bật tùy chọn này, giá và tồn kho không bắt buộc phải nhập. Không bật tùy
-chọn này nếu khách cần mua trực tiếp trên website.
+Khi bật, giá và tồn kho **không bắt buộc** nhập (kể cả ở biến thể). Không bật
+nếu khách cần mua trực tiếp trên web.
 
 ### 6.7 Biến thể theo quy cách
 
-Mỗi biến thể có:
+Mỗi biến thể gồm: tên biến thể, quy cách, SKU, giá, tồn kho, ảnh riêng (tùy chọn).
 
-- tên biến thể;
-- quy cách;
-- SKU;
-- giá;
-- tồn kho;
-- ảnh riêng nếu cần.
+Trên storefront khách chọn quy cách → chọn số lượng → thêm vào giỏ.
 
-Trên storefront, khách có thể chọn quy cách/biến thể trước khi chọn số lượng và
-thêm vào giỏ. Biến thể hết hàng được hiển thị nhưng không thể chọn.
-
-Trước khi tạo biến thể, nên tạo quy cách ở module **Quy cách** trước.
+Tạo quy cách ở `/admin/sizes` **trước** khi thêm biến thể.
 
 ### 6.8 Hình ảnh
 
-- Tải tối đa 5 ảnh cho một sản phẩm.
-- Mỗi ảnh tối đa 5 MB.
-- Hỗ trợ các định dạng ảnh phổ biến như PNG, JPG/JPEG và WebP.
-- Ảnh đầu tiên được dùng làm ảnh đại diện.
-- Nên dùng ảnh cùng tỷ lệ và tối ưu dung lượng trước khi tải lên.
+- Tối đa **5 ảnh** / sản phẩm; vượt quá sẽ báo “Tối đa 5 ảnh”.
+- Mỗi ảnh tối đa **5 MB**; định dạng ảnh phổ biến (PNG, JPG/JPEG, WebP).
+- Ảnh **đầu tiên** là ảnh đại diện.
+- Nên dùng ảnh cùng tỷ lệ và nén trước khi tải lên.
 
-## 7. Quản lý thương hiệu
+## 7. Quản lý thương hiệu — `/admin/brands`
 
-Đường dẫn: `/admin/brands`
-
-### 7.1 Chức năng
-
-- tạo thương hiệu;
-- sửa thương hiệu;
-- xóa thương hiệu;
-- tìm theo tên, slug hoặc mô tả;
-- lọc **Đang hiển thị** / **Đang ẩn**;
-- sắp xếp thứ tự hiển thị.
-
-### 7.2 Thông tin thương hiệu
+Chức năng: tạo, sửa, xóa; tìm theo tên/slug/mô tả; lọc **Đang hiển thị** /
+**Đang ẩn**; sắp thứ tự hiển thị.
 
 | Trường | Cách dùng |
 |---|---|
@@ -218,617 +307,466 @@ Trước khi tạo biến thể, nên tạo quy cách ở module **Quy cách** t
 | Slug | Đường dẫn; bỏ trống để tự sinh |
 | Logo | Logo thương hiệu |
 | Mô tả | Mô tả ngắn |
-| Thứ tự hiển thị | Số nhỏ hiển thị trước |
-| Trạng thái | Đang hiển thị hoặc Đang ẩn |
+| Thứ tự hiển thị | Số nhỏ hiện trước |
+| Trạng thái | Đang hiển thị / Đang ẩn |
 
-Thương hiệu đang được gán cho sản phẩm không nên xóa nếu vẫn cần giữ liên kết
-catalog. Có thể chuyển sang **Đang ẩn**.
+Thương hiệu đang gán cho sản phẩm: chuyển **Đang ẩn** thay vì xóa.
 
-## 8. Quản lý danh mục
+## 8. Quản lý danh mục — `/admin/categories`
 
-Đường dẫn: `/admin/categories`
+Trường: tên, slug, mô tả, ảnh, danh mục cha (khi tạo mới), thứ tự hiển thị,
+trạng thái kích hoạt. Hỗ trợ cấu trúc cha/con.
 
-### 8.1 Thông tin danh mục
+Danh mục được dùng để: nhóm sản phẩm; dựng menu Dòng sản phẩm; tạo trang
+`/categories/<slug>`; lọc sản phẩm; **giới hạn phạm vi áp dụng của quy cách**;
+**lọc điểm bán** trong phần Hệ thống phân phối.
 
-- tên;
-- slug;
-- mô tả;
-- ảnh;
-- danh mục cha khi tạo mới;
-- thứ tự hiển thị;
-- trạng thái kích hoạt.
+Không đổi slug sau khi công bố.
 
-Danh mục hỗ trợ cấu trúc cha/con. Khi tạo danh mục cấp con, chọn danh mục cha.
-
-### 8.2 Tác động tới storefront
-
-Danh mục được dùng để:
-
-- nhóm sản phẩm;
-- tạo menu dòng sản phẩm;
-- tạo trang danh mục;
-- lọc sản phẩm;
-- giới hạn phạm vi áp dụng của một số quy cách;
-- lọc điểm bán.
-
-Không nên đổi slug sau khi đã công bố vì đường dẫn danh mục cũ có thể không còn
-truy cập đúng.
-
-## 9. Quản lý bộ sưu tập
-
-Đường dẫn: `/admin/collections`
-
-Bộ sưu tập dùng để nhóm sản phẩm và có thể tạo một khối sản phẩm trên trang
-chủ.
-
-### 9.1 Tạo hoặc sửa bộ sưu tập
+## 9. Quản lý bộ sưu tập — `/admin/collections`
 
 | Trường | Cách dùng |
 |---|---|
 | Tên | Tên bộ sưu tập |
 | Slug | Đường dẫn; bỏ trống để tự sinh |
 | Mô tả | Nội dung giới thiệu |
-| Hiển thị trên trang chủ | Bật để tạo khối sản phẩm trên trang chủ |
+| Hiển thị trên trang chủ | Bật để tạo một khối sản phẩm ở trang chủ |
 | Kích hoạt | Bật để công bố |
 
-### 9.2 Gán sản phẩm
+**Gán sản phẩm:** tại dòng bộ sưu tập → icon **Sản phẩm** → tìm → thêm; gỡ khi
+cần.
 
-1. Tại dòng bộ sưu tập, chọn biểu tượng **Sản phẩm**.
-2. Tìm sản phẩm cần thêm.
-3. Chọn biểu tượng thêm.
-4. Gỡ sản phẩm khỏi bộ sưu tập khi cần.
+Khối bộ sưu tập chỉ xuất hiện trên trang chủ khi hội đủ **cả ba**: đang kích
+hoạt + bật hiển thị trang chủ + có ít nhất một sản phẩm đang hiển thị.
 
-Một bộ sưu tập chỉ hiển thị thành khối trên trang chủ khi bộ sưu tập đang kích
-hoạt, được bật hiển thị trên trang chủ và có sản phẩm đang hiển thị.
+Trên trang chủ, các khối bộ sưu tập nằm sau banner và khối thương hiệu.
 
-### 9.3 Tác động tới storefront
+## 10. Quản lý quy cách — `/admin/sizes`
 
-- Bộ sưu tập có thể mở thành trang riêng từ liên kết trên storefront.
-- Bộ sưu tập bật hiển thị trang chủ sẽ xuất hiện sau phần banner và thương hiệu.
-- Sau khi cập nhật, cần kiểm tra trang chủ và trang bộ sưu tập.
-
-## 10. Quản lý quy cách
-
-Đường dẫn: `/admin/sizes`
-
-Quy cách là nhãn đóng gói/kích cỡ dùng cho biến thể sản phẩm, ví dụ `Cây 65gr`,
-`Hộp 250ml` hoặc `24 cây / thùng`.
-
-### 10.1 Thông tin quy cách
+Quy cách là nhãn đóng gói/kích cỡ dùng cho biến thể: `Cây 65gr`, `Hộp 250ml`,
+`24 cây / thùng`…
 
 | Trường | Cách dùng |
 |---|---|
-| Nhãn quy cách | Nhãn hiển thị nguyên văn trên sản phẩm |
-| Phạm vi danh mục | Có thể chọn nhiều danh mục |
+| Nhãn quy cách | Hiển thị nguyên văn trên sản phẩm |
+| Phạm vi danh mục | Chọn nhiều danh mục; **để trống = dùng chung toàn hệ thống** |
 
-Không chọn danh mục nghĩa là quy cách dùng chung toàn hệ thống. Chọn danh mục
-nghĩa là quy cách chỉ xuất hiện khi sản phẩm thuộc danh mục đó.
+Thứ tự: tạo danh mục → tạo quy cách → gán phạm vi → thêm biến thể trong sản
+phẩm. Không xóa quy cách đang được biến thể sử dụng.
 
-### 10.2 Thứ tự thao tác
-
-1. Tạo danh mục nếu cần.
-2. Tạo quy cách.
-3. Gán phạm vi danh mục nếu cần.
-4. Mở sản phẩm và thêm biến thể.
-
-Không nên xóa quy cách đang được sử dụng trong biến thể sản phẩm.
-
-## 11. Quản lý banner trang chủ
-
-Đường dẫn: `/admin/homepage-banners`
-
-### 11.1 Thông tin banner
+## 11. Banner trang chủ — `/admin/homepage-banners`
 
 | Trường | Cách dùng |
 |---|---|
-| Ảnh banner | Bắt buộc; dùng làm ảnh hiển thị hoặc ảnh dự phòng |
-| Video nền | Không bắt buộc; hỗ trợ video MP4 tự phát, tắt tiếng và lặp lại |
-| Alt text | Mô tả ảnh cho SEO và khả năng tiếp cận |
-| Link khi click | Trang khách được chuyển tới khi chọn banner |
-| Thứ tự hiển thị | Số nhỏ hiển thị trước |
+| Ảnh banner | Bắt buộc; cũng là ảnh dự phòng cho video |
+| Video nền | Tùy chọn; MP4, tự phát, tắt tiếng, lặp lại |
+| Alt text | Mô tả ảnh cho SEO/accessibility |
+| Link khi click | Đường dẫn nội bộ (`/products`) hoặc URL đầy đủ |
+| Thứ tự hiển thị | Số nhỏ hiện trước |
 | Hiển thị trên trang chủ | Bật/tắt banner |
 
-### 11.2 Lưu ý hiển thị
+Trang chủ **luôn có sẵn một banner campaign mặc định của Mingo** ở slide đầu.
+Banner do Admin tạo nối tiếp phía sau theo thứ tự đã đặt.
 
-Trang chủ luôn có một banner campaign mặc định của Mingo ở slide đầu. Banner do
-Admin tạo sẽ nối tiếp phía sau banner mặc định theo thứ tự đã đặt.
+Sau khi lưu, kiểm tra: banner xuất hiện đúng; link click đúng; ảnh đẹp trên cả
+desktop và mobile; video có ảnh poster dự phòng phù hợp.
 
-Sau khi lưu, kiểm tra:
+## 12. Chính sách — `/admin/policies` → hiển thị tại `/policies`
 
-- banner có xuất hiện trên trang chủ;
-- link click có đúng không;
-- ảnh hiển thị tốt trên desktop và mobile;
-- video có ảnh poster dự phòng phù hợp.
+Trường: tiêu đề, slug, nội dung, thứ tự hiển thị, trạng thái kích hoạt. Nội
+dung hỗ trợ HTML cơ bản. Chỉ hiển thị công khai khi **Kích hoạt**.
 
-## 12. Quản lý chính sách
+Sau khi cập nhật: lưu → mở `/policies` → chọn chính sách → kiểm tra nội dung và
+thứ tự.
 
-Đường dẫn Admin: `/admin/policies`
-Đường dẫn storefront: `/policies`
+Chính sách được liên kết trong luồng thanh toán (khách phải tick đồng ý) — kiểm
+tra lại các liên kết trước khi đổi slug.
 
-### 12.1 Thông tin chính sách
+## 13. Nhà phân phối / điểm bán — `/admin/distributors`
 
-- tiêu đề;
-- slug;
-- nội dung;
-- thứ tự hiển thị;
-- trạng thái kích hoạt.
+Hiển thị ở phần **Hệ thống phân phối** trong `/about` (và `/stores` tự chuyển
+hướng về đây).
 
-Nội dung chính sách hỗ trợ HTML cơ bản. Chính sách chỉ hiển thị công khai khi
-đang **Kích hoạt**.
-
-### 12.2 Sau khi cập nhật
-
-1. Lưu chính sách.
-2. Mở `/policies`.
-3. Chọn chính sách từ danh sách.
-4. Kiểm tra nội dung và thứ tự hiển thị.
-
-Không đổi slug nếu chính sách đã được liên kết trong nội dung hoặc luồng thanh
-toán, trừ khi đã kiểm tra lại các liên kết liên quan.
-
-## 13. Quản lý nhà phân phối và điểm bán
-
-Đường dẫn Admin: `/admin/distributors`
-Đường dẫn storefront: phần **Hệ thống phân phối** trong `/about`
-
-### 13.1 Thông tin điểm bán
+### 13.1 Trường dữ liệu
 
 | Trường | Cách dùng |
 |---|---|
-| Tên | Tên điểm bán/nhà phân phối |
+| Tên | Tên điểm bán / nhà phân phối |
 | Địa chỉ | Địa chỉ hiển thị |
-| Tỉnh/Thành | Chọn từ danh sách |
-| Phường/Xã | Chọn sau khi chọn tỉnh/thành |
-| Khu vực | Thông tin bổ sung, không bắt buộc |
-| Mô tả | Nội dung giới thiệu |
-| Mã nhúng Google Maps | Thẻ iframe hoặc URL embed |
+| Tỉnh / Thành | Chọn từ danh sách |
+| Phường / Xã | Chọn sau khi đã chọn Tỉnh/Thành |
+| Khu vực | Thông tin bổ sung, tùy chọn |
+| Mô tả | Nội dung giới thiệu, tùy chọn |
+| Mã nhúng Google Maps | Thẻ `<iframe>` hoặc URL embed |
 | Danh mục | Dòng sản phẩm có tại điểm bán |
-| Bộ sưu tập | Bộ sưu tập liên quan nếu có |
+| Bộ sưu tập | Bộ sưu tập liên quan, tùy chọn |
 | Đang hoạt động | Bật để hiển thị công khai |
 
-### 13.2 Cách nhập Google Maps
+### 13.2 Cách lấy mã nhúng Google Maps
 
 1. Mở địa điểm trên Google Maps.
-2. Chọn **Chia sẻ**.
-3. Chọn **Nhúng bản đồ**.
-4. Sao chép thẻ iframe hoặc URL embed.
-5. Dán vào trường **Mã nhúng Google Maps**.
+2. **Chia sẻ** → **Nhúng bản đồ**.
+3. Sao chép thẻ `<iframe>` (hoặc chỉ URL bên trong `src`).
+4. Dán vào trường **Mã nhúng Google Maps**.
+
+> **Chỉ chấp nhận link dạng `https://www.google.com/maps/embed…`.** Link chia sẻ
+> thông thường (`goo.gl/maps/…`, `google.com/maps/place/…`) sẽ bị từ chối và bản
+> đồ không hiển thị. Phải lấy từ đúng tab **Nhúng bản đồ**.
 
 ### 13.3 Khách tìm điểm bán
 
-Khách có thể lọc theo:
+Bộ lọc hoạt động: **dòng sản phẩm/danh mục**, **tỉnh/thành**, **phường/xã**.
+Danh sách tự tải lại ngay khi đổi bộ lọc.
 
-- dòng sản phẩm/danh mục;
-- tỉnh/thành;
-- phường/xã.
+Bản đồ bên phải hiển thị theo điểm bán đang được chọn trong danh sách.
 
-Bộ lọc sản phẩm cụ thể hiện chưa hoạt động. Nút tìm kiếm có trên giao diện,
-nhưng dữ liệu tự tải lại khi thay đổi bộ lọc.
+## 14. Tuyển dụng — `/admin/careers` → hiển thị tại `/careers`
 
-## 14. Quản lý tuyển dụng
-
-Đường dẫn Admin: `/admin/careers`
-Đường dẫn storefront: `/careers`
-
-### 14.1 Trạng thái tin tuyển dụng
+### 14.1 Trạng thái tin
 
 | Trạng thái | Ý nghĩa |
 |---|---|
 | Nháp | Chưa hiển thị công khai |
-| Đã đăng | Hiển thị trên storefront và nhận hồ sơ |
+| Đã đăng | Hiển thị và nhận hồ sơ |
 | Đã đóng | Ngừng nhận hồ sơ |
 
-### 14.2 Tạo hoặc sửa tin
+### 14.2 Trường dữ liệu
 
-| Trường | Cách dùng |
-|---|---|
-| Tiêu đề | Tên vị trí |
-| Slug | Đường dẫn; bỏ trống để tự sinh |
-| Bộ phận | Nhóm công việc |
-| Địa điểm | Nơi làm việc |
-| Cấp bậc | Cấp độ vị trí |
-| Nội dung | Mô tả công việc, yêu cầu và quyền lợi |
-| Ảnh bìa | Ảnh cho trang chi tiết |
-| Trạng thái | Nháp, Đã đăng hoặc Đã đóng |
-| Ghim | Đánh dấu tin nổi bật |
+Tiêu đề · Slug (bỏ trống để tự sinh) · Bộ phận · Địa điểm · Cấp bậc · Nội dung
+(mô tả công việc, yêu cầu, quyền lợi) · Ảnh bìa · Trạng thái · Ghim (tin nổi bật).
 
-Nên lưu ở trạng thái **Nháp**, kiểm tra nội dung và chuyển sang **Đã đăng** khi
-đã sẵn sàng.
+Nên lưu **Nháp** trước, kiểm tra nội dung, rồi mới chuyển **Đã đăng**.
 
-### 14.3 Nhận hồ sơ
+### 14.3 Form ứng tuyển của khách
 
-Khách mở tin đã đăng, điền:
+Họ và chữ lót · Tên · Email · Số điện thoại · Thư giới thiệu (tùy chọn) · **CV
+(bắt buộc)** · Link portfolio/mạng xã hội (tùy chọn) · Tick đồng ý chính sách
+bảo mật (bắt buộc mới bấm gửi được).
 
-- họ và chữ lót;
-- tên;
-- email;
-- số điện thoại;
-- thư giới thiệu không bắt buộc;
-- CV bắt buộc;
-- liên kết portfolio hoặc hồ sơ mạng xã hội không bắt buộc;
-- xác nhận đồng ý chính sách bảo mật.
+CV: `.pdf`, `.doc`, `.docx`, tối đa **5 MB**.
 
-CV hỗ trợ `.pdf`, `.doc`, `.docx`, tối đa 5 MB.
+## 15. Đơn ứng tuyển — `/admin/career-applications`
 
-## 15. Quản lý đơn ứng tuyển
-
-Đường dẫn: `/admin/career-applications`
-
-Có thể:
-
-- tìm theo tên hoặc email;
-- lọc theo trạng thái;
-- lọc theo tin tuyển dụng;
-- xem chi tiết hồ sơ;
-- mở CV;
-- cập nhật trạng thái ngay trên danh sách.
-
-### 15.1 Trạng thái hồ sơ
+Chức năng: tìm theo tên/email; lọc theo trạng thái; lọc theo tin tuyển dụng;
+xem chi tiết hồ sơ; mở CV; đổi trạng thái ngay trên danh sách.
 
 | Trạng thái | Ý nghĩa |
 |---|---|
 | Mới | Hồ sơ vừa nhận |
-| Đang xem xét | Đang đánh giá hồ sơ |
+| Đang xem xét | Đang đánh giá |
 | Đã tuyển | Đã chọn ứng viên |
-| Từ chối | Không tiếp tục quy trình |
+| Từ chối | Không tiếp tục |
 
-Quy trình đề xuất: **Mới → Đang xem xét → Đã tuyển** hoặc **Từ chối**.
+Quy trình đề xuất: **Mới → Đang xem xét → Đã tuyển / Từ chối**.
 
-## 16. Quản lý đơn hàng
+## 16. Đơn hàng — `/admin/orders`
 
-Đường dẫn: `/admin/orders`
+Đây là module dùng nhiều nhất. Đọc kỹ phần này.
 
-### 16.1 Danh sách đơn hàng
+### 16.1 Danh sách và thống kê
 
-Có thể:
-
-- tìm theo mã đơn, tên hoặc số điện thoại người nhận;
-- lọc theo trạng thái đơn;
-- lọc theo trạng thái thanh toán;
-- lọc theo khoảng thời gian;
-- xem số đơn khớp bộ lọc;
-- xem số đơn chờ thanh toán;
-- xem doanh thu đã thu trong khoảng thời gian.
+Tìm theo mã đơn / tên / số điện thoại người nhận. Lọc theo trạng thái đơn,
+trạng thái thanh toán và khoảng thời gian. Phía trên hiển thị: số đơn khớp bộ
+lọc, số đơn chờ thanh toán, doanh thu đã thu trong khoảng thời gian đang lọc.
 
 ### 16.2 Trạng thái thanh toán
 
 | Trạng thái | Ý nghĩa |
 |---|---|
-| Chờ xử lý | Chưa có xác nhận thanh toán cuối cùng |
-| Thanh toán thành công | Đã xác nhận thanh toán |
-| Thanh toán thất bại | Thanh toán không thành công |
+| Chờ xử lý | Chưa có xác nhận thanh toán |
+| Chờ duyệt thủ công | Khách báo đã chuyển khoản, chờ đội ngũ đối chiếu sao kê |
+| Thanh toán thành công | Đã xác nhận nhận được tiền |
+| Thanh toán thất bại | Không thành công |
 
-Trạng thái thanh toán và trạng thái đơn hàng là hai thông tin riêng. Không tự
-đánh dấu đơn đã thanh toán chỉ dựa trên ảnh chụp hoặc thông báo phía trình
-duyệt.
+> **Quan trọng:** trạng thái thanh toán và trạng thái đơn hàng là hai thông tin
+> **độc lập**. Hệ thống VietQR **không** nhận thông báo tự động từ ngân hàng —
+> mọi xác nhận đều do người vận hành đối chiếu sao kê rồi bấm tay. Không xác
+> nhận chỉ dựa trên ảnh chụp màn hình khách gửi.
 
-### 16.3 Trạng thái đơn hàng
+### 16.3 Trạng thái đơn hàng và luồng chuyển
 
-Luồng thông thường:
+Luồng chính:
 
 ```text
-Chờ thanh toán
-→ Đã thanh toán / xác nhận
-→ Đã đóng gói & sẵn sàng
-→ Đang vận chuyển
-→ Giao thành công
+Chờ thanh toán  →  Đã thanh toán / xác nhận  →  Đã đóng gói & sẵn sàng
+      →  Đang vận chuyển  →  Giao thành công
 ```
 
-Trạng thái ngoại lệ có thể gồm:
+Bảng chuyển trạng thái hợp lệ (hệ thống chỉ cho chọn các bước trong cột phải):
 
-- Kho QC / kiểm tra;
-- Đã hủy;
-- Chuyển hoàn;
-- Đã hoàn tiền.
+| Trạng thái hiện tại | Được chuyển sang |
+|---|---|
+| Chờ thanh toán | Đã thanh toán / xác nhận · Đã hủy |
+| Đã thanh toán / xác nhận | Đã đóng gói & sẵn sàng · Đã hủy |
+| Đã đóng gói & sẵn sàng | Đang vận chuyển |
+| Đang vận chuyển | Giao thành công · Chuyển hoàn |
+| Chuyển hoàn | Kho QC / kiểm tra · Đã hoàn tiền |
+| Kho QC / kiểm tra | Đã đóng gói & sẵn sàng |
+| Đã hủy | Đã hoàn tiền |
+| Giao thành công / Đã hoàn tiền | (kết thúc) |
 
-Chỉ chọn bước tiếp theo được hệ thống cho phép. Không chuyển trạng thái để bỏ
-qua một bước nghiệp vụ chưa hoàn tất.
+Một số nhãn trạng thái cũ (*Đã đóng gói (trạng thái cũ)*, *Đã xác nhận (trạng
+thái cũ)*, *Tại kho vận chuyển*, *Đang giao đến bạn*…) chỉ còn để đọc lịch sử
+đơn cũ, không phải lựa chọn trong luồng mới.
+
+Không chuyển trạng thái để nhảy qua một bước nghiệp vụ chưa thực sự hoàn tất.
 
 ### 16.4 Chi tiết đơn hàng
 
-Chi tiết đơn gồm:
+Gồm: mã đơn và ngày tạo · thông tin người nhận và địa chỉ · ghi chú của khách ·
+tài khoản đặt hàng (nếu có) · phương thức và trạng thái thanh toán · danh sách
+sản phẩm/biến thể/số lượng/đơn giá · tạm tính, giảm giá, phí vận chuyển, tổng
+tiền · lịch sử trạng thái · mã vận đơn và đơn vị vận chuyển · ghi chú nội bộ.
 
-- mã đơn và ngày tạo;
-- thông tin người nhận và địa chỉ;
-- ghi chú của khách;
-- tài khoản đặt hàng nếu có;
-- phương thức và trạng thái thanh toán;
-- sản phẩm, biến thể, số lượng và đơn giá;
-- tạm tính, giảm giá, phí vận chuyển và tổng tiền;
-- lịch sử trạng thái;
-- mã vận đơn và đơn vị vận chuyển;
-- ghi chú nội bộ.
-
-### 16.5 Cập nhật đơn hàng
+### 16.5 Cập nhật đơn
 
 1. Mở chi tiết đơn.
-2. Chọn trạng thái tiếp theo.
+2. Chọn trạng thái kế tiếp.
 3. Nhập ghi chú nếu cần.
-4. Chọn **Áp dụng**.
-5. Kiểm tra lại lịch sử trạng thái.
+4. Bấm **Áp dụng**.
+5. Đối chiếu lại lịch sử trạng thái.
 
-Mã vận đơn, đơn vị vận chuyển và ghi chú nội bộ được lưu bằng thao tác **Lưu
-thông tin** riêng.
+Mã vận đơn, đơn vị vận chuyển và ghi chú nội bộ lưu bằng nút **Lưu thông tin**
+riêng — nhớ bấm cả hai nếu vừa đổi trạng thái vừa nhập vận đơn.
 
 ### 16.6 Cảnh báo tồn kho
 
-Đơn chờ thanh toán có thể hiển thị cảnh báo chưa giữ tồn kho. Khi gặp cảnh báo:
+Đơn chờ thanh toán có thể hiện cảnh báo **chưa giữ tồn kho**. Khi gặp:
 
 1. kiểm tra tồn kho thực tế;
-2. không cam kết hàng với khách khi chưa xác nhận;
+2. chưa cam kết hàng với khách khi chưa xác nhận thanh toán;
 3. xử lý thanh toán hoặc liên hệ khách sớm;
-4. không đổi trạng thái chỉ để ẩn cảnh báo.
+4. **không** đổi trạng thái chỉ để cảnh báo biến mất.
 
-## 17. Quản lý người dùng
+## 17. Người dùng — `/admin/users`
 
-Đường dẫn: `/admin/users`
+Chức năng: tìm theo email; lọc theo vai trò; tạo; sửa; đổi mật khẩu; đổi vai
+trò; xóa.
 
-### 17.1 Chức năng
-
-- tìm theo email;
-- lọc theo vai trò;
-- tạo người dùng;
-- sửa thông tin người dùng;
-- đổi mật khẩu;
-- đổi vai trò;
-- xóa người dùng.
-
-### 17.2 Vai trò
-
-| Vai trò | Ý nghĩa |
+| Trường | Ghi chú |
 |---|---|
-| Khách hàng | Sử dụng storefront và tài khoản mua hàng |
-| Quản trị | Truy cập Admin và quản lý dịch vụ |
+| Email | Tùy chọn |
+| Số điện thoại | Bắt buộc |
+| Mật khẩu | Bắt buộc khi tạo; khi sửa là "Mật khẩu mới", để trống nếu không đổi |
+| Vai trò | **Khách hàng** hoặc **Quản trị** |
+| Ghi chú hồ sơ | Tùy chọn |
 
-### 17.3 Tạo người dùng
+Chỉ cấp **Quản trị** cho người thực sự cần quyền vận hành. Không xóa tài khoản
+còn gắn với lịch sử đơn hàng cần lưu.
 
-Khi tạo mới, nhập:
+## 18. Nhật ký hệ thống — `/admin/audit-logs`
 
-- số điện thoại;
-- mật khẩu;
-- vai trò;
-- ghi chú hồ sơ nếu cần.
+Ghi lại các thao tác **Tạo mới / Cập nhật / Xóa** trên các module quản trị.
 
-Khi sửa, có thể cập nhật email, mật khẩu mới, vai trò và ghi chú hồ sơ. Chỉ cấp
-vai trò **Quản trị** cho người thực sự cần quyền vận hành.
+Lọc theo: từ ngày – đến ngày · module · loại thao tác · người thực hiện · đối
+tượng hoặc ID đối tượng.
 
-Không nên xóa tài khoản đang liên quan tới lịch sử đơn hàng nếu dữ liệu lịch sử
-vẫn cần được lưu.
+Mở chi tiết một dòng để xem **giá trị cũ**, **giá trị mới** và thông tin
+request. Đây là công cụ chính để truy vết khi dữ liệu bị thay đổi ngoài ý muốn.
 
-## 18. Nhật ký hệ thống
+## 19. Liên kết hợp tác — `/admin/settings`
 
-Đường dẫn: `/admin/audit-logs`
+Module lưu **link ngoài** do khách hàng cung cấp. Chỉ lưu link, **không upload
+file**.
 
-Nhật ký ghi nhận các thao tác **Tạo mới**, **Cập nhật** và **Xóa** trên các
-module quản trị.
+| Trường | Tác dụng |
+|---|---|
+| Link PDF hồ sơ hợp tác | Nút **“Liên hệ đội ngũ”** ở trang `/partnership` sẽ mở link này |
 
-Có thể lọc theo:
+Để trống → nút quay về trang `/contact`. Chỉ nhận link `http`/`https`. Sau khi
+dán link, dùng icon mở link bên cạnh ô nhập để kiểm tra trước khi lưu.
 
-- từ ngày và đến ngày;
-- module;
-- loại thao tác;
-- người thực hiện;
-- đối tượng hoặc ID đối tượng.
+## 20. Chức năng trên storefront
 
-Mở chi tiết nhật ký để xem giá trị cũ, giá trị mới và thông tin request khi có.
-Sử dụng module này để truy vết các thay đổi bất thường hoặc xác định người đã
-thực hiện một thao tác.
+### 20.1 Trang chủ
 
-## 19. Chức năng trên storefront
+Banner campaign mặc định → banner do Admin quản lý → khối thương hiệu → các
+khối bộ sưu tập được bật hiển thị trang chủ.
 
-### 19.1 Trang chủ
+### 20.2 Duyệt và tìm sản phẩm
 
-Khách có thể:
+Mở **Dòng sản phẩm** để xem catalog; lọc theo danh mục từ menu hoặc trang danh
+mục; mở **Thương hiệu**; tìm sản phẩm bằng icon kính lúp (dẫn tới
+`/products?q=…`).
 
-- xem banner campaign mặc định;
-- xem banner do Admin quản lý;
-- mở liên kết từ banner;
-- xem thương hiệu;
-- xem các bộ sưu tập được bật hiển thị trên trang chủ;
-- mở trang sản phẩm hoặc bộ sưu tập.
+### 20.3 Chi tiết sản phẩm
 
-### 19.2 Dòng sản phẩm, thương hiệu và tìm kiếm
+Hiển thị: ảnh · tên và thương hiệu · danh mục và bộ sưu tập · giá **hoặc** nhãn
+“Liên hệ để nhận báo giá” · biến thể/quy cách · mô tả · thành phần & chất gây
+dị ứng · hướng dẫn sử dụng · chú ý · mã vạch (nếu có) · sản phẩm gợi ý.
 
-Khách có thể:
+Sản phẩm nhiều biến thể: chọn biến thể → chọn số lượng → thêm vào giỏ.
 
-- mở **Dòng sản phẩm** để xem catalog;
-- lọc theo danh mục từ menu hoặc trang danh mục;
-- mở **Thương hiệu** để xem các thương hiệu;
-- tìm sản phẩm bằng biểu tượng tìm kiếm;
-- mở trang chi tiết sản phẩm từ kết quả.
+### 20.4 Giỏ hàng — `/cart`
 
-### 19.3 Chi tiết sản phẩm
+Tăng/giảm số lượng · xóa một sản phẩm · xóa toàn bộ giỏ · xem tạm tính · tiếp
+tục mua sắm · chuyển sang thanh toán.
 
-Trang chi tiết có thể hiển thị:
+Giá và tồn kho được kiểm tra lại khi cập nhật giỏ và khi thanh toán. Nếu dữ
+liệu đã đổi, giỏ hiện cảnh báo và tạm khóa nút thanh toán.
 
-- ảnh sản phẩm;
-- tên và thương hiệu;
-- danh mục và bộ sưu tập;
-- giá hoặc nhãn liên hệ nhận giá;
-- biến thể/quy cách;
-- mô tả;
-- thành phần và chất gây dị ứng;
-- hướng dẫn sử dụng;
-- chú ý;
-- mã vạch nếu có;
-- sản phẩm gợi ý.
+### 20.5 Đăng ký, đăng nhập, quên mật khẩu
 
-Nếu sản phẩm có nhiều biến thể, khách chọn biến thể trước khi chọn số lượng và
-thêm vào giỏ.
+**Đăng ký** (`/register`) cần: tên và họ · email · số điện thoại · mật khẩu tối
+thiểu **8 ký tự** · nhập lại mật khẩu. Sau khi gửi form, hệ thống gửi **mã OTP
+qua email**; nhập OTP để hoàn tất. Nút gửi lại mã có thời gian chờ **60 giây**.
 
-### 19.4 Giỏ hàng
+**Đăng nhập** (`/login`): email + mật khẩu.
 
-Khách có thể:
+**Quên mật khẩu** (`/forgot-password`): nhập email → nhận OTP → nhập OTP kèm
+mật khẩu mới → quay lại đăng nhập.
 
-- tăng hoặc giảm số lượng;
-- xóa một sản phẩm;
-- xóa toàn bộ giỏ hàng;
-- xem tạm tính;
-- tiếp tục mua sắm;
-- chuyển sang thanh toán.
+### 20.6 Tài khoản — `/account`
 
-Giá và tồn kho được kiểm tra lại khi cập nhật giỏ hoặc thanh toán. Nếu dữ liệu
-đã thay đổi, giỏ có thể hiển thị cảnh báo và tạm khóa nút thanh toán.
+Xem và sửa thông tin cá nhân (tên, email, số điện thoại, quốc gia, giới thiệu) ·
+lưu địa chỉ giao hàng mặc định · xem đơn hàng gần đây và mở lịch sử đầy đủ ·
+xem điểm thưởng · đăng xuất.
 
-### 19.5 Đăng ký, đăng nhập và khôi phục mật khẩu
+### 20.7 Điểm thưởng
 
-Đăng ký yêu cầu:
+Hiển thị số điểm hiện có, tiến độ tới mốc nhận thưởng (nếu chương trình đang
+chạy) và lịch sử tích/hoàn điểm có phân trang.
 
-- tên và họ;
-- email;
-- số điện thoại;
-- mật khẩu tối thiểu 8 ký tự;
-- xác nhận mật khẩu.
+Điểm do hệ thống tính theo các đơn đủ điều kiện. Không có chức năng chỉnh điểm
+thủ công từ storefront.
 
-Sau khi nhập form đăng ký, khách nhận OTP qua email và nhập OTP để xác thực
-tài khoản.
+### 20.8 Thanh toán — `/checkout`
 
-Đăng nhập dùng email và mật khẩu. Chọn **Quên mật khẩu** để:
+Khách **không bắt buộc đăng nhập**. Đăng nhập giúp lưu địa chỉ, xem lịch sử đơn
+và tích điểm.
 
-1. nhập email;
-2. nhận OTP;
-3. nhập OTP và mật khẩu mới;
-4. quay lại đăng nhập.
-
-### 19.6 Tài khoản
-
-Sau khi đăng nhập, khách có thể:
-
-- xem thông tin cá nhân;
-- chỉnh sửa tên, email, số điện thoại, quốc gia và phần giới thiệu;
-- lưu địa chỉ giao hàng mặc định;
-- xem đơn hàng gần đây;
-- mở toàn bộ lịch sử đơn hàng;
-- xem điểm thưởng và lịch sử điểm;
-- đăng xuất.
-
-### 19.7 Điểm thưởng
-
-Tài khoản hiển thị:
-
-- số điểm hiện có;
-- tiến độ tới mốc nhận thưởng nếu chương trình đang hoạt động;
-- lịch sử tích điểm và hoàn điểm;
-- phân trang lịch sử khi có nhiều giao dịch.
-
-Điểm được tính theo dữ liệu hệ thống và chỉ được cập nhật theo các đơn đủ điều
-kiện. Không chỉnh điểm trực tiếp từ storefront.
-
-### 19.8 Thanh toán
-
-Khách có thể thanh toán với hoặc không cần đăng nhập. Đăng nhập giúp khách xem
-lịch sử đơn hàng và điểm thưởng trong tài khoản.
-
-Thông tin thanh toán gồm:
-
-- thông tin người đặt;
-- thông tin người nhận;
-- tỉnh/thành và khu vực;
-- địa chỉ cụ thể;
-- ghi chú;
-- yêu cầu xuất hóa đơn điện tử và email nhận hóa đơn nếu cần;
-- phương thức giao hàng;
-- phương thức thanh toán.
+Thông tin cần nhập: người đặt · người nhận · tỉnh/thành và khu vực · địa chỉ cụ
+thể · ghi chú · yêu cầu hóa đơn điện tử + email nhận hóa đơn (nếu cần) ·
+phương thức giao hàng · phương thức thanh toán.
 
 Quy trình:
 
-1. Mở giỏ hàng và chọn **Thanh toán**.
+1. `/cart` → **Thanh toán**.
 2. Nhập hoặc chọn địa chỉ giao hàng.
-3. Chọn **Kiểm tra khu vực và phí giao hàng**.
-4. Kiểm tra tạm tính, phí vận chuyển và tổng tiền.
+3. **Kiểm tra khu vực và phí giao hàng**.
+4. Đối chiếu tạm tính / phí vận chuyển / tổng tiền.
 5. Chọn phương thức thanh toán.
-6. Đồng ý với chính sách bảo mật và điều khoản sử dụng.
-7. Chọn nút đặt hàng tương ứng.
+6. Tick đồng ý chính sách bảo mật và điều khoản.
+7. Bấm nút đặt hàng tương ứng.
 
-Các phương thức hiện có:
+**Phương thức thanh toán hiện có:**
 
-- **Thanh toán khi nhận hàng (COD)**: thanh toán cho nhân viên giao hàng.
-- **Chuyển khoản qua VietQR**: quét mã QR và chuyển đúng số tiền, đúng nội dung
-  chuyển khoản. Đơn chờ đội ngũ xác nhận thủ công.
+| Phương thức | Hoạt động |
+|---|---|
+| **Chuyển khoản VietQR** (mặc định) | Sau khi đặt, hệ thống hiện mã QR kèm đúng số tiền và **nội dung chuyển khoản là mã đơn**. Đội ngũ đối chiếu sao kê và xác nhận **thủ công**. |
+| **Thanh toán khi nhận hàng (COD)** | Đơn được tạo ngay, khách trả tiền cho nhân viên giao hàng. |
 
-Nếu thay đổi địa chỉ sau khi đã kiểm tra phí, cần bấm kiểm tra lại để tạo báo giá
+Nếu đổi địa chỉ sau khi đã kiểm tra phí, phải bấm kiểm tra lại để tạo báo giá
 mới.
 
-### 19.9 Theo dõi đơn hàng
+### 20.9 Theo dõi đơn hàng
 
-Trong **Tài khoản → Lịch sử đơn hàng**, khách xem được:
+**Khách có tài khoản:** `/orders` và `/orders/<mã đơn>` — xem trạng thái thanh
+toán, trạng thái đơn, sản phẩm/biến thể, địa chỉ, phí vận chuyển, tổng tiền,
+phương thức giao hàng.
 
-- trạng thái thanh toán;
-- trạng thái đơn;
-- sản phẩm và biến thể;
-- địa chỉ;
-- phí vận chuyển;
-- tổng tiền;
-- phương thức giao hàng.
+**Khách vãng lai (không đăng nhập):** dùng link tra cứu dạng
+`/orders/track/<mã đơn>#token=<mã tra cứu>` được cấp khi đặt hàng. Trang này tự
+làm mới **mỗi 30 giây**, nên khách thấy trạng thái cập nhật gần như tức thì sau
+khi Admin đổi trạng thái. Link không có (hoặc sai) mã tra cứu sẽ báo lỗi — đây
+là cơ chế bảo vệ, không phải sự cố.
 
-Với đơn VietQR đang chờ xác nhận, khách không nên chuyển khoản lặp lại ngay.
-Hãy kiểm tra lại chi tiết đơn sau khi đội ngũ Mingo xác nhận thanh toán.
+**Đơn VietQR chưa thanh toán:** trang chi tiết đơn hiện lại mã QR để khách thanh
+toán tiếp nếu đã lỡ đóng tab. Khách **không nên** chuyển khoản lặp lại; nhắc
+khách chờ đội ngũ xác nhận.
 
-### 19.10 Điểm bán và các trang nội dung
+### 20.10 Các trang nội dung khác
 
-Khách có thể:
+Về Mingo (`/about`) · Hệ thống phân phối (`/about#distribution`) · Hợp tác
+(`/partnership`) · Liên hệ (`/contact`) · Chính sách (`/policies`) · Tuyển dụng
+(`/careers`) · Câu hỏi thường gặp (`/faqs`, chưa có trong menu).
 
-- tìm điểm bán theo dòng sản phẩm, tỉnh/thành và phường/xã;
-- xem bản đồ của điểm bán;
-- xem thông tin Về Mingo;
-- xem Hợp tác;
-- xem Câu hỏi thường gặp;
-- xem Chính sách;
-- xem các tin tuyển dụng;
-- gửi hồ sơ ứng tuyển;
-- gửi form liên hệ.
+**Form liên hệ** (`/contact`) yêu cầu: họ tên · email · số điện thoại (định
+dạng `0xxxxxxxxx` hoặc `+84xxxxxxxxx`) · bộ phận tiếp nhận (Chăm sóc khách
+hàng / Hợp tác kinh doanh / Khiếu nại đơn hàng / Khác) · tiêu đề · nội dung tối
+thiểu 10 ký tự. Form gửi thật về hệ thống; chỉ báo thành công khi gửi thành
+công.
 
-## 20. Checklist vận hành hằng ngày
+---
+
+# PHẦN C — VẬN HÀNH, GIỚI HẠN VÀ BÀN GIAO
+
+## 21. Checklist vận hành
 
 ### Catalog
 
-- [ ] Sản phẩm có tên và nội dung đúng ngôn ngữ.
-- [ ] Sản phẩm có danh mục/thương hiệu phù hợp.
-- [ ] Giá, tồn kho và SKU chính xác.
-- [ ] Biến thể có đủ quy cách, giá, tồn và SKU.
-- [ ] Ảnh hiển thị đúng.
+- [ ] Sản phẩm có tên và nội dung đúng ngôn ngữ (đã dịch tab English).
+- [ ] Danh mục / thương hiệu phù hợp.
+- [ ] Giá, tồn kho, SKU chính xác.
+- [ ] Biến thể đủ quy cách, giá, tồn, SKU.
+- [ ] Ảnh hiển thị đúng, ảnh đầu tiên là ảnh đại diện.
 - [ ] Trạng thái đúng trước khi công bố.
-- [ ] Đã kiểm tra trang chi tiết và giỏ hàng.
+- [ ] Đã kiểm tra trang chi tiết và thử thêm vào giỏ.
 
 ### Nội dung
 
-- [ ] Banner có ảnh và link đúng.
-- [ ] Banner đã bật hiển thị.
-- [ ] Bộ sưu tập đã gán sản phẩm.
-- [ ] Chính sách đã bật hiển thị.
-- [ ] Tin tuyển dụng chỉ chuyển sang Đã đăng khi nội dung hoàn chỉnh.
-- [ ] Nhà phân phối có địa chỉ và bản đồ hợp lệ.
+- [ ] Banner có ảnh, alt text và link đúng; đã bật hiển thị.
+- [ ] Bộ sưu tập đã gán sản phẩm và đủ 3 điều kiện lên trang chủ.
+- [ ] Chính sách đã kích hoạt.
+- [ ] Tin tuyển dụng chỉ chuyển **Đã đăng** khi nội dung hoàn chỉnh.
+- [ ] Nhà phân phối có địa chỉ và **link `maps/embed` hợp lệ**.
+- [ ] Link PDF hồ sơ hợp tác còn mở được.
 
-### Đơn hàng
+### Đơn hàng (hằng ngày)
 
-- [ ] Kiểm tra trạng thái thanh toán riêng với trạng thái đơn.
-- [ ] Kiểm tra cảnh báo tồn kho.
-- [ ] Xác nhận địa chỉ và số điện thoại.
-- [ ] Chuyển đúng trạng thái tiếp theo.
-- [ ] Ghi chú các trường hợp hủy, chuyển hoàn hoặc hoàn tiền.
+- [ ] Rà đơn **Chờ thanh toán** — đối chiếu sao kê ngân hàng cho đơn VietQR.
+- [ ] Kiểm tra cảnh báo tồn kho trước khi cam kết với khách.
+- [ ] Xác nhận lại địa chỉ và số điện thoại người nhận.
+- [ ] Chuyển đúng bước trạng thái kế tiếp.
 - [ ] Lưu mã vận đơn và đơn vị vận chuyển.
+- [ ] Ghi chú nội bộ cho các đơn hủy / chuyển hoàn / hoàn tiền.
 
-## 21. Giới hạn hiện tại cần biết
+## 22. Giới hạn hiện tại cần biết
 
-1. Module **Màu sắc** chưa có trong menu Admin và không dùng cho vận hành.
-2. Form **Liên hệ** hiện hiển thị xác nhận gửi ở giao diện nhưng chưa có luồng
-   lưu/gửi yêu cầu thật phía hệ thống.
-3. Bộ lọc **sản phẩm cụ thể** trong phần điểm bán đang bị vô hiệu hóa; chỉ lọc
-   theo dòng sản phẩm/danh mục, tỉnh/thành và phường/xã.
-4. Chương trình điểm thưởng và mốc nhận thưởng phụ thuộc cấu hình triển khai;
-   chỉ xem thông tin đang hiển thị trong tài khoản là thông tin áp dụng.
-5. Banner campaign mặc định trên trang chủ luôn tồn tại; banner Admin được hiển
-   thị nối tiếp theo thứ tự.
+1. **Phí vận chuyển đang cố định 0đ (miễn phí)** cho mọi đơn. Bước “Kiểm tra
+   khu vực và phí giao hàng” dùng để xác định khu vực phục vụ, nhưng số tiền
+   phí hiển thị luôn là 0. Muốn thu phí ship phải yêu cầu bên kỹ thuật chỉnh.
+2. **VietQR không có webhook ngân hàng** — xác nhận thanh toán hoàn toàn thủ
+   công. Thông tin tài khoản nhận tiền được cấu hình phía hệ thống; nếu chưa
+   cấu hình, khu vực QR sẽ không hiện mã.
+3. **Bộ lọc “sản phẩm cụ thể”** trong phần điểm bán đang bị vô hiệu hóa (chỉ là
+   giao diện). Nút kính lúp bên cạnh cũng chỉ để trang trí — danh sách tự lọc
+   lại khi đổi dòng sản phẩm / tỉnh thành / phường xã.
+4. **Trang Câu hỏi thường gặp `/faqs`** chưa được đưa vào menu header/footer;
+   chỉ truy cập được bằng URL trực tiếp.
+5. **Module Màu sắc** (`/admin/colors`) không có trong menu và không dùng cho
+   vận hành.
+6. **Mã nhúng Google Maps** chỉ chấp nhận `https://www.google.com/maps/embed…`.
+   Dán link chia sẻ thường sẽ bị từ chối.
+7. **Banner campaign mặc định** trên trang chủ luôn tồn tại và không tắt được
+   từ Admin; banner Admin hiển thị nối tiếp phía sau.
+8. **Chương trình điểm thưởng** phụ thuộc cấu hình triển khai; thông tin đang
+   hiển thị trong tài khoản khách là thông tin áp dụng.
+9. Còn tồn tại trang `/checkout/vnpay-return` từ phương án thanh toán VNPay
+   trước đây, nhưng **VNPay không còn là lựa chọn** trong màn thanh toán.
 
-## 22. Khi cần hỗ trợ
+## 23. Ghi chú bàn giao kỹ thuật
+
+Phần này để bên tiếp nhận kỹ thuật nắm, không cần thiết cho vận hành hằng ngày.
+
+| Hạng mục | Tình trạng |
+|---|---|
+| Thông tin tài khoản VietQR | Đặt qua biến môi trường `NEXT_PUBLIC_VIETQR_BANK_ID`, `NEXT_PUBLIC_VIETQR_ACCOUNT_NO`, `NEXT_PUBLIC_VIETQR_ACCOUNT_NAME`. Chưa điền → mã QR không render. Các biến này **chưa có trong `.env.example`**. |
+| Phí vận chuyển | Cố định trong `src/config/shipping.ts` (`feeVnd: 0`). Biến `NEXT_PUBLIC_SHIPPING_FEE` có trong `.env` nhưng **không được code đọc**. |
+| Bản đồ điểm bán | iframe `https://www.google.com/maps/embed…`. Header CSP trong `src/middleware.ts` phải whitelist `https://www.google.com` ở `frame-src`, nếu không trình duyệt chặn iframe và hiện “This content is blocked”. |
+| Whitelist link bản đồ | `src/lib/maps-embed.ts` (frontend) phải đồng bộ với `ecom-website/src/modules/distributors/utils/maps-embed.util.ts` (backend). |
+| Link hợp tác | Lưu ở API `/settings`, field `partnership_pdf_url`. |
+| Tra cứu đơn khách vãng lai | Token 64 ký tự hex, truyền qua **hash** của URL (`#token=…`) nên không lọt vào server log; trang tự poll 30 giây. |
+
+## 24. Khi cần hỗ trợ
 
 Khi báo lỗi, gửi kèm:
 
-- module hoặc URL đang sử dụng;
+- module hoặc URL đang thao tác;
 - thời điểm xảy ra lỗi;
-- tài khoản/role đang đăng nhập;
-- mã đơn, mã sản phẩm hoặc ID dữ liệu liên quan nếu có;
-- ảnh chụp thông báo lỗi;
-- các bước đã thực hiện trước khi lỗi xảy ra.
+- tài khoản / vai trò đang đăng nhập;
+- mã đơn, mã sản phẩm hoặc ID dữ liệu liên quan;
+- ảnh chụp màn hình thông báo lỗi;
+- các bước đã làm ngay trước khi lỗi xảy ra.
 
-Không gửi mật khẩu, mã OTP hoặc thông tin thanh toán nhạy cảm qua kênh hỗ trợ.
+**Không** gửi mật khẩu, mã OTP hoặc thông tin thanh toán nhạy cảm qua kênh hỗ trợ.
