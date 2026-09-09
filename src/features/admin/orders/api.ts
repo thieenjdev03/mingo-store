@@ -29,7 +29,7 @@ export interface AdminOrderSummary {
   currency: string;
 }
 /** Trạng thái thanh toán — tách hẳn khỏi trạng thái đơn (xem status.ts). */
-export type AdminPaymentStatus = 'PENDING' | 'PAID' | 'FAILED';
+export type AdminPaymentStatus = 'PENDING' | 'PAID' | 'FAILED' | 'REFUNDED';
 
 export interface AdminOrderAddress {
   recipientName?: string | null;
@@ -86,11 +86,12 @@ export const PAYMENT_STATUS_LABEL: Record<AdminPaymentStatus, string> = {
   PENDING: 'Chờ thanh toán',
   PAID: 'Đã thanh toán',
   FAILED: 'Thất bại',
+  REFUNDED: 'Đã hoàn tiền',
 };
 
 export function paymentStatusTone(status?: AdminPaymentStatus | null): 'success' | 'warning' | 'danger' | 'neutral' {
   if (status === 'PAID') return 'success';
-  if (status === 'FAILED') return 'danger';
+  if (status === 'FAILED' || status === 'REFUNDED') return 'danger';
   if (status === 'PENDING') return 'warning';
   return 'neutral';
 }

@@ -5,7 +5,7 @@ export const SITE_URL = new URL(
 );
 
 export const SITE_NAME = 'Mingo Ice Cream';
-export const DEFAULT_OG_IMAGE = '/assets/mingo/home/hero-background.jpg';
+export const DEFAULT_OG_IMAGE = '/assets/mingo/main_logo_tron.png';
 export const NO_INDEX_METADATA: Metadata = {
   robots: { index: false, follow: false, nocache: true },
   alternates: { canonical: null },

@@ -3,6 +3,8 @@ import { setRequestLocale } from 'next-intl/server';
 import { AboutBrandView } from '@/sections/about/about-brand-view';
 import { pageMetadata, SEO_COPY, toSeoLocale } from '@/lib/seo';
 
+export const revalidate = 300;
+
 export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
   const { locale } = await params;
   const seoLocale = toSeoLocale(locale);

@@ -98,6 +98,23 @@ export interface CollectionCatalog {
   products: ProductResponseDto[];
 }
 
+/** Mọi collection đang active (kể cả collection không gắn homepage_section) — dùng cho sitemap. */
+export async function getActiveCollections(locale: string): Promise<CollectionApiItem[]> {
+  const items: CollectionApiItem[] = [];
+  let cursor: string | undefined;
+  do {
+    const page = await customFetch<CursorPage<CollectionApiItem>>({
+      url: '/collections',
+      method: 'GET',
+      params: { limit: 100, locale, ...(cursor ? { cursor } : {}) },
+      next: { revalidate: 300 },
+    });
+    items.push(...page.items);
+    cursor = page.nextCursor ?? undefined;
+  } while (cursor);
+  return items.filter((item) => item.is_active !== false);
+}
+
 export async function getCollectionCatalog(
   slug: string,
   locale: string,
