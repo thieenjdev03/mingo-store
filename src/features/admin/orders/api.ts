@@ -177,17 +177,37 @@ export function ordersKey(params: OrdersFilter) {
   return ['/orders', params] as const;
 }
 
+/**
+ * `GET /orders` (admin) và `GET /orders/:id` trả entity thô — không có cột `paymentStatus`
+ * (backend chỉ tính field này ở toTrackingView, dùng cho /me/orders và guest tracking).
+ * Tự suy ra ở đây theo đúng công thức backend (orders.service.ts#toTrackingView) để badge/lọc/
+ * doanh thu trên trang admin không luôn luôn là rỗng/0.
+ */
+function derivePaymentStatus(order: Pick<AdminOrder, 'status' | 'paidAt' | 'tracking_history'>): AdminPaymentStatus {
+  if (order.status === 'REFUNDED') return 'REFUNDED';
+  const wasPaid =
+    !!order.paidAt ||
+    order.status === 'PAID' ||
+    (order.tracking_history ?? []).some((item) => item.to_status === 'PAID');
+  return wasPaid ? 'PAID' : 'PENDING';
+}
+
+function withPaymentStatus(order: AdminOrder): AdminOrder {
+  return { ...order, paymentStatus: order.paymentStatus ?? derivePaymentStatus(order) };
+}
+
 export async function listOrders(params: OrdersFilter): Promise<AdminOrder[]> {
   const res = (await ordersControllerFindAll(params)) as unknown as
     | AdminOrder[]
     | { data?: AdminOrder[]; items?: AdminOrder[] }
     | undefined;
-  if (Array.isArray(res)) return res;
-  return res?.data ?? res?.items ?? [];
+  const list = Array.isArray(res) ? res : res?.data ?? res?.items ?? [];
+  return list.map(withPaymentStatus);
 }
 
 export async function getOrder(id: string): Promise<AdminOrder> {
-  return (await ordersControllerFindOne(id)) as unknown as AdminOrder;
+  const order = (await ordersControllerFindOne(id)) as unknown as AdminOrder;
+  return withPaymentStatus(order);
 }
 
 export function updateOrder(id: string, dto: UpdateOrderDto) {
